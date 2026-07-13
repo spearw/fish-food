@@ -2,10 +2,6 @@
 .godot/
 /android/
 /addons
-*.translation
-
-# User-specific files
-export_presets.cfg
 
 # Exported game files
 builds/

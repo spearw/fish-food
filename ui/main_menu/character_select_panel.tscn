@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://d1vkjj3tcx30h" path="res://ui/main_menu/upgrade_pack_button.tscn" id="7_ykukb"]
 [ext_resource type="Resource" uid="uid://cmasterbiome1" path="res://systems/global/lists/master_biome_list.tres" id="8_biomes"]
 [ext_resource type="PackedScene" uid="uid://cbiomebtnscn" path="res://ui/main_menu/biome_button.tscn" id="9_biomebtn"]
-[ext_resource type="Resource" path="res://systems/global/lists/master_encounter_config_list.tres" id="10_encconfig"]
+[ext_resource type="Resource" uid="uid://dk54mbojqk6co" path="res://systems/global/lists/master_encounter_config_list.tres" id="10_encconfig"]
 
 [node name="CharacterSelectPanel" type="Control"]
 layout_mode = 3
@@ -167,6 +167,172 @@ size_flags_vertical = 3
 layout_mode = 2
 theme_override_constants/h_separation = 6
 theme_override_constants/v_separation = 6
+
+[node name="VSeparator3" type="VSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="DifficultyContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 14
+text = "DIFFICULTY"
+
+[node name="CounterLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 10
+text = "← Counters →"
+horizontal_alignment = 1
+
+[node name="GridRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="IntensityLabels" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="HighLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/IntensityLabels"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Hi"
+vertical_alignment = 1
+
+[node name="NormLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/IntensityLabels"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Mid"
+vertical_alignment = 1
+
+[node name="LowLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/IntensityLabels"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Lo"
+vertical_alignment = 1
+
+[node name="DifficultyGrid" type="GridContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 2
+theme_override_constants/v_separation = 2
+columns = 3
+
+[node name="Btn_0_0" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="Btn_0_1" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="Btn_0_2" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="Btn_1_0" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="Btn_1_1" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+button_pressed = true
+
+[node name="Btn_1_2" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="Btn_2_0" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="Btn_2_1" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="Btn_2_2" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/GridRow/DifficultyGrid"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+toggle_mode = true
+
+[node name="AxisLabels" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/AxisLabels"]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+
+[node name="EasyLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/AxisLabels"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "E"
+horizontal_alignment = 1
+
+[node name="NormalLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/AxisLabels"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "N"
+horizontal_alignment = 1
+
+[node name="HardLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer/AxisLabels"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "H"
+horizontal_alignment = 1
+
+[node name="DifficultyDescription" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/DifficultyContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "Normal intensity
+Standard counters"
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [connection signal="pressed" from="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/CharactersContainer/VBoxContainer/HBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="pressed" from="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/CharactersContainer/VBoxContainer/HBoxContainer/SelectAndStartButton" to="." method="_on_select_and_start_button_pressed"]

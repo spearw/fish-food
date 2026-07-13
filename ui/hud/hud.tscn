@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cmlh5vdjiumsh" path="res://ui/hud/hud.gd" id="1_xmswo"]
 [ext_resource type="Texture2D" uid="uid://cy1u8el4h7184" path="res://ui/textures/xp_bar_texture.png" id="2_4d6w6"]
-[ext_resource type="PackedScene" path="res://ui/hud/encounter_banner.tscn" id="3_banner"]
+[ext_resource type="PackedScene" uid="uid://ba73yfuyh4tuy" path="res://ui/hud/encounter_banner.tscn" id="3_banner"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_xmswo")

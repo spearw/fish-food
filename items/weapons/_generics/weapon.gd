@@ -13,6 +13,9 @@ extends Node2D
 # --- DamageType Tags (weapon identity for synergies/artifacts) ---
 @export var themes: Array[WeaponTags.DamageType] = []
 
+# --- Effect Tags (weapon behaviors for counter-spawning) ---
+@export var effects: Array[WeaponTags.Effect] = []
+
 # --- State ---
 var last_fire_direction: Vector2 = Vector2.RIGHT
 var is_transformed: bool = false

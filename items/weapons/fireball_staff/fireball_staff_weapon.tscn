@@ -14,6 +14,8 @@ wall_of_fire_stats = ExtResource("2_4wsim")
 projectile_stats = ExtResource("2_nm1tt")
 custom_projectile_scene = ExtResource("3_jirlb")
 base_fire_rate = 5.0
+themes = Array[int]([0])
+effects = Array[int]([0, 5, 6, 8])
 
 [node name="FireRateTimer" type="Timer" parent="."]
 wait_time = 2.0

@@ -384,6 +384,18 @@ func _unlock_power(power_key: String):
 		# Connect to the global event bus to gain buffs on enemy kills.
 		Events.enemy_killed.connect(_on_enemy_killed)
 
+# --- Build Analysis Methods (for counter-spawning) ---
+
+## Returns all equipped weapons for build analysis.
+func get_weapons() -> Array:
+	if has_node("Equipment"):
+		return get_node("Equipment").get_children()
+	return []
+
+## Returns all equipped artifacts for build analysis.
+func get_artifacts() -> Array:
+	return _cached_artifacts
+
 # --- Signal Callbacks ---
 
 ## Triggered by the "whirlwind" power when an enemy is killed.

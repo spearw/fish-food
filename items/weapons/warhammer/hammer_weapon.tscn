@@ -16,6 +16,8 @@ shockwave_stats = ExtResource("3_dbtn2")
 projectile_stats = ExtResource("2_bmetw")
 custom_projectile_scene = ExtResource("3_g88j3")
 base_fire_rate = 5.0
+themes = Array[int]([6])
+effects = Array[int]([4, 5, 10, 13])
 
 [node name="FireRateTimer" type="Timer" parent="."]
 wait_time = 3.0

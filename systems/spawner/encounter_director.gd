@@ -28,6 +28,9 @@ var pending_encounter_sets: Array[EncounterSet]
 # --- METAPROGRESSION ---
 var threat_level: float = 1.0 # This will later be fetched from GameData as a player unlocks/increases difficulty
 
+# --- BUILD ANALYSIS (for counter-spawning) ---
+var build_analyzer: BuildAnalyzer = null
+
 func _ready():
 	# Validate that we have everything we need to function.
 	if not enemy_scene or not difficulty_curve or encounter_sets.is_empty():
@@ -55,6 +58,13 @@ func _ready():
 	# Sort the master list by time and create pending list.
 	encounter_sets.sort_custom(func(a, b): return a.time_start < b.time_start)
 	pending_encounter_sets = encounter_sets.duplicate()
+
+	# Initialize build analysis for counter-spawning (only if not NORMAL mode)
+	if CurrentRun.counter_mode != CurrentRun.CounterMode.NORMAL:
+		_update_build_analysis()
+		# Re-analyze when player's build changes (weapons/upgrades/artifacts)
+		if is_instance_valid(player_node) and player_node.has_signal("stats_changed"):
+			player_node.stats_changed.connect(_update_build_analysis)
 	
 func _physics_process(delta: float):
 	if not is_instance_valid(player_node): return
@@ -62,7 +72,8 @@ func _physics_process(delta: float):
 	# Accumulate the budget.
 	run_timer += delta
 	var base_budget_per_sec = difficulty_curve.sample(run_timer)
-	var current_frame_budget = base_budget_per_sec * threat_level * delta
+	var intensity_mult = CurrentRun.get_intensity_multiplier()
+	var current_frame_budget = base_budget_per_sec * threat_level * intensity_mult * delta
 	budget_accumulator += current_frame_budget
 	
 	# Check for any one-time "override" events that need to fire now.
@@ -98,6 +109,11 @@ func _on_spawn_pulse_timer_timeout():
 		spawn_enemy(theme_enemy_stats)
 
 
+## Updates the cached build analysis when player's build changes.
+func _update_build_analysis():
+	if is_instance_valid(player_node):
+		build_analyzer = BuildAnalyzer.analyze_player(player_node)
+
 ## Gathers all enemies from EncounterSets that are active at the current run_timer.
 ## If a biome is selected, filters to only enemies matching that biome.
 func _get_currently_available_enemies() -> Array[EnemyStats]:
@@ -129,6 +145,7 @@ func _pick_theme_enemy(pool: Array[EnemyStats], budget: float) -> EnemyStats:
 
 
 ## Picks an enemy from the pool using EncounterConfig tag weights.
+## Applies difficulty-based effectiveness multipliers if in EASY/HARD mode.
 func _pick_weighted_enemy(pool: Array[EnemyStats]) -> EnemyStats:
 	if pool.is_empty(): return null
 	if not encounter_config:
@@ -140,6 +157,10 @@ func _pick_weighted_enemy(pool: Array[EnemyStats]) -> EnemyStats:
 
 	for enemy_stats in pool:
 		var weight = encounter_config.calculate_enemy_weight(enemy_stats)
+
+		# Apply difficulty-based effectiveness multipliers
+		weight = _apply_difficulty_weight(weight, enemy_stats)
+
 		total_weight += weight
 		weighted_enemies.append({"stats": enemy_stats, "weight": weight})
 
@@ -156,6 +177,42 @@ func _pick_weighted_enemy(pool: Array[EnemyStats]) -> EnemyStats:
 			return entry.stats
 
 	return pool[0]
+
+## Applies counter-mode weight adjustments using build analysis.
+## EASY: Spawn more enemies the player counters (effectiveness > 1 = higher weight)
+## HARD: Spawn more enemies that counter the player (effectiveness < 1 = higher weight)
+func _apply_difficulty_weight(base_weight: float, enemy_stats: EnemyStats) -> float:
+	# Skip if no counter adjustment or no build analysis
+	if CurrentRun.counter_mode == CurrentRun.CounterMode.NORMAL:
+		return base_weight
+	if not build_analyzer:
+		return base_weight
+
+	# Get average effectiveness vs this enemy's behaviors
+	var total_effectiveness = 0.0
+	var behavior_count = 0
+	for behavior in enemy_stats.behavior_tags:
+		total_effectiveness += build_analyzer.get_effectiveness_vs_behavior(behavior)
+		behavior_count += 1
+
+	if behavior_count == 0:
+		return base_weight
+
+	var avg_effectiveness = total_effectiveness / behavior_count
+
+	match CurrentRun.counter_mode:
+		CurrentRun.CounterMode.EASY:
+			# Higher effectiveness = spawn more (player is strong against this)
+			# Scale: effectiveness 1.5 -> weight * 1.5, effectiveness 0.5 -> weight * 0.5
+			return base_weight * avg_effectiveness
+		CurrentRun.CounterMode.HARD:
+			# Lower effectiveness = spawn more (player is weak against this)
+			# Invert: effectiveness 0.5 -> weight * 2.0, effectiveness 2.0 -> weight * 0.5
+			if avg_effectiveness > 0:
+				return base_weight / avg_effectiveness
+			return base_weight
+
+	return base_weight
 
 ## Instantiates and positions a single enemy.
 func spawn_enemy(stats: EnemyStats):

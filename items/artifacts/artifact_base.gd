@@ -7,6 +7,10 @@ extends Node
 ## The player/entity that owns this artifact. Set by UpgradeManager when equipped.
 var user: Node = null
 
+## Effect tags for counter-spawning difficulty system.
+## Override in subclass or set in inspector to define what this artifact enables.
+@export var effects: Array[WeaponTags.Effect] = []
+
 ## Called when the artifact is first equipped.
 ## Override in subclasses for setup logic (connecting signals, etc.).
 func on_equipped() -> void:

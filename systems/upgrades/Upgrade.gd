@@ -28,3 +28,7 @@ enum ModifierType {MULTIPLICATIVE, ADDITIVE, POWERS}
 # This array holds the different values for this upgrade based on rarity.
 # Index 0 = COMMON, 1 = RARE, 2 = EPIC, 3 = LEGENDARY
 @export var rarity_values: Array[float]
+
+# --- Effect Tags (for counter-spawning difficulty system) ---
+# Tags that describe what this upgrade enables the player to do.
+@export var effects: Array[WeaponTags.Effect] = []

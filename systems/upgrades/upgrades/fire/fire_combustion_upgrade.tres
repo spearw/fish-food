@@ -13,4 +13,5 @@ rarity = 0
 key = "dot_damage_bonus"
 modifier_type = 0
 rarity_values = Array[float]([0.1, 0.15, 0.2, 0.25])
+effects = Array[int]([])
 metadata/_custom_type_script = "uid://d0ibxieicws6j"

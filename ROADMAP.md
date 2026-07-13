@@ -104,11 +104,34 @@ Difficulty modes that dynamically adjust encounter weights based on the player's
 - Prevents repetitive "solved" strategies
 - Forces adaptation and build variety
 
-### Implementation Notes
-- `EncounterDirector` already tracks `current_threat` by behavior tags
-- Need to add: player build tag analysis
-- Need to add: dynamic weight adjustment based on difficulty mode
-- Configs remain the base; difficulty mode applies a multiplier layer on top
+### Implementation (Foundation Complete)
+
+**Effect Tags on Items:**
+- `Weapon.effects: Array[WeaponTags.Effect]` - weapon behaviors (AOE, HOMING, etc.)
+- `Upgrade.effects: Array[WeaponTags.Effect]` - upgrade contributions
+- `ArtifactBase.effects: Array[WeaponTags.Effect]` - artifact contributions
+
+**Counter Matrix** (`WeaponTags.COUNTER_MATRIX`):
+Maps player effects → enemy behaviors → effectiveness multiplier.
+```
+Effect.AOE → { SWARM: 1.5, HORDE: 1.4, ARMORED: 0.7 }
+Effect.HOMING → { EVASIVE: 1.8, FAST: 1.5 }
+Effect.ARMOR_PEN → { ARMORED: 1.8 }
+...
+```
+
+**Build Analyzer** (`BuildAnalyzer`):
+- Gathers all effect tags from player's weapons/upgrades/artifacts
+- Calculates actual metrics (DPS, area coverage) for hybrid scaling
+- `get_effectiveness_vs_behavior(behavior)` → effectiveness multiplier
+- `get_strongest_against()` / `get_weakest_against()` → for difficulty logic
+
+**Remaining Work:**
+- [ ] Add `get_weapons()` and `get_artifacts()` methods to Player
+- [ ] Wire BuildAnalyzer into EncounterDirector
+- [ ] Add difficulty mode selection (EASY/NORMAL/HARD)
+- [ ] Apply effectiveness multipliers to spawn weights
+- [ ] Populate effects on existing weapons/upgrades/artifacts
 
 ---
 
@@ -143,14 +166,16 @@ damage_taken = max(0, damage - armor)
 - [x] Enemy tag system (biome, type, size, behavior tags)
 - [x] Biome-based enemy pool filtering
 - [x] Encounter config system with random selection at run start
+- [x] Encounter config banner UI (show selected config to player)
+- [x] Counter-spawning foundation (effect tags, counter matrix, BuildAnalyzer)
 
 ### In Progress
 - [ ] Character-deck exclusive linking
 - [ ] Secondary deck selection UI
-- [ ] Encounter config banner UI (show selected config to player)
+- [ ] Difficulty mode integration (wire BuildAnalyzer into EncounterDirector)
 
 ### Planned
-- [ ] Difficulty-based counter-spawning (EASY/HARD modes)
+- [ ] Difficulty mode selection UI (EASY/NORMAL/HARD)
 - [ ] Weapon bonuses vs enemy type tags
 - [ ] Armor/penetration stat implementation
 - [ ] Weapon transformation system (upgrade paths)

@@ -12,6 +12,7 @@ projectile_stats = ExtResource("2_18ouq")
 base_projectile_count = 10
 base_fire_rate = 4.0
 themes = Array[int]([6])
+effects = Array[int]([3, 5, 7])
 
 [node name="FireRateTimer" type="Timer" parent="."]
 wait_time = 2.0

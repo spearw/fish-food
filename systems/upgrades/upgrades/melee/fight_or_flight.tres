@@ -13,4 +13,5 @@ rarity = 2
 key = "fight_or_flight"
 modifier_type = 2
 rarity_values = Array[float]([1.0, 2.0, 3.0, 4.0])
+effects = Array[int]([])
 metadata/_custom_type_script = "uid://d0ibxieicws6j"

@@ -13,3 +13,12 @@ builds/
 *.zip
 *.exe
 *.dmg
+
+# iOS/macOS Xcode export output (regenerated on export; too large for GitHub)
+/fish demo/
+/fish demo.xcodeproj/
+*.xcframework/
+PrivacyInfo.xcprivacy
+
+# macOS
+.DS_Store

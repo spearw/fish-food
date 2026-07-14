@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bugsweep0verify0"]
+
+[ext_resource type="Script" path="res://bugsweep_verify.gd" id="1_bsv"]
+
+[node name="BugSweepVerify" type="Node"]
+script = ExtResource("1_bsv")

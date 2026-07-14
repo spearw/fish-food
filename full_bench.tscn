@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ft13b6jqksmi"]
+
+[ext_resource type="Script" path="res://full_bench.gd" id="1_fb"]
+
+[node name="FullBench" type="Node"]
+script = ExtResource("1_fb")

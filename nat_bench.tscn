@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://nat0bench0probe1"]
+
+[ext_resource type="Script" path="res://nat_bench.gd" id="1_nb"]
+
+[node name="NatBench" type="Node"]
+script = ExtResource("1_nb")

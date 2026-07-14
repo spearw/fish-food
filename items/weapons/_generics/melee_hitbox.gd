@@ -79,8 +79,9 @@ func _apply_spark_effect(hit_body: Node2D):
 		spark_damage = int(spark_damage * damage_mult)
 		spark_bounces += int(actual_user.get_stat("spark_bounce_bonus")) if actual_user.get_stat("spark_bounce_bonus") else 0
 
-	# Find enemies to target (excluding the one we just hit)
-	var candidates = TargetingUtils.get_candidates("enemies")
+	# Find enemies to target (excluding the one we just hit) -- bounded spatial query, not every enemy
+	# on the map, matching the projectile spark path (projectile.gd _apply_spark_effect).
+	var candidates = EntityRegistry.get_candidates_near("enemies", hit_body.global_position, spark_range)
 	candidates = candidates.filter(func(c): return c != hit_body and is_instance_valid(c))
 
 	# Sort by distance to find closest targets
@@ -97,6 +98,8 @@ func _apply_spark_effect(hit_body: Node2D):
 
 func _create_spark(spawn_pos: Vector2, target_enemy: Node2D, dmg: int, bounces: int, range_val: float, spd: float, lifetime_val: float, spark_user: Node2D, spark_weapon: Node2D):
 	var spark = ProjectilePool.get_spark()
+	if spark == null:
+		return  # over the concurrent-spark cap (pool returned null)
 
 	spark.allegiance = SparkProjectile.Allegiance.PLAYER if allegiance == Projectile.Allegiance.PLAYER else SparkProjectile.Allegiance.ENEMY
 	spark.user = spark_user

@@ -24,6 +24,7 @@ var user: Node:
 var allegiance
 var base_scale
 var _overlapping_bodies: Array = []  # Cached list of bodies in area
+var _body_managers: Dictionary = {}  # body -> its StatusEffectManager (or null), resolved once on enter
 
 func _ready():
 	# Guard clause to ensure correct data type.
@@ -69,9 +70,12 @@ func _ready():
 func _on_body_entered(body: Node2D) -> void:
 	if body not in _overlapping_bodies:
 		_overlapping_bodies.append(body)
+		# Resolve the status manager once, on entry, so the per-tick loop is free of string lookups.
+		_body_managers[body] = body.get_node_or_null("StatusEffectManager")
 
 func _on_body_exited(body: Node2D) -> void:
 	_overlapping_bodies.erase(body)
+	_body_managers.erase(body)
 
 func _on_tick_timer_timeout():
 	var target_group = "enemies" if allegiance == Projectile.Allegiance.PLAYER else "player"
@@ -80,10 +84,11 @@ func _on_tick_timer_timeout():
 		if not is_instance_valid(body):
 			continue
 		if body.is_in_group(target_group):
-			# Apply payload
-			if stats.status_to_apply and body.has_node("StatusEffectManager"):
-				if randf() < stats.status_chance:
-					body.get_node("StatusEffectManager").apply_status(stats.status_to_apply, user)
+			# Apply payload (StatusEffectManager was resolved on entry, not looked up here).
+			if stats.status_to_apply and randf() < stats.status_chance:
+				var mgr = _body_managers.get(body)
+				if mgr != null:
+					mgr.apply_status(stats.status_to_apply, user)
 			if stats.damage and body.has_method("take_damage"):
 				body.take_damage(stats.damage, stats.armor_penetration, false)
 

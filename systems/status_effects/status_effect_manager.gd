@@ -14,11 +14,20 @@ var _processing_cache_dirty: bool = false
 
 func _ready():
 	host = get_parent()
+	# Idle by default. Most enemies have no active status at any moment, and a per-frame status (DOT)
+	# turns processing back on in apply_status. Without this, every enemy's manager dispatches an empty
+	# _physics_process every frame -- at hundreds of enemies that is the single most-multiplied cost in
+	# the status system, for zero work. Duration expiry uses one-shot Timers, so it still fires while idle.
+	set_physics_process(false)
 
 func _physics_process(delta: float):
 	# Rebuild processing cache if dirty
 	if _processing_cache_dirty:
 		_rebuild_processing_cache()
+		# Nothing needs per-frame processing anymore -> go idle until the next processing status.
+		if _processing_statuses.is_empty():
+			set_physics_process(false)
+			return
 
 	# Fast iteration over pre-cached array (no dictionary lookups)
 	for data in _processing_statuses:
@@ -70,6 +79,10 @@ func apply_status(status_resource: StatusEffect, source: Node):
 
 		# Mark cache dirty so _physics_process rebuilds it
 		_processing_cache_dirty = true
+		# Only take per-frame processing time if this status actually needs it (e.g. DOT). Statuses
+		# like SLOW have needs_processing=false and expire via their one-shot Timer, staying idle.
+		if status_instance.needs_processing:
+			set_physics_process(true)
 
 		duration_timer.start()
 		status_instance.on_apply(self, source)

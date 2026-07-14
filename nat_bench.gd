@@ -7,11 +7,20 @@ extends Node
 func _ready() -> void:
 	var sim := 1195.0
 	var scale := 0.0
+	var perfmode := false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--sim="):
 			sim = float(arg.split("=")[1])
 		elif arg.begins_with("--scale="):
 			scale = float(arg.split("=")[1])
+		elif arg.begins_with("--perfmode="):
+			perfmode = int(arg.split("=")[1]) != 0
+
+	# Bench-only: apply the GameSettings performance toggles WITHOUT persisting them to disk.
+	if perfmode:
+		GameSettings.show_damage_numbers = false
+		GameSettings.show_health_bars = false
+		GameSettings.show_status_vfx = false
 
 	CurrentRun.selected_character = load("res://actors/player/characters/edgerunner/edgerunner_character.tres")
 	CurrentRun.selected_biome = load("res://systems/spawner/biomes/reef_biome.tres")

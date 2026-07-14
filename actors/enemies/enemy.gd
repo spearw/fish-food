@@ -124,8 +124,11 @@ func _physics_process(delta: float) -> void:
 func _on_take_damage(damage_taken: int, is_crit: bool, _source_node: Node) -> void:
 	if damage_taken <= 0:
 		return
-	# Spawn a floating damage number (including for spark hits -- measured in isolation these are
-	# cheap, ~1ms per 150, and DamageNumberPool's concurrent cap bounds the on-screen count).
+	# Optional cosmetic (perf setting). Numbers themselves are cheap (~1ms/150) and pool-capped, but a
+	# player on weak hardware can turn them off.
+	if not GameSettings.show_damage_numbers:
+		return
+	# Spawn a floating damage number (including for spark hits).
 	var dmg_num_instance = DamageNumberPool.get_damage_number()
 	if dmg_num_instance == null:
 		return  # damage-number cap reached (too many on screen)
@@ -193,8 +196,8 @@ func _restore_ai_state_safe() -> void:
 func update_health_bar(current: int, max_val: int) -> void:
 	health_bar.max_value = max_val
 	health_bar.value = current
-	# Only show the health bar once the enemy has taken damage.
-	health_bar.visible = current < max_val
+	# Show once damaged -- unless health bars are turned off for performance.
+	health_bar.visible = current < max_val and GameSettings.show_health_bars
 	
 # --- Signal Callbacks ---
 

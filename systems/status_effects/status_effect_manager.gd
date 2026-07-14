@@ -109,8 +109,9 @@ func _apply_visuals(status_instance: StatusEffect):
 	var vfx_instance = null
 	var host_sprite = host.get_node_or_null("AnimatedSprite2D")
 
-	if status_instance.vfx_sprite_frames:
-		# This status has a complex animated effect.
+	if status_instance.vfx_sprite_frames and GameSettings.show_status_vfx:
+		# This status has a complex animated effect (an extra AnimatedSprite2D per afflicted enemy).
+		# Optional under the performance setting; the cheap color tint below still conveys the status.
 		vfx_instance = preload("res://items/effects/status_vfx/status_vfx.tscn").instantiate()
 		vfx_instance.sprite_frames_resource = status_instance.vfx_sprite_frames
 		host.add_child(vfx_instance) # Attach the VFX

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="UpgradePack" load_steps=14 format=3 uid="uid://bocg4md8mrsy6"]
+[gd_resource type="Resource" script_class="Deck" load_steps=14 format=3 uid="uid://bocg4md8mrsy6"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_pack"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upgrade"]
@@ -16,8 +16,9 @@
 
 [resource]
 script = ExtResource("1_pack")
-pack_name = "Lightning"
-pack_description = "Sparks bounce between enemies, chaining damage across groups. Synergizes with spark count, damage, and bounce upgrades."
+id = "lightning"
+deck_name = "Lightning"
+deck_description = "Sparks bounce between enemies, chaining damage across groups. Synergizes with spark count, damage, and bounce upgrades."
 unlock_cost = 0
 upgrades = Array[ExtResource("2_upgrade")]([ExtResource("3_chainlightning"), ExtResource("4_teslacoil"), ExtResource("5_stormstaff"), ExtResource("6_lightningsword"), ExtResource("7_grounding"), ExtResource("8_surgeprotector"), ExtResource("9_staticdischarge"), ExtResource("10_conductive"), ExtResource("11_sparkcount"), ExtResource("12_sparkdamage"), ExtResource("13_conductivity")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

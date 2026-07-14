@@ -5,7 +5,7 @@ extends PanelContainer
 signal back_pressed
 
 @export var character_list: CharacterList
-@export var pack_list: PackList
+@export var pack_list: DeckList
 @export var meta_upgrades: Array[MetaUpgrade]
 @export var unlock_button_scene: PackedScene
 @export var meta_upgrade_button_scene: PackedScene
@@ -152,7 +152,7 @@ func _populate_packs():
 
 	var unlocked_packs = GameData.data["unlocked_pack_paths"]
 
-	for pack_data in pack_list.packs:
+	for pack_data in pack_list.decks:
 		# Only show locked packs
 		if pack_data.resource_path in unlocked_packs:
 			continue

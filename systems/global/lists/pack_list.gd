@@ -1,6 +1,7 @@
-## pack_list.gd
-## A Resource that holds an array of all usable upgrade packs in the game.
-class_name PackList
+## pack_list.gd  (class: DeckList)
+## A Resource holding the master list of selectable Decks in the game.
+## (Formerly "PackList" -- the file keeps its legacy name; the class is "DeckList".)
+class_name DeckList
 extends Resource
 
-@export var packs: Array[UpgradePack]
+@export var decks: Array[Deck]

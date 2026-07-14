@@ -24,9 +24,9 @@ func set_unlock_data(data: Resource):
 		if data.character_sprite_frames and data.character_sprite_frames.has_animation("idle"):
 			icon_rect.texture = data.character_sprite_frames.get_frame_texture("idle", 0)
 		unlock_cost = data.unlock_cost
-	elif data is UpgradePack:
-		name_label.text = data.pack_name
-		icon_rect.texture = data.pack_icon
+	elif data is Deck:
+		name_label.text = data.deck_name
+		icon_rect.texture = data.deck_icon
 		unlock_cost = data.unlock_cost
 
 	cost_label.text = "Cost: %d Souls" % unlock_cost

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="UpgradePack" load_steps=22 format=3 uid="uid://c7go0mrrcgyyi"]
+[gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://c7go0mrrcgyyi"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_l02k6"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_v22cx"]
@@ -24,8 +24,9 @@
 
 [resource]
 script = ExtResource("1_l02k6")
-pack_name = "Melee"
-pack_description = "Must be adjacent to enemy, but does high damage"
+id = "melee"
+deck_name = "Melee"
+deck_description = "Must be adjacent to enemy, but does high damage"
 unlock_cost = 0
 upgrades = Array[ExtResource("2_v22cx")]([ExtResource("3_n2chr"), ExtResource("4_x762d"), ExtResource("5_chv20"), ExtResource("6_5a720"), ExtResource("7_thdsj"), ExtResource("8_lpvku"), ExtResource("9_e4wt0"), ExtResource("10_xwp00"), ExtResource("11_1n2fc"), ExtResource("12_7h14r"), ExtResource("13_s5atr"), ExtResource("14_uq0ht"), ExtResource("15_k6aj6"), ExtResource("16_puna0"), ExtResource("17_lcqdh"), ExtResource("18_tpjyj"), ExtResource("19_x762d"), ExtResource("20_chv20"), ExtResource("21_5a720")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

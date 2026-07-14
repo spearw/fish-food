@@ -135,7 +135,7 @@ func _execute_unlock_all_characters(_args: Array):
 	
 func _execute_unlock_all_decks(_args: Array):
 	var pack_list = load("res://systems/global/lists/master_pack_list.tres") # Load the master list
-	for pack_data in pack_list.packs:
+	for pack_data in pack_list.decks:
 		GameData.unlock_pack(pack_data.resource_path)
 	_log_to_console("All packs unlocked. Changes will appear on the next character screen visit.")
 

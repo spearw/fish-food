@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="UpgradePack" load_steps=8 format=3 uid="uid://bc8pfntixt6we"]
+[gd_resource type="Resource" script_class="Deck" load_steps=8 format=3 uid="uid://bc8pfntixt6we"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_iclir"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_dy2c8"]
@@ -10,8 +10,9 @@
 
 [resource]
 script = ExtResource("1_iclir")
-pack_name = "Test Pack"
-pack_description = "Stuff I am currently testing."
+id = "test"
+deck_name = "Test Pack"
+deck_description = "Stuff I am currently testing."
 unlock_cost = 0
 upgrades = Array[ExtResource("2_dy2c8")]([ExtResource("7_enoyn"), ExtResource("8_pi8hp"), ExtResource("5_o0k67"), ExtResource("7_pi8hp"), ExtResource("7_jlo55")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

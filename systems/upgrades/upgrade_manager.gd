@@ -46,13 +46,13 @@ func _build_active_upgrade_pool():
 	if CORE_PACK_PATH not in selected_pack_paths:
 		selected_pack_paths.insert(0, CORE_PACK_PATH)
 
-	var pack_names = []
+	var deck_names = []
 	for pack_path in selected_pack_paths:
-		var pack_resource: UpgradePack = load(pack_path)
+		var pack_resource: Deck = load(pack_path)
 		if pack_resource:
 			# Add all upgrades from this pack into our active pool for this run.
 			active_upgrade_pool.append_array(pack_resource.upgrades)
-			pack_names.append(pack_resource.pack_name)
+			deck_names.append(pack_resource.deck_name)
 
 			# Pre-compute rarity buckets for fast lookup
 			for upgrade in pack_resource.upgrades:
@@ -67,10 +67,10 @@ func _build_active_upgrade_pool():
 					# Transformations go in their exact rarity bucket
 					_unlock_buckets[upgrade.rarity].append(upgrade)
 		else:
-			printerr("Failed to load UpgradePack at path: ", pack_path)
+			printerr("Failed to load Deck at path: ", pack_path)
 
 	Logs.add_message("UpgradeManager pool built for this run.")
-	Logs.add_message(["Packs added:", pack_names])
+	Logs.add_message(["Packs added:", deck_names])
 	Logs.add_message(["Total upgrades available: ", active_upgrade_pool.size()])
 
 ## Store reference to the player's equipment and artifacts.

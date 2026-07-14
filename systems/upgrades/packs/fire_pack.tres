@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="UpgradePack" load_steps=22 format=3 uid="uid://dy0thirxxtsv"]
+[gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://dy0thirxxtsv"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_cpco1"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_vldj6"]
@@ -24,8 +24,9 @@
 
 [resource]
 script = ExtResource("1_cpco1")
-pack_name = "Fire"
-pack_description = "All weapons apply DoT on hit. DoT has chance of igniting, causing more damage and additional effects."
+id = "fire"
+deck_name = "Fire"
+deck_description = "All weapons apply DoT on hit. DoT has chance of igniting, causing more damage and additional effects."
 unlock_cost = 0
 upgrades = Array[ExtResource("2_vldj6")]([ExtResource("3_io1kt"), ExtResource("4_2rgh6"), ExtResource("5_wu2a6"), ExtResource("6_fh3pm"), ExtResource("7_x3r5g"), ExtResource("8_mf568"), ExtResource("9_m1h8x"), ExtResource("10_wu2a6"), ExtResource("11_fh3pm"), ExtResource("12_fh3pm"), ExtResource("13_mf568"), ExtResource("14_m1h8x"), ExtResource("15_bnntq"), ExtResource("16_ga686"), ExtResource("17_1152r"), ExtResource("18_jumii"), ExtResource("19_ga686"), ExtResource("20_1152r"), ExtResource("21_jumii")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

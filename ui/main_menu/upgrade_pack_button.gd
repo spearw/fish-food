@@ -1,6 +1,6 @@
-## upgrade_pack_button.gd
-## A button for selecting an UpgradePack in the pre-run screen.
-class_name UpgradePackButton
+## upgrade_pack_button.gd  (class: DeckButton)
+## A button for selecting a Deck in the pre-run screen. (Formerly "UpgradePackButton".)
+class_name DeckButton
 extends PanelContainer
 
 # Signal to notify the parent when the selection state changes.
@@ -13,7 +13,7 @@ signal selection_toggled(button_instance)
 @onready var select_button: Button = $SelectButton
 @onready var selection_border: Panel = $SelectionBorder
 
-var pack_data: UpgradePack
+var deck_data: Deck
 var is_unlocked: bool = false
 var _is_selected: bool = false
 
@@ -21,19 +21,19 @@ func _ready():
 	update_display()
 	select_button.pressed.connect(_on_button_pressed)
 
-func set_pack_data(data: UpgradePack, unlocked: bool):
-	self.pack_data = data
+func set_deck_data(data: Deck, unlocked: bool):
+	self.deck_data = data
 	self.is_unlocked = unlocked
 
 func update_display():
 	if not is_instance_valid(name_label):
 		return
 
-	name_label.text = pack_data.pack_name if is_unlocked else "LOCKED"
-	description_label.text = pack_data.pack_description if is_unlocked else ""
+	name_label.text = deck_data.deck_name if is_unlocked else "LOCKED"
+	description_label.text = deck_data.deck_description if is_unlocked else ""
 
 	if is_unlocked:
-		icon_rect.texture = pack_data.pack_icon
+		icon_rect.texture = deck_data.deck_icon
 		self.modulate = Color.WHITE
 		select_button.disabled = false
 	else:

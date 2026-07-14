@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="PackList" load_steps=8 format=3 uid="uid://d5bu6epgfgbw"]
+[gd_resource type="Resource" script_class="DeckList" load_steps=8 format=3 uid="uid://d5bu6epgfgbw"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_21fx0"]
 [ext_resource type="Resource" uid="uid://cslvyly2f8qn1" path="res://systems/upgrades/packs/core_pack.tres" id="2_3xg5p"]
@@ -10,5 +10,5 @@
 
 [resource]
 script = ExtResource("2_pjtqk")
-packs = Array[ExtResource("1_21fx0")]([ExtResource("2_3xg5p"), ExtResource("3_6gl76"), ExtResource("4_6gl76"), ExtResource("4_wqteb"), ExtResource("5_lightning")])
+decks = Array[ExtResource("1_21fx0")]([ExtResource("2_3xg5p"), ExtResource("3_6gl76"), ExtResource("4_6gl76"), ExtResource("4_wqteb"), ExtResource("5_lightning")])
 metadata/_custom_type_script = "uid://dsippqwnljpr2"

@@ -1,11 +1,12 @@
-[gd_resource type="Resource" script_class="UpgradePack" load_steps=3 format=3 uid="uid://ds2uq4c8iwsfq"]
+[gd_resource type="Resource" script_class="Deck" load_steps=3 format=3 uid="uid://ds2uq4c8iwsfq"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_1vjku"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_s72px"]
 
 [resource]
 script = ExtResource("1_1vjku")
-pack_name = "Projectiles"
-pack_description = "You are the bullet hell."
+id = "projectile"
+deck_name = "Projectiles"
+deck_description = "You are the bullet hell."
 upgrades = Array[ExtResource("2_s72px")]([])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

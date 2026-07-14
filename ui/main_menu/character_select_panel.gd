@@ -18,7 +18,7 @@ const CONTENT_PATH = "CenterContainer/PanelContainer/MarginContainer/VBoxContain
 @onready var select_button: Button = get_node(CONTENT_PATH + "/CharactersContainer/VBoxContainer/HBoxContainer/SelectAndStartButton")
 
 # Upgrade packs
-@export var all_packs: PackList
+@export var all_packs: DeckList
 @export var upgrade_pack_button_scene: PackedScene
 @export var max_packs_allowed: int = 3 # 3 including core pack
 
@@ -42,7 +42,7 @@ const CONTENT_PATH = "CenterContainer/PanelContainer/MarginContainer/VBoxContain
 
 var selected_character: PlayerStats
 var selected_character_button: CharacterButton = null
-var selected_packs: Array[UpgradePackButton] = []
+var selected_packs: Array[DeckButton] = []
 var selected_biome_button: BiomeButton = null
 
 # Difficulty selection (row = intensity, col = counter mode)
@@ -143,10 +143,10 @@ func populate_pack_grid():
 	selected_packs.clear()
 
 	var unlocked_paths = GameData.data["unlocked_pack_paths"]
-	for pack_data in all_packs.packs:
-		var button: UpgradePackButton = upgrade_pack_button_scene.instantiate()
+	for pack_data in all_packs.decks:
+		var button: DeckButton = upgrade_pack_button_scene.instantiate()
 		var is_unlocked = pack_data.resource_path in unlocked_paths
-		button.set_pack_data(pack_data, is_unlocked)
+		button.set_deck_data(pack_data, is_unlocked)
 		button.selection_toggled.connect(_on_pack_selection_toggled)
 		pack_grid.add_child(button)
 
@@ -155,7 +155,7 @@ func populate_pack_grid():
 			button.set_selected(true)
 			selected_packs.append(button)
 
-func _on_pack_selection_toggled(button_instance: UpgradePackButton):
+func _on_pack_selection_toggled(button_instance: DeckButton):
 	if button_instance.is_selected():
 		# The button was just checked.
 		if not button_instance in selected_packs:
@@ -175,7 +175,7 @@ func _on_pack_selection_toggled(button_instance: UpgradePackButton):
 func get_currently_selected_pack_paths_from_ui() -> Array[String]:
 	var paths: Array[String] = []
 	for button in selected_packs:
-		paths.append(button.pack_data.resource_path)
+		paths.append(button.deck_data.resource_path)
 	return paths
 
 # --- Biome Selection ---

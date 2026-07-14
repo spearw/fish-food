@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="UpgradePack" load_steps=14 format=3 uid="uid://cslvyly2f8qn1"]
+[gd_resource type="Resource" script_class="Deck" load_steps=14 format=3 uid="uid://cslvyly2f8qn1"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_1hgme"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_bdncx"]
@@ -16,8 +16,9 @@
 
 [resource]
 script = ExtResource("1_1hgme")
-pack_name = "Core"
-pack_description = "Base character upgrades. Intended to always be on. Will be locked on in full game."
+id = "core"
+deck_name = "Core"
+deck_description = "Base character upgrades. Intended to always be on. Will be locked on in full game."
 unlock_cost = 0
 upgrades = Array[ExtResource("2_bdncx")]([ExtResource("3_4ocoj"), ExtResource("4_odn0n"), ExtResource("5_lkko0"), ExtResource("6_syxt0"), ExtResource("7_4bkqh"), ExtResource("8_pfwxy"), ExtResource("9_gwjkf"), ExtResource("10_hw6k6"), ExtResource("11_d65hj"), ExtResource("12_df0jv"), ExtResource("13_odn0n")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

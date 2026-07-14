@@ -66,5 +66,15 @@ func _ready() -> void:
 	pass_all = pass_all and chain_ok
 	print("BUGSWEEP chain_kill_emitted: %s (fired=%s)" % ["PASS" if chain_ok else "FAIL", str(chain_ok)])
 
+	# --- Deck restructure: renamed class + fields load, and id + composition helper work ---
+	var fire_deck = load("res://systems/upgrades/packs/fire_pack.tres")
+	var comp = fire_deck.get_composition() if fire_deck else {}
+	var deck_ok: bool = fire_deck != null and fire_deck is Deck \
+		and fire_deck.deck_name == "Fire" and fire_deck.id == "fire" and comp.get("weapons", 0) > 0
+	pass_all = pass_all and deck_ok
+	print("BUGSWEEP deck_restructure: %s (name=%s id=%s comp=%s)" % [
+		"PASS" if deck_ok else "FAIL",
+		str(fire_deck.deck_name) if fire_deck else "?", str(fire_deck.id) if fire_deck else "?", str(comp)])
+
 	print("BUGSWEEP RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

@@ -12,9 +12,11 @@ var _pools: Dictionary = {}
 
 # Maximum pool size per projectile type (prevents memory bloat)
 const MAX_POOL_SIZE: int = 2000
-# Cap concurrent spark (chain-lightning) projectiles -- the cascade is the main projectile
-# accumulation at high enemy density. 300 is already a screenful; only bites at extreme counts.
-const MAX_ACTIVE_SPARKS: int = 300
+# Cap concurrent spark (chain-lightning) projectiles. Each spark is an Area2D, so a dense cluster
+# hammers the physics broadphase: profiling shows a hard cliff past ~200 (150 sparks ~3ms, 200 ~10ms,
+# 250 ~35ms on the dev PC). 200 keeps a full lightning storm on-screen while staying below the cliff.
+# Tunable per platform (lower on weaker hardware). Pairs with suppressing per-hit spark damage numbers.
+const MAX_ACTIVE_SPARKS: int = 200
 var _active_sparks: int = 0
 # Cap concurrent generic projectiles (daggers etc.). With a 5s lifetime they accumulate, and
 # hundreds of Area2Ds vs a dense enemy field detonate the physics broadphase. Only bites at extreme counts.

@@ -104,8 +104,8 @@ func _process(_dt: float) -> void:
 		var fps := 1000.0 / maxf(frame_ms, 0.001)
 		var enemies := get_tree().get_nodes_in_group("enemies").size()
 		var objs := int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))
-		print("SPARKBENCH enemies=%d spark_target=%d spark_peak=%d bounces=%d fps=%.0f frame_ms=%.2f objects=%d" % [
-			enemies, spark_target, _spark_peak, spark_bounces, fps, frame_ms, objs])
+		print("SPARKBENCH enemies=%d spark_target=%d spark_peak=%d spatial=%s fps=%.0f frame_ms=%.2f objects=%d" % [
+			enemies, spark_target, _spark_peak, str(SparkProjectile.use_spatial_hits), fps, frame_ms, objs])
 		# Census scene children by script/class so we can see what is actually piling up.
 		var census := {}
 		for n in get_tree().current_scene.get_children():

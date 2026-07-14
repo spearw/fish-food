@@ -10,6 +10,7 @@ func _ready() -> void:
 	var bounces := 6
 	var life := 1.0
 	var nodmg := false
+	var spatial := -1  # -1 = leave SparkProjectile default; 0/1 = force Area2D / spatial-hash
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--count="):
 			count = int(arg.split("=")[1])
@@ -21,6 +22,14 @@ func _ready() -> void:
 			life = float(arg.split("=")[1])
 		elif arg.begins_with("--nodmg="):
 			nodmg = int(arg.split("=")[1]) != 0
+		elif arg.begins_with("--spatial="):
+			spatial = int(arg.split("=")[1])
+
+	# Toggle spark hit-detection mode for the A/B (before any spark spawns).
+	if spatial != -1:
+		SparkProjectile.use_spatial_hits = spatial != 0
+	# Lift the concurrent-spark cap so the bench can measure whatever count it targets.
+	ProjectilePool.max_active_sparks = max(sparks + 100, ProjectilePool.max_active_sparks)
 
 	CurrentRun.selected_character = load("res://actors/player/characters/edgerunner/edgerunner_character.tres")
 	CurrentRun.selected_biome = load("res://systems/spawner/biomes/reef_biome.tres")

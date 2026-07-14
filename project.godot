@@ -29,6 +29,7 @@ ProjectilePool="*res://systems/global/projectile_pool.gd"
 DamageNumberPool="*res://systems/global/damage_number_pool.gd"
 LootManager="*res://systems/loot/loot_manager.tscn"
 GameSettings="*res://systems/global/game_settings.gd"
+ComboManager="*res://systems/combos/combo_manager.gd"
 
 [display]
 

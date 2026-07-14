@@ -12,6 +12,9 @@ var active_upgrade_pool: Array[Upgrade] = []
 # Pre-computed rarity buckets for O(1) rarity lookup
 var _upgrade_buckets: Dictionary = {}  # rarity_enum -> Array of upgrades
 var _unlock_buckets: Dictionary = {}  # rarity_enum -> Array of UNLOCK upgrades (exact rarity match)
+# Maps each Upgrade resource -> the Deck.id it came from, so applying a card can credit its deck's
+# draft count (which feeds cross-deck combo power gates).
+var _upgrade_deck_ids: Dictionary = {}
 
 var player_equipment: Node2D = null
 var player_artifacts: Node2D = null
@@ -34,6 +37,7 @@ func _build_active_upgrade_pool():
 	active_upgrade_pool.clear()
 	_upgrade_buckets.clear()
 	_unlock_buckets.clear()
+	_upgrade_deck_ids.clear()
 
 	# Initialize buckets for each rarity
 	for rarity_enum in Upgrade.Rarity.values():
@@ -54,8 +58,9 @@ func _build_active_upgrade_pool():
 			active_upgrade_pool.append_array(pack_resource.upgrades)
 			deck_names.append(pack_resource.deck_name)
 
-			# Pre-compute rarity buckets for fast lookup
+			# Credit each card to its deck (for combo gates) and pre-compute rarity buckets.
 			for upgrade in pack_resource.upgrades:
+				_upgrade_deck_ids[upgrade] = pack_resource.id
 				if upgrade.type == Upgrade.UpgradeType.UNLOCK_WEAPON or upgrade.type == Upgrade.UpgradeType.UNLOCK_ARTIFACT:
 					# UNLOCK types go in their exact rarity bucket
 					_unlock_buckets[upgrade.rarity].append(upgrade)
@@ -256,6 +261,11 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 			else:
 				printerr("Upgrade failed: Could not find target '%s'" % upgrade.target_class_name)
 			
+	# Credit this card to its deck's draft count (combo power gates read this).
+	var card_deck_id: String = _upgrade_deck_ids.get(upgrade, "")
+	if card_deck_id != "":
+		CurrentRun.deck_draft_counts[card_deck_id] = CurrentRun.deck_draft_counts.get(card_deck_id, 0) + 1
+
 	# Notify the player that stats may have changed.
 	if is_instance_valid(player):
 		player.notify_stats_changed()

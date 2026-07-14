@@ -42,6 +42,12 @@ var spawn_intensity: SpawnIntensity = SpawnIntensity.NORMAL
 # Counter mode (X-axis): Which enemies spawn based on build.
 var counter_mode: CounterMode = CounterMode.NORMAL
 
+# --- Cross-deck combo state (see systems/combos/) ---
+## Cards drafted from each deck this run, keyed by Deck.id. Feeds combo power gates.
+var deck_draft_counts: Dictionary = {}
+## True once the player has taken a cross-deck combo this run (one per run).
+var combo_taken: bool = false
+
 ## Returns the budget multiplier for the current spawn intensity.
 func get_intensity_multiplier() -> float:
 	return INTENSITY_MULTIPLIERS.get(spawn_intensity, 1.0)

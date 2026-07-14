@@ -114,6 +114,10 @@ func _on_body_entered(body: Node2D):
 			final_damage = int(base_damage * user.get_stat("critical_hit_damage"))
 
 		body.take_damage(final_damage, 0.0, is_crit, self)
+		# If that killed the enemy, announce a chain kill so lightning artifacts (e.g. Static
+		# Discharge) can react. take_damage sets is_dying synchronously when health reaches 0.
+		if body.is_dying:
+			Events.chain_kill.emit(body.global_position, final_damage)
 
 	# Track this target (O(1) Dictionary insert)
 	_hit_targets[body] = true

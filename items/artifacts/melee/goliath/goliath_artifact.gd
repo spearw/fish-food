@@ -12,7 +12,7 @@ const SPEED_PENALTY_PER_HP = -0.01 # -1% speed per bonus HP
 # --- Helper ---
 func _get_bonus_hp() -> float:
 	if not is_instance_valid(user): return 0.0
-	var base_hp = user.stats.base_max_health
+	var base_hp = user.stats.max_health  # authored base; get_stat("max_health") is the modified max
 	var current_max_hp = user.get_stat("max_health")
 	return max(0, current_max_hp - base_hp)
 

@@ -3,6 +3,10 @@
 ## and applies selected upgrades.
 extends Node
 
+## The core deck (base-stat upgrades) is always granted, regardless of selection -- it's what every
+## run needs to have any upgrades at all. Guaranteed into the pool in _build_active_upgrade_pool.
+const CORE_PACK_PATH := "res://systems/upgrades/packs/core_pack.tres"
+
 var active_upgrade_pool: Array[Upgrade] = []
 
 # Pre-computed rarity buckets for O(1) rarity lookup
@@ -36,8 +40,11 @@ func _build_active_upgrade_pool():
 		_upgrade_buckets[rarity_enum] = []
 		_unlock_buckets[rarity_enum] = []
 
-	# Get the list of selected pack paths from persistent data.
-	var selected_pack_paths = CurrentRun.selected_pack_paths
+	# Get the selected pack paths, and ALWAYS include the core deck even if the player's selection
+	# didn't (or was empty) -- otherwise a run can start with an empty upgrade pool.
+	var selected_pack_paths := CurrentRun.selected_pack_paths.duplicate()
+	if CORE_PACK_PATH not in selected_pack_paths:
+		selected_pack_paths.insert(0, CORE_PACK_PATH)
 
 	var pack_names = []
 	for pack_path in selected_pack_paths:

@@ -19,10 +19,14 @@ benchmark numbers behind them so they don't get silently reverted.
 - **Spawning is a population model**, not a spawn-rate model (`systems/spawner/encounter_director.gd`):
   the difficulty curve is the *target on-screen threat*, capped by `max_active_enemies` (250). Do not
   revert to a budget/flow spawner — that reintroduces the unbounded enemy pile-up.
-- **Object pools are sized `MAX_POOL_SIZE = 2000`** and have **concurrent caps**
-  (`MAX_ACTIVE_SPARKS = 200`, `MAX_ACTIVE_GENERIC = 300`, damage-number `MAX_ACTIVE = 150`). These stop
-  the pool-churn runaway and the Area2D broadphase cliff. Callers handle `null` from a capped pool —
-  keep that.
+- **Object pools are sized `MAX_POOL_SIZE = 2000`** with **concurrent caps** that stop the pool-churn
+  runaway (`MAX_ACTIVE_GENERIC = 300` projectiles, damage-number `MAX_ACTIVE = 150`). Callers handle
+  `null` from a capped pool — keep that.
+- **Sparks run off the physics broadphase** (`SparkProjectile.use_spatial_hits = true`, spatial-hash
+  hit detection) so spark *count* isn't hard-clipped — a low cap would limit spark builds, i.e.
+  performance clipping gameplay. `max_active_sparks` (800) is a safety backstop, not a gameplay limit;
+  sparks self-limit by lifespan. Prefer bounding cost this way (off-broadphase, self-limiting) over a
+  hard gameplay cap wherever possible.
 - **Enemies don't collide with each other** (`enemy.tscn` `collision_mask = 1`); proximity detectors
   are opt-in. Don't make either always-on.
 - **Proximity/targeting queries go through the `EntityRegistry` spatial hash** (`get_enemies_near` /

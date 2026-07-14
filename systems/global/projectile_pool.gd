@@ -12,11 +12,11 @@ var _pools: Dictionary = {}
 
 # Maximum pool size per projectile type (prevents memory bloat)
 const MAX_POOL_SIZE: int = 2000
-# Cap concurrent spark (chain-lightning) projectiles. Each spark is an Area2D, so a dense cluster
-# hammers the physics broadphase: profiling shows a hard cliff past ~200 (150 sparks ~3ms, 200 ~10ms,
-# 250 ~35ms on the dev PC). 200 keeps a full lightning storm on-screen while staying below the cliff.
-# Tunable per platform (lower on weaker hardware). Pairs with suppressing per-hit spark damage numbers.
-const MAX_ACTIVE_SPARKS: int = 200
+# Safety limit on concurrent spark (chain-lightning) projectiles. With SparkProjectile.use_spatial_hits
+# ON, sparks are off the physics broadphase and scale ~linearly, so this is a high backstop against
+# runaway/bugs -- NOT a gameplay clip. (Kept low only if sparks are put back on Area2D, where a dense
+# cluster cliffs the broadphase past ~200.) Runtime-tunable so benches/platforms can adjust it.
+var max_active_sparks: int = 800
 var _active_sparks: int = 0
 # Cap concurrent generic projectiles (daggers etc.). With a 5s lifetime they accumulate, and
 # hundreds of Area2Ds vs a dense enemy field detonate the physics broadphase. Only bites at extreme counts.
@@ -110,7 +110,7 @@ func get_pool_stats() -> Dictionary:
 
 ## Convenience method to get a spark projectile from the pool.
 func get_spark() -> Node:
-	if _active_sparks >= MAX_ACTIVE_SPARKS:
+	if _active_sparks >= max_active_sparks:
 		return null  # over the concurrent-spark cap (caller must handle null)
 	_active_sparks += 1
 	var spark = get_projectile(SPARK_PROJECTILE_SCENE)

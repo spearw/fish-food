@@ -101,19 +101,39 @@ then loops all of them) — that's O(n) per query, O(n²) across all queriers.
 
 ---
 
-## 5. Sparks (chain lightning) are Area2D-bound
+## 5. Sparks (chain lightning) — off the broadphase, not hard-clipped
 
 **Files:** `items/weapons/spark/spark_projectile.gd`, spark handling in `systems/projectiles/projectile.gd`
 
-Each spark is an `Area2D`. Their real cost is the **physics broadphase in a dense cluster**, which
-cliffs hard: on the (deliberately over-clustered) `spark_bench`, 150 sparks ≈ 3 ms, 200 ≈ 10 ms,
-250 ≈ 35 ms. `MAX_ACTIVE_SPARKS = 200` keeps a full lightning storm on screen while staying below the
-cliff. Real play spreads sparks out, so it's cheaper than the bench — the cap is conservative.
+**Principle: performance must not clip a build.** A spark build's power scales with spark count, so a
+low hard cap (it was 200) directly limited that build — performance leaking into gameplay. Fixed by
+taking sparks **off the physics broadphase**: `SparkProjectile.use_spatial_hits = true` (default)
+disables the `Area2D` and detects hits via the `EntityRegistry` spatial hash in `_process` instead.
 
-**If spark builds ever lag on the target hardware,** the real fix is to take sparks off `Area2D` and
-detect hits via the `EntityRegistry` spatial hash instead (the `use_spatial_hits` flag on
-`ProjectileStats` is the existing off-Area2D path for generic projectiles — it would need porting to
-`SparkProjectile`). Not done yet because the cap makes it unnecessary for now.
+Consequences:
+- **`max_active_sparks` (in `projectile_pool.gd`, 800) is now a SAFETY backstop, not a gameplay clip.**
+  Sparks that land hits bounce out and die fast, so they **self-limit** by lifespan — in a dense field
+  they settle around ~400–465 concurrent regardless of the cap. The cap only catches a runaway.
+- **No broadphase collapse.** On-broadphase (Area2D) sparks degrade badly at high counts — at target
+  500 they collapsed (couldn't sustain, ~33 ms). Off-broadphase they scale smoothly (~400 sparks
+  ≈ 20 ms, stable).
+- The spatial check also **fixes tunneling** — fast sparks no longer phase through enemies between
+  physics frames — so hits are more reliable. This is a mild effective buff to spark builds; it's a
+  gameplay change, so playtest the feel. To revert: `SparkProjectile.use_spatial_hits = false`.
+
+### Honest caveat — this does NOT make high spark counts cheap
+
+Measured fairly (matched hit counts), taking sparks off Area2D is only **~20 % faster** — because the
+dominant cost at high counts is **the sheer work of thousands of bounces/hits/retargets in a dense
+field**, not the broadphase. ~400 concurrent sparks is ~20 ms on the dev PC either way. So removing the
+clip trades a *hard wall at 200* for a *smooth slowdown as you scale* — better feel, but not free
+performance. (The `spark_bench` is also pessimistic: it uses immortal enemies, so sparks bounce
+forever; in real play sparks kill enemies and thin their own target field.)
+
+**If spark builds need to scale further/cheaper**, the levers are per-hit cost, not the broadphase:
+avoid the health-bar redraw on every spark tick, cheaper bounce retargeting, and batched rendering
+(`MultiMesh` with a glyph/sprite atlas) for the sprites. That's a larger project — do it only if the
+Mac says spark builds actually lag.
 
 ---
 

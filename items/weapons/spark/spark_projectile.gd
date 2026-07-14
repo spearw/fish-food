@@ -15,6 +15,13 @@ var allegiance: Allegiance
 @export var speed: float = 600.0  # Movement speed
 @export var lifetime: float = 5.0  # Max lifetime before despawn
 
+## When true, sparks detect hits via the EntityRegistry spatial hash instead of an Area2D, keeping
+## them OUT of the physics broadphase entirely. That turns the dense-cluster broadphase cliff into
+## ~linear scaling, so spark count doesn't have to be hard-capped for performance (which would clip
+## spark builds). Global toggle -- set before sparks spawn. See .claude/performance/architecture.md.
+static var use_spatial_hits: bool = true
+const SPATIAL_HIT_RADIUS := 20.0  # spark radius (8) + typical enemy body radius; generous by design
+
 # --- Runtime State ---
 var direction: Vector2 = Vector2.RIGHT
 var target: Node2D = null
@@ -33,8 +40,15 @@ var _is_destroying: bool = false
 func _ready():
 	bounces_remaining = bounce_count
 
-	# Configure collision based on allegiance
-	CollisionUtils.set_projectile_collision(area2d, allegiance)
+	if use_spatial_hits:
+		# Stay out of the physics broadphase entirely; hits come from the spatial-hash check in
+		# _process. This is what lets spark count scale without the Area2D dense-cluster cliff.
+		area2d.monitoring = false
+		area2d.monitorable = false
+	else:
+		# Configure collision based on allegiance and connect the physics hit signal.
+		CollisionUtils.set_projectile_collision(area2d, allegiance)
+		area2d.body_entered.connect(_on_body_entered)
 
 	# Setup lifetime timer
 	if lifetime > 0:
@@ -42,9 +56,6 @@ func _ready():
 		lifetime_timer.one_shot = true
 		lifetime_timer.timeout.connect(_destroy)
 		lifetime_timer.start()
-
-	# Connect hit signal
-	area2d.body_entered.connect(_on_body_entered)
 
 	# If we have an initial target, aim at it
 	if is_instance_valid(target):
@@ -60,6 +71,24 @@ func _process(delta: float):
 		rotation = direction.angle()
 
 	global_position += direction * speed * delta
+
+	if use_spatial_hits:
+		_check_spatial_hit()
+
+## Off-Area2D hit detection: query the spatial hash for a nearby enemy and route it through the same
+## hit path the Area2D signal would. One hit per frame; _on_body_entered then bounces/retargets.
+func _check_spatial_hit() -> void:
+	if _is_destroying:
+		return
+	var r_sq := SPATIAL_HIT_RADIUS * SPATIAL_HIT_RADIUS
+	for body in EntityRegistry.get_enemies_near(global_position, SPATIAL_HIT_RADIUS):
+		if _is_destroying:
+			return
+		if _hit_targets.has(body) or not is_instance_valid(body):
+			continue
+		if global_position.distance_squared_to(body.global_position) <= r_sq:
+			_on_body_entered(body)
+			return
 
 func _on_body_entered(body: Node2D):
 	if _is_destroying:
@@ -159,7 +188,7 @@ func reset():
 	weapon = null
 	bounces_remaining = bounce_count
 
-	# Re-enable collision
-	if area2d:
+	# Re-enable collision (only in the Area2D path; spatial-hit sparks stay off the broadphase).
+	if area2d and not use_spatial_hits:
 		area2d.monitoring = true
 		area2d.monitorable = true

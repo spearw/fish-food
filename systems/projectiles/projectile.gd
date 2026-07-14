@@ -144,19 +144,18 @@ func _process(delta: float):
 	if stats.use_spatial_hits:
 		_check_spatial_hits()
 
-## Cheap-placeholder hit detection via the spatial hash (no physics broadphase).
+## Off-broadphase hit detection via the shared spatial-hash scan (no physics broadphase). Hits every
+## enemy in range (pierce is handled downstream in _on_body_entered). Mirrors the scan used by
+## SparkProjectile -- both go through EntityRegistry.get_enemies_within so the query lives in one place.
 func _check_spatial_hits() -> void:
 	if _is_destroying:
 		return
-	var target_group = CollisionUtils.get_target_group(allegiance)
-	if target_group != "enemies":
+	if CollisionUtils.get_target_group(allegiance) != "enemies":
 		return  # grid is enemy-only; enemy projectiles keep the Area2D path
-	var r_sq := _spatial_hit_radius * _spatial_hit_radius
-	for body in EntityRegistry.get_enemies_near(global_position, _spatial_hit_radius):
+	for body in EntityRegistry.get_enemies_within(global_position, _spatial_hit_radius):
 		if _is_destroying:
 			return
-		if is_instance_valid(body) and not body.is_dying and global_position.distance_squared_to(body.global_position) <= r_sq:
-			_on_body_entered(body)
+		_on_body_entered(body)
 
 func _on_body_entered(body: Node2D):
 	# Hit Logic - check if this body is a valid target for our allegiance.

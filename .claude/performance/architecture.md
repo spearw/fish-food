@@ -179,6 +179,21 @@ Measured evidence from this codebase:
 Rule: off-broadphase is a tool for the high-count, dense, cheap-per-hit case. For everything else,
 measure before converting — and the default answer is "leave it on Area2D."
 
+**Choosing the mode is a flag, not a reimplementation.** The hit-detection logic is not copied per
+projectile:
+- **Standard projectiles** `extends Projectile` and set **`use_spatial_hits`** on their
+  `ProjectileStats` `.tres` (the flag is inherited by every `ProjectileStats` subclass). The
+  Area2D-vs-spatial branching lives *once* in `Projectile` (`_initialize` / `_process` /
+  `_check_spatial_hits`). Trail, exploding, multi-stage, and explosion projectiles all inherit it —
+  adding another is a new `.tres` + `extends Projectile`, no hit code.
+- **Special projectiles** that genuinely can't extend `Projectile` (e.g. `SparkProjectile`, whose
+  bounce-by-retarget mechanic is fundamentally different) still call the **same shared scan**,
+  `EntityRegistry.get_enemies_within(pos, radius)` — the one place the spatial query lives. They only
+  write their own *hit handling* (pierce-through vs bounce), which is genuinely type-specific.
+
+So the spatial scan exists in exactly one place, the mode is a data flag for the common case, and a new
+projectile never re-derives this logic.
+
 ## 8. Status effects & damage zones (fire / poison / DOT / slow)
 
 **Files:** `systems/status_effects/*`, `items/effects/persistent_damage_effect.gd`

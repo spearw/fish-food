@@ -75,20 +75,17 @@ func _process(delta: float):
 	if use_spatial_hits:
 		_check_spatial_hit()
 
-## Off-Area2D hit detection: query the spatial hash for a nearby enemy and route it through the same
-## hit path the Area2D signal would. One hit per frame; _on_body_entered then bounces/retargets.
+## Off-Area2D hit detection via the shared spatial-hash scan (EntityRegistry.get_enemies_within, the
+## same primitive Projectile uses). Bounce mechanic: take the first not-yet-hit enemy this frame and
+## route it through _on_body_entered, which then retargets.
 func _check_spatial_hit() -> void:
 	if _is_destroying:
 		return
-	var r_sq := SPATIAL_HIT_RADIUS * SPATIAL_HIT_RADIUS
-	for body in EntityRegistry.get_enemies_near(global_position, SPATIAL_HIT_RADIUS):
-		if _is_destroying:
-			return
-		if _hit_targets.has(body) or not is_instance_valid(body):
+	for body in EntityRegistry.get_enemies_within(global_position, SPATIAL_HIT_RADIUS):
+		if _hit_targets.has(body):
 			continue
-		if global_position.distance_squared_to(body.global_position) <= r_sq:
-			_on_body_entered(body)
-			return
+		_on_body_entered(body)
+		return  # one hit per frame; _on_body_entered handles the bounce/retarget
 
 func _on_body_entered(body: Node2D):
 	if _is_destroying:

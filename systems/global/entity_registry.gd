@@ -46,6 +46,19 @@ func get_enemies_near(pos: Vector2, radius: float) -> Array:
 				result.append_array(arr)
 	return result
 
+## Alive enemies whose CENTRE is within `radius` of `pos` (exact circle, not just cell-granular).
+## This is the shared building block for off-broadphase (spatial-hash) hit detection: both
+## Projectile._check_spatial_hits and SparkProjectile._check_spatial_hit call it, so the scan lives in
+## ONE place -- each caller then applies its own hit handling (pierce-through vs bounce). Enemy grid
+## only, so spatial hits are for player-allegiance projectiles (enemy projectiles keep the Area2D path).
+func get_enemies_within(pos: Vector2, radius: float) -> Array:
+	var result: Array = []
+	var r_sq := radius * radius
+	for e in get_enemies_near(pos, radius):
+		if is_instance_valid(e) and pos.distance_squared_to(e.global_position) <= r_sq:
+			result.append(e)
+	return result
+
 ## Group-aware nearby query: spatial grid for enemies, small cached list otherwise (player).
 func get_candidates_near(target_group: String, pos: Vector2, radius: float) -> Array:
 	if target_group == "enemies":

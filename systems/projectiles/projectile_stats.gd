@@ -14,6 +14,9 @@ extends Resource
 @export var critical_hit_damage: float = .50 
 @export var homing_strength: float = 0.0 # How much this projectile follows a target
 @export var is_scaling: bool = false # Whether this projectile scales with area_size stat
+## Cheap-placeholder hit detection: skip the Area2D (and thus the physics broadphase) and
+## detect hits via the EntityRegistry spatial hash. Big win for high-fire-rate projectiles.
+@export var use_spatial_hits: bool = false
 
 # --- Stats set in runtime ---
 var is_phasing: bool = false

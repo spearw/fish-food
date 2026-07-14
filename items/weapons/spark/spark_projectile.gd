@@ -113,7 +113,8 @@ func _on_body_entered(body: Node2D):
 
 func _find_next_target(from_position: Vector2) -> Node2D:
 	var target_group = CollisionUtils.get_target_group(allegiance)
-	var candidates = TargetingUtils.get_candidates(target_group)
+	# Spatial-hash query: only enemies in nearby cells, not every enemy on the map.
+	var candidates = EntityRegistry.get_candidates_near(target_group, from_position, bounce_range)
 
 	# Filter out already hit targets and out-of-range targets
 	var valid_candidates = []

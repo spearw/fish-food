@@ -10,6 +10,9 @@ var console_instance: CanvasLayer = null
 # A dictionary where Key = command name, Value = dictionary of command info.
 var commands = {}
 
+# --- Debug overlay ---
+var fps_overlay: CanvasLayer = null
+
 func _ready():
 	_register_command("help", "Lists all available commands.", self, "_execute_help")
 	_register_command("add_souls", "Adds souls. Usage: add_souls [amount]", self, "_execute_add_souls")
@@ -17,6 +20,8 @@ func _ready():
 	_register_command("unlock_all", "Unlocks all characters.", self, "_execute_unlock_all")
 	_register_command("force_level", "Forces level up", self, "_execute_level_up")
 	_register_command("kill_all", "Kills all enemies in the current scene.", self, "_execute_kill_all")
+	_register_command("spawn", "Spawns N enemies clumped near the player. Usage: spawn [count]", self, "_execute_spawn")
+	_register_command("fps", "Toggles an FPS + enemy-count overlay.", self, "_execute_fps")
 	_register_command("delete_save", "Deletes the save file and reloads the current scene.", self, "_execute_clear_save")
 
 
@@ -161,4 +166,48 @@ func _execute_level_up(_args: Array):
 		_log_to_console("Forced level up")
 	else:
 		Logs.add_message("Nothing to give xp to!")
+
+## DEBUG: spawns N enemies clumped near the player (perf testing).
+func _execute_spawn(args: Array):
+	var count = 50
+	if not args.is_empty():
+		count = max(1, args[0].to_int())
+	var scene = get_tree().current_scene
+	var director = scene.get_node_or_null("EncounterDirector") if scene else null
+	if director == null and scene:
+		director = scene.find_child("EncounterDirector", true, false)
+	if director and director.has_method("debug_spawn"):
+		director.debug_spawn(count)
+		_log_to_console("Spawned %d enemies." % count)
+	else:
+		_log_to_console("No EncounterDirector found (are you in a run?).")
+
+## DEBUG: toggles an on-screen FPS + enemy-count overlay.
+func _execute_fps(_args: Array):
+	if is_instance_valid(fps_overlay):
+		fps_overlay.queue_free()
+		fps_overlay = null
+		_log_to_console("FPS overlay off.")
+		return
+	fps_overlay = CanvasLayer.new()
+	fps_overlay.layer = 128
+	fps_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	var label := Label.new()
+	label.name = "Label"
+	label.position = Vector2(10, 10)
+	label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 4)
+	label.add_theme_font_size_override("font_size", 22)
+	fps_overlay.add_child(label)
+	get_tree().get_root().add_child(fps_overlay)
+	_log_to_console("FPS overlay on.")
+
+func _process(_delta: float) -> void:
+	if is_instance_valid(fps_overlay):
+		var enemy_count := get_tree().get_nodes_in_group("enemies").size()
+		var objs := int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))
+		var draws := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+		# "Objects" climbing without settling is the tell for a pool-churn runaway.
+		fps_overlay.get_node("Label").text = "FPS: %d\nEnemies: %d\nObjects: %d\nDraws: %d" % [Engine.get_frames_per_second(), enemy_count, objs, draws]
 	

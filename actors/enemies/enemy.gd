@@ -125,6 +125,8 @@ func _on_take_damage(damage_taken: int, is_crit: bool, source_node: Node) -> voi
 	# Spawn a floating damage number using pool for performance.
 	if damage_taken > 0:
 		var dmg_num_instance = DamageNumberPool.get_damage_number()
+		if dmg_num_instance == null:
+			return  # damage-number cap reached (too many on screen)
 		# Add to the main scene tree so it doesn't move with the enemy.
 		get_tree().current_scene.add_child(dmg_num_instance)
 		dmg_num_instance.start(damage_taken, self.global_position, is_crit)

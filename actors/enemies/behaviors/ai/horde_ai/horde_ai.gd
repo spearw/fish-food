@@ -8,6 +8,7 @@ extends AIController
 
 func _ready():
 	super._ready()
+	enable_ally_detection()  # HordeAI relies on get_nearby_allies()
 	# --- Setup ---
 	# Set the initial state.
 	var initial_state_name = "findalliesbehavior"

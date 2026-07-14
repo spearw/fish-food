@@ -27,20 +27,29 @@ func _ready():
 			var state_name = child.name.to_lower()
 			states[state_name] = child
 			child.enabled = false
-	# Configure the host's proximity detector.
+	# Ally proximity detection is OPT-IN. Only AI types that call get_nearby_allies()
+	# (HordeAI, SkirmisherAI) need it, so it stays disabled by default here -- otherwise
+	# every enemy pays for O(n^2) Area2D overlap tracking. Those AIs call enable_ally_detection().
 	self.proximity_detector = host.proximity_detector
-	var proximity_shape = proximity_detector.get_node("CollisionShape2D")
-	proximity_shape.shape.radius = self.proximity_radius
-	self.proximity_detector.collision_mask = 1 << 1 # enemy_body
-
-	# Connect proximity signals for cached ally tracking (avoids per-frame physics queries)
-	if not _proximity_signals_connected:
-		proximity_detector.body_entered.connect(_on_proximity_body_entered)
-		proximity_detector.body_exited.connect(_on_proximity_body_exited)
-		_proximity_signals_connected = true
+	proximity_detector.monitoring = false
+	proximity_detector.monitorable = false
 
 	anim_controller = host.get_node("AnimationController")
 	anim_controller.animation_lock_released.connect(_on_animation_lock_released)
+
+
+## Opt-in ally detection for AI types that use get_nearby_allies() (HordeAI, SkirmisherAI).
+## Enables the proximity Area2D and caches nearby same-type enemies via signals.
+func enable_ally_detection() -> void:
+	if _proximity_signals_connected:
+		return
+	var proximity_shape = proximity_detector.get_node("CollisionShape2D")
+	proximity_shape.shape.radius = self.proximity_radius
+	proximity_detector.collision_mask = 1 << 1 # enemy_body
+	proximity_detector.monitoring = true
+	proximity_detector.body_entered.connect(_on_proximity_body_entered)
+	proximity_detector.body_exited.connect(_on_proximity_body_exited)
+	_proximity_signals_connected = true
 
 	
 

@@ -23,6 +23,7 @@ var _minimum_range_sq: float
 
 func _ready():
 	super._ready()
+	enable_ally_detection()  # SkirmisherAI relies on get_nearby_allies()
 	# Pre-calculate squared ranges
 	_maximum_range_sq = maximum_range * maximum_range
 	_optimal_range_sq = optimal_range * optimal_range

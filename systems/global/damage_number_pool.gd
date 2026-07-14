@@ -9,10 +9,18 @@ const DAMAGE_NUMBER_SCENE = preload("res://ui/damage_number/damage_number.tscn")
 var _pool: Array = []
 
 # Maximum pool size (prevents memory bloat)
-const MAX_POOL_SIZE: int = 200
+const MAX_POOL_SIZE: int = 2000
+# Cap concurrent on-screen damage numbers. Hundreds are unreadable, and their render + spawn
+# churn is a primary driver of the high-count runaway. Only bites at extreme density.
+const MAX_ACTIVE: int = 150
+var _active: int = 0
 
 ## Get a damage number from the pool, or create a new one if pool is empty.
 func get_damage_number() -> Node:
+	# Over the concurrent cap -> skip (caller must handle null).
+	if _active >= MAX_ACTIVE:
+		return null
+	_active += 1
 	# Try to get from pool
 	if _pool.size() > 0:
 		var damage_num = _pool.pop_back()
@@ -27,6 +35,7 @@ func get_damage_number() -> Node:
 
 ## Return a damage number to the pool for reuse.
 func return_damage_number(damage_num: Node) -> void:
+	_active = max(0, _active - 1)
 	# Don't exceed max pool size
 	if _pool.size() >= MAX_POOL_SIZE:
 		damage_num.queue_free()

@@ -117,6 +117,8 @@ func _spawn_projectile(
 	var from_pool = false
 	if not use_custom_scene:
 		projectile = ProjectilePool.get_projectile(projectile_scene)
+		if projectile == null:
+			return  # over the concurrent generic-projectile cap
 		from_pool = projectile._is_pooled if projectile.get("_is_pooled") != null else false
 	else:
 		projectile = projectile_scene.instantiate()

@@ -11,10 +11,24 @@ const SPARK_PROJECTILE_SCENE = preload("res://items/weapons/spark/spark_projecti
 var _pools: Dictionary = {}
 
 # Maximum pool size per projectile type (prevents memory bloat)
-const MAX_POOL_SIZE: int = 100
+const MAX_POOL_SIZE: int = 2000
+# Cap concurrent spark (chain-lightning) projectiles -- the cascade is the main projectile
+# accumulation at high enemy density. 300 is already a screenful; only bites at extreme counts.
+const MAX_ACTIVE_SPARKS: int = 300
+var _active_sparks: int = 0
+# Cap concurrent generic projectiles (daggers etc.). With a 5s lifetime they accumulate, and
+# hundreds of Area2Ds vs a dense enemy field detonate the physics broadphase. Only bites at extreme counts.
+const MAX_ACTIVE_GENERIC: int = 300
+var _active_generic: int = 0
 
 ## Get a projectile from the pool, or create a new one if pool is empty.
 func get_projectile(scene: PackedScene = GENERIC_PROJECTILE_SCENE) -> Node:
+	# Cap concurrent generic projectiles (sparks have their own cap via get_spark).
+	if scene == GENERIC_PROJECTILE_SCENE:
+		if _active_generic >= MAX_ACTIVE_GENERIC:
+			return null
+		_active_generic += 1
+
 	var scene_path = scene.resource_path
 
 	# Initialize pool for this scene type if needed
@@ -38,6 +52,8 @@ func get_projectile(scene: PackedScene = GENERIC_PROJECTILE_SCENE) -> Node:
 ## Return a projectile to the pool for reuse.
 ## Safe to call during physics callbacks - uses deferred removal.
 func return_projectile(projectile: Node, scene: PackedScene = GENERIC_PROJECTILE_SCENE) -> void:
+	if scene == GENERIC_PROJECTILE_SCENE:
+		_active_generic = max(0, _active_generic - 1)
 	var scene_path = scene.resource_path
 
 	# Initialize pool for this scene type if needed
@@ -92,6 +108,9 @@ func get_pool_stats() -> Dictionary:
 
 ## Convenience method to get a spark projectile from the pool.
 func get_spark() -> Node:
+	if _active_sparks >= MAX_ACTIVE_SPARKS:
+		return null  # over the concurrent-spark cap (caller must handle null)
+	_active_sparks += 1
 	var spark = get_projectile(SPARK_PROJECTILE_SCENE)
 	# Reset spark state for reuse
 	if spark.has_method("reset"):
@@ -100,4 +119,5 @@ func get_spark() -> Node:
 
 ## Convenience method to return a spark projectile to the pool.
 func return_spark(spark: Node) -> void:
+	_active_sparks = max(0, _active_sparks - 1)
 	return_projectile(spark, SPARK_PROJECTILE_SCENE)

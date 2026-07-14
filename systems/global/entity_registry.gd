@@ -12,6 +12,46 @@ var _players: Array[Node] = []
 # --- Quick Access ---
 var player: Node = null  # Single player reference for common case
 
+# --- Spatial hash (rebuilt each physics frame) for O(local) targeting queries ---
+const CELL_SIZE := 256.0
+var _grid: Dictionary = {}  # Vector2i -> Array[Node]
+
+func _physics_process(_delta: float) -> void:
+	_rebuild_grid()
+
+func _rebuild_grid() -> void:
+	_grid.clear()
+	for e in _alive_enemies:
+		if not is_instance_valid(e):
+			continue
+		var cell := Vector2i(int(floor(e.global_position.x / CELL_SIZE)), int(floor(e.global_position.y / CELL_SIZE)))
+		var arr = _grid.get(cell)
+		if arr == null:
+			arr = []
+			_grid[cell] = arr
+		arr.append(e)
+
+## Alive enemies in the cells overlapping pos +/- radius (cell-granular; caller should still
+## do an exact distance check). O(local density) instead of O(all enemies).
+func get_enemies_near(pos: Vector2, radius: float) -> Array:
+	var result: Array = []
+	var min_x := int(floor((pos.x - radius) / CELL_SIZE))
+	var max_x := int(floor((pos.x + radius) / CELL_SIZE))
+	var min_y := int(floor((pos.y - radius) / CELL_SIZE))
+	var max_y := int(floor((pos.y + radius) / CELL_SIZE))
+	for cx in range(min_x, max_x + 1):
+		for cy in range(min_y, max_y + 1):
+			var arr = _grid.get(Vector2i(cx, cy))
+			if arr:
+				result.append_array(arr)
+	return result
+
+## Group-aware nearby query: spatial grid for enemies, small cached list otherwise (player).
+func get_candidates_near(target_group: String, pos: Vector2, radius: float) -> Array:
+	if target_group == "enemies":
+		return get_enemies_near(pos, radius)
+	return get_candidates(target_group)
+
 func _ready() -> void:
 	# Connect to enemy lifecycle signals
 	Events.enemy_killed.connect(_on_enemy_killed)

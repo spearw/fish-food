@@ -1,5 +1,9 @@
 ## encounter_director.gd
-## A budget-based spawner. Acts as an "Encounter Director".
+## An "Encounter Director" that maintains the live enemy population at a difficulty target.
+## The difficulty curve sets the TARGET on-screen threat (Challenge Rating) over time; the director
+## tops up toward it, holds a hard count cap for performance, recycles stragglers to keep the fight
+## local, and lets authored burst/boss events spike over the cap. Which enemies fill the slots is
+## decided by the tag-weighting / biome / counter-spawn logic further down -- that is unchanged.
 class_name EncounterDirector
 extends Node
 
@@ -10,11 +14,30 @@ extends Node
 @export var spawn_radius: float = 1200.0
 @export var encounter_config: EncounterConfig  ## Tag-based weighting (overrides biome config)
 
+# --- POPULATION MODEL (bounded spawning) ---
+# The difficulty curve defines the TARGET on-screen threat (total Challenge Rating), a setpoint the
+# director maintains at all times -- not a spawn rate. This keeps the felt difficulty controlled and
+# the object count bounded, the way Vampire Survivors does. Bursts/bosses are exempt (see below).
+## Scales the curve into a target CR. The curve was authored as a rate (~1-40); this maps it to a
+## sensible live-enemy count. Tune this (and the cap) to taste per platform.
+@export var target_threat_scale: float = 6.0
+## Hard ceiling on concurrent live enemies -- the performance backstop. Burst/boss events ignore it.
+@export var max_active_enemies: int = 250
+## Cap on normal top-up spawns per pulse, to smooth ramp-in. Burst/boss events ignore it.
+@export var max_spawns_per_pulse: int = 40
+## Enemies farther than this from the player are recycled onto the spawn ring, keeping the fight
+## local and bounding cost (VS-style off-screen recycling). Must exceed spawn_radius. 0 disables it.
+@export var despawn_radius: float = 1800.0
+## How often (seconds) the director tops up population and recycles stragglers.
+@export var spawn_pulse_interval: float = 0.25
+
 @onready var spawn_pulse_timer: Timer = $Timer
 
 # --- RUNTIME STATE ---
 var run_timer: float = 0.0
-var budget_accumulator: float = 0.0
+## Total Challenge Rating of live enemies, counted once per enemy. This is the value we hold at the
+## target (the ledger below double-counts multi-tag enemies, so it can't serve as the total).
+var _active_threat_cr: float = 0.0
 var player_node: Node2D
 var active_biome: BiomeDefinition  ## Set from CurrentRun at start
 
@@ -54,6 +77,7 @@ func _ready():
 
 	# In the future, get this from GameData:
 	# threat_level = GameData.data["permanent_stats"].get("threat_level", 1.0)
+	spawn_pulse_timer.wait_time = spawn_pulse_interval
 	spawn_pulse_timer.timeout.connect(_on_spawn_pulse_timer_timeout)
 	# Sort the master list by time and create pending list.
 	encounter_sets.sort_custom(func(a, b): return a.time_start < b.time_start)
@@ -69,44 +93,66 @@ func _ready():
 func _physics_process(delta: float):
 	if not is_instance_valid(player_node): return
 
-	# Accumulate the budget.
 	run_timer += delta
-	var base_budget_per_sec = difficulty_curve.sample(run_timer)
-	var intensity_mult = CurrentRun.get_intensity_multiplier()
-	var current_frame_budget = base_budget_per_sec * threat_level * intensity_mult * delta
-	budget_accumulator += current_frame_budget
-	
-	# Check for any one-time "override" events that need to fire now.
-	# While loop to handles multiple events triggering on the same frame.
+
+	# Fire any one-time "override" events that are due. These are authored bursts/bosses and
+	# deliberately bypass the population target and cap -- the VS "map event" spike -- so intensity
+	# moments stay in your control instead of emerging as an accidental pile-up.
+	# While loop handles multiple events triggering on the same frame.
 	while not pending_encounter_sets.is_empty() and run_timer >= pending_encounter_sets[0].time_start:
 		var event_to_check = pending_encounter_sets[0]
-		
+
 		if event_to_check.spawn_immediately_on_start:
-			# It's a boss/burst event. Process it now.
+			# It's a boss/burst event. Process it now, exempt from the cap.
 			var event = pending_encounter_sets.pop_front() # Get and remove it from the list
 			Logs.add_message("Director Override: Spawning immediate event '%s'" % event.resource_path)
-			
+
 			for enemy_stat in event.enemies:
-				# Spawn the enemy and go into budget deficit.
-				budget_accumulator -= enemy_stat.challenge_rating
 				spawn_enemy(enemy_stat)
 		else:
 			# It's a normal, repeating set. Since the list is sorted,
 			# we know no later "immediate" events are ready yet.
 			break
 
+## Maintains the live enemy population at the difficulty target: recycles stragglers, then tops up
+## toward the target CR, bounded by the hard count cap and a per-pulse smoothing limit.
 func _on_spawn_pulse_timer_timeout():
-	#Logs.add_message(["Director Budget:", budget_accumulator])
+	# Keep the fight local first -- recycling brings distant enemies back around the player.
+	_recycle_distant_enemies()
+
 	var available_enemies = _get_currently_available_enemies()
 	if available_enemies.is_empty(): return
 
-	var theme_enemy_stats = _pick_theme_enemy(available_enemies, budget_accumulator)
-	
-	if not theme_enemy_stats: return
+	# The curve defines the TARGET on-screen threat (a setpoint), scaled and modified by run intensity.
+	var target_cr: float = difficulty_curve.sample(run_timer) * threat_level \
+		* CurrentRun.get_intensity_multiplier() * target_threat_scale
 
-	while budget_accumulator >= theme_enemy_stats.challenge_rating:
-		budget_accumulator -= theme_enemy_stats.challenge_rating
-		spawn_enemy(theme_enemy_stats)
+	# Top up toward the target. We stop at the target, the hard perf cap, or the per-pulse limit --
+	# whichever comes first. A strong player who clears fast simply gets refilled to the target;
+	# a struggling player is never buried past it. Either way the object count stays bounded.
+	var spawns := 0
+	while _active_threat_cr < target_cr \
+			and EntityRegistry.get_alive_enemy_count() < max_active_enemies \
+			and spawns < max_spawns_per_pulse:
+		var enemy_stats = _pick_theme_enemy(available_enemies, INF)
+		if not enemy_stats: break
+		spawn_enemy(enemy_stats)
+		spawns += 1
+
+## Repositions enemies that have fallen too far behind the player back onto the spawn ring. It moves
+## the same node (no instantiate/free, so no churn) and leaves threat/count unchanged -- it just keeps
+## the horde around the player, mirroring Vampire Survivors' off-screen recycling.
+func _recycle_distant_enemies() -> void:
+	if despawn_radius <= 0.0 or not is_instance_valid(player_node):
+		return
+	var ppos: Vector2 = player_node.global_position
+	var max_dist_sq: float = despawn_radius * despawn_radius
+	for enemy in EntityRegistry.get_enemy_candidates():
+		if not is_instance_valid(enemy) or enemy.is_dying:
+			continue
+		if enemy.global_position.distance_squared_to(ppos) > max_dist_sq:
+			var angle: float = randf_range(0, TAU)
+			enemy.global_position = ppos + Vector2.RIGHT.rotated(angle) * spawn_radius
 
 
 ## Updates the cached build analysis when player's build changes.
@@ -215,7 +261,8 @@ func _apply_difficulty_weight(base_weight: float, enemy_stats: EnemyStats) -> fl
 	return base_weight
 
 ## Instantiates and positions a single enemy.
-func spawn_enemy(stats: EnemyStats):
+## If `position_override` is given, spawns there; otherwise at a random point on the spawn ring.
+func spawn_enemy(stats: EnemyStats, position_override = null):
 	var enemy_instance = enemy_scene.instantiate()
 
 	# Pick a random size from the enemy's allowed sizes and apply scaling
@@ -223,18 +270,41 @@ func spawn_enemy(stats: EnemyStats):
 	enemy_instance.stats = scaled_stats.stats
 	enemy_instance.spawned_size = scaled_stats.size
 
-	var random_angle = randf_range(0, TAU)
-	var spawn_offset = Vector2.RIGHT.rotated(random_angle) * spawn_radius
-	var spawn_position = player_node.global_position + spawn_offset
+	var spawn_position
+	if position_override != null:
+		spawn_position = position_override
+	else:
+		var random_angle = randf_range(0, TAU)
+		var spawn_offset = Vector2.RIGHT.rotated(random_angle) * spawn_radius
+		spawn_position = player_node.global_position + spawn_offset
 
 	enemy_instance.global_position = spawn_position
 	enemy_instance.scale *= scaled_stats.visual_scale
 	get_tree().current_scene.add_child(enemy_instance)
 	# Register with EntityRegistry for cached lookups
 	EntityRegistry.register_enemy(enemy_instance)
-	# Update ledger with enemy stats
+	# Track threat with the enemy's ACTUAL (size-scaled) stats, so the increment here matches the
+	# decrement on death (which emits the scaled stats). Increment the CR total once per enemy.
 	enemy_instance.died.connect(_on_enemy_died)
-	_update_threat_ledger(stats, 1)
+	_update_threat_ledger(scaled_stats.stats, 1)
+	_active_threat_cr += scaled_stats.stats.challenge_rating
+
+## DEBUG: Immediately spawns `count` enemies clumped near the player, for perf testing.
+## Invoked by the dev console `spawn` command.
+func debug_spawn(count: int) -> void:
+	if not is_instance_valid(player_node):
+		player_node = get_tree().get_first_node_in_group("player")
+	if not is_instance_valid(player_node):
+		return
+	# Gather any valid enemy stats from the configured encounter sets.
+	var pool: Array = []
+	for es in encounter_sets:
+		pool.append_array(es.enemies)
+	if pool.is_empty():
+		return
+	for i in count:
+		var offset = Vector2.RIGHT.rotated(randf_range(0, TAU)) * randf_range(60.0, 280.0)
+		spawn_enemy(pool.pick_random(), player_node.global_position + offset)
 
 ## Picks a size from the enemy's allowed sizes (weighted by EncounterConfig) and returns scaled stats.
 ## Returns a Dictionary with "stats" (duplicated & scaled), "size" (chosen size), "visual_scale" (float).
@@ -272,6 +342,7 @@ func _apply_size_scaling(base_stats: EnemyStats) -> Dictionary:
 ## Signal handler for when any enemy dies.
 func _on_enemy_died(enemy_stats: EnemyStats):
 	_update_threat_ledger(enemy_stats, -1)
+	_active_threat_cr = max(0.0, _active_threat_cr - enemy_stats.challenge_rating)
 	
 ## Helper function to modify our internal threat tally using behavior tags.
 func _update_threat_ledger(enemy_stats: EnemyStats, multiplier: int):

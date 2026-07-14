@@ -24,6 +24,7 @@ var knockback: float = 0.0
 var target: Node2D = null
 var proximity_detector: Area2D
 var status_chance = 0.0
+var _spatial_hit_radius: float = 16.0  # used when stats.use_spatial_hits
 
 # --- Pooling Support ---
 var _is_pooled: bool = false  # Track if this projectile came from pool
@@ -70,10 +71,17 @@ func _initialize():
 	# Configure visuals from stats.
 	sprite.texture = stats.texture
 	sprite.scale = stats.scale
-	generate_hitbox_from_sprite()
 
-	# Configure physics based on allegiance (using CollisionUtils).
-	CollisionUtils.set_projectile_collision(self.area2d, allegiance)
+	if stats.use_spatial_hits:
+		# Cheap-placeholder path: keep the Area2D out of the physics broadphase; hit via the grid.
+		area2d.monitoring = false
+		area2d.monitorable = false
+		var sz := (sprite.texture.get_size() * sprite.scale.abs()) if sprite.texture else Vector2(16, 16)
+		_spatial_hit_radius = maxf(sz.x, sz.y) * 0.5 + 8.0
+	else:
+		generate_hitbox_from_sprite()
+		# Configure physics based on allegiance (using CollisionUtils).
+		CollisionUtils.set_projectile_collision(self.area2d, allegiance)
 
 	# This is a normal moving projectile.
 	_intialize_as_bullet()
@@ -95,8 +103,9 @@ func _intialize_as_bullet():
 			lifetime_timer.timeout.connect(_destroy)
 		lifetime_timer.start()
 
-	# Connect the damage signal (only if not already connected).
-	if not _signals_connected:
+	# Connect the damage signal (only if not already connected). Spatial-hit projectiles
+	# don't use the Area2D at all.
+	if not stats.use_spatial_hits and not _signals_connected:
 		self.area2d.body_entered.connect(_on_body_entered)
 		_signals_connected = true
 
@@ -132,6 +141,22 @@ func _process(delta: float):
 		# Update visual rotation to match the new direction.
 		self.rotation = direction.angle()
 	global_position += direction * stats.speed * delta
+	if stats.use_spatial_hits:
+		_check_spatial_hits()
+
+## Cheap-placeholder hit detection via the spatial hash (no physics broadphase).
+func _check_spatial_hits() -> void:
+	if _is_destroying:
+		return
+	var target_group = CollisionUtils.get_target_group(allegiance)
+	if target_group != "enemies":
+		return  # grid is enemy-only; enemy projectiles keep the Area2D path
+	var r_sq := _spatial_hit_radius * _spatial_hit_radius
+	for body in EntityRegistry.get_enemies_near(global_position, _spatial_hit_radius):
+		if _is_destroying:
+			return
+		if is_instance_valid(body) and not body.is_dying and global_position.distance_squared_to(body.global_position) <= r_sq:
+			_on_body_entered(body)
 
 func _on_body_entered(body: Node2D):
 	# Hit Logic - check if this body is a valid target for our allegiance.
@@ -299,8 +324,8 @@ func _apply_spark_effect(hit_body: Node2D):
 		spark_damage = int(spark_damage * damage_mult)
 		spark_bounces += int(user.get_stat("spark_bounce_bonus")) if user.get_stat("spark_bounce_bonus") else 0
 
-	# Find enemies to target (excluding the one we just hit)
-	var candidates = TargetingUtils.get_candidates("enemies")
+	# Find enemies to target (excluding the one we just hit) -- spatial-hash query, not all enemies.
+	var candidates = EntityRegistry.get_candidates_near("enemies", hit_body.global_position, spark_range)
 	candidates = candidates.filter(func(c): return c != hit_body and is_instance_valid(c))
 
 	# Sort by distance to find closest targets
@@ -317,6 +342,8 @@ func _apply_spark_effect(hit_body: Node2D):
 
 func _create_spark(spawn_pos: Vector2, target_enemy: Node2D, dmg: int, bounces: int, range_val: float, spd: float, lifetime_val: float):
 	var spark = ProjectilePool.get_spark()
+	if spark == null:
+		return  # over the concurrent-spark cap
 
 	spark.allegiance = SparkProjectile.Allegiance.PLAYER if allegiance == Allegiance.PLAYER else SparkProjectile.Allegiance.ENEMY
 	spark.user = user

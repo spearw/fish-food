@@ -26,7 +26,9 @@ benchmark numbers behind them so they don't get silently reverted.
   hit detection) so spark *count* isn't hard-clipped — a low cap would limit spark builds, i.e.
   performance clipping gameplay. `max_active_sparks` (800) is a safety backstop, not a gameplay limit;
   sparks self-limit by lifespan. Prefer bounding cost this way (off-broadphase, self-limiting) over a
-  hard gameplay cap wherever possible.
+  hard gameplay cap wherever possible — but off-broadphase is **not** a universal win: it's only for the
+  high-count, dense, cheap-per-hit case. Daggers regressed off-broadphase and damage zones use cached
+  overlap, so both stay on Area2D. Measure before converting (architecture.md §7).
 - **Enemies don't collide with each other** (`enemy.tscn` `collision_mask = 1`); proximity detectors
   are opt-in. Don't make either always-on.
 - **Proximity/targeting queries go through the `EntityRegistry` spatial hash** (`get_enemies_near` /

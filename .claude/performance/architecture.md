@@ -159,6 +159,53 @@ is what keeps that bounded under any hit volume. Numbers are shown for spark hit
 
 ---
 
+## 7. Taking projectiles/zones off the broadphase is NOT a universal win
+
+It's tempting to conclude from the spark change (§5) that *everything* should leave the physics
+broadphase. It shouldn't. Godot's C++ Area2D broadphase is very efficient at low-to-moderate counts; a
+GDScript spatial-hash check per object only wins when there are MANY objects in a DENSE cluster.
+
+Measured evidence from this codebase:
+- **Sparks** — high count, dense, self-cascading → off-broadphase wins (§5). Done.
+- **Daggers / generic projectiles** — moderate count, spread out. Off-broadphase (the `use_spatial_hits`
+  flag on `ProjectileStats`) **regressed** them: the per-projectile GDScript query cost more than the
+  C++ broadphase at those counts. The flag exists but is deliberately **OFF** for daggers.
+- **Damage zones** (fire pools / poison clouds / auras — `persistent_damage_effect.gd`) — only a handful
+  are live at once, and they already cache their overlap set via `body_entered`/`body_exited` (no
+  physics query per tick). Their broadphase cost is just infrequent enter/exit events. Taking them off
+  would *replace* those cheap events with a per-tick spatial query over a large area — a likely loss.
+  They **stay** on Area2D.
+
+Rule: off-broadphase is a tool for the high-count, dense, cheap-per-hit case. For everything else,
+measure before converting — and the default answer is "leave it on Area2D."
+
+## 8. Status effects & damage zones (fire / poison / DOT / slow)
+
+**Files:** `systems/status_effects/*`, `items/effects/persistent_damage_effect.gd`
+
+Every enemy carries a `StatusEffectManager`, so anything per-manager runs hundreds of times. What keeps
+it cheap:
+- **Idle managers don't process.** The manager starts `set_physics_process(false)` and only enables
+  per-frame processing while a `needs_processing` status (a DOT) is active, going idle again when none
+  remain. Duration expiry uses one-shot `Timer`s, so a slow-only enemy never takes a frame. Do **not**
+  add unconditional per-frame work to the manager.
+- **DOT ticks use a float accumulator** (`dot_status_effect.gd`), not a Timer-per-tick. Keep it that way.
+- **Damage zones cache overlap** and resolve each body's `StatusEffectManager` **once on entry**, not
+  via `get_node("StatusEffectManager")` every tick per overlapping body.
+- **Targeting uses bounded spatial queries** (`EntityRegistry.get_candidates_near`), never a full enemy
+  scan + sort. (The melee spark path was fixed to match the projectile path.)
+
+## 9. Optional cosmetics: GameSettings
+
+**File:** `systems/global/game_settings.gd` (autoload)
+
+Because gameplay cost is bounded by design, the remaining lever for a weak machine is *cosmetic*.
+`GameSettings` exposes performance toggles (`show_damage_numbers`, `show_health_bars`,
+`show_status_vfx`), all default ON, checked where each visual is created.
+`GameSettings.set_performance_mode(true)` flips them as a preset (persisted to `user://settings.cfg`).
+Health bars are a per-enemy `TextureProgressBar` and status VFX a per-enemy `AnimatedSprite2D`, so
+hiding them scales the saving with enemy count. A settings UI to expose these to players is the next step.
+
 ## Appendix: things tried that did NOT work
 
 Recorded so they aren't re-attempted:

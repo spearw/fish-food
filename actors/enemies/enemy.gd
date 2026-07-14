@@ -121,16 +121,11 @@ func _physics_process(delta: float) -> void:
 
 ## This virtual method is called by the parent Entity's `take_damage` function
 ## AFTER health has been reduced. We use it for enemy-specific visual feedback.
-func _on_take_damage(damage_taken: int, is_crit: bool, source_node: Node) -> void:
+func _on_take_damage(damage_taken: int, is_crit: bool, _source_node: Node) -> void:
 	if damage_taken <= 0:
 		return
-	# Sparks (chain lightning) hit very rapidly; spawning a damage number per spark tick both floods
-	# the screen with tiny numbers and, at high spark counts, pins the damage-number pool at its cap
-	# -- in profiling that flood was the dominant cost of spark-heavy builds, larger than the sparks
-	# themselves. The lightning VFX and the enemy health bar already convey these hits, so skip them.
-	if source_node is SparkProjectile:
-		return
-	# Spawn a floating damage number using pool for performance.
+	# Spawn a floating damage number (including for spark hits -- measured in isolation these are
+	# cheap, ~1ms per 150, and DamageNumberPool's concurrent cap bounds the on-screen count).
 	var dmg_num_instance = DamageNumberPool.get_damage_number()
 	if dmg_num_instance == null:
 		return  # damage-number cap reached (too many on screen)

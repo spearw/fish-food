@@ -3,6 +3,18 @@ extends Node
 ## one-per-run flag, and the level-unlock trigger. Run with --headless.
 
 func _ready() -> void:
+	# --- Content: master_combo_list.tres loads the Fire+Lightning combo with 3 wired synergies whose
+	#     artifact scenes resolve. (ComboManager loaded it in its own _ready.) ---
+	var loaded: Array = ComboManager._combos
+	var content_ok: bool = loaded.size() == 1 and loaded[0].involves("fire", "lightning") \
+		and loaded[0].synergies.size() == 3
+	if content_ok:
+		for syn in loaded[0].synergies:
+			if syn == null or syn.scene_to_unlock == null:
+				content_ok = false
+	print("COMBOVERIFY content: combos=%d synergies=%d scenes_ok=%s" % [
+		loaded.size(), (loaded[0].synergies.size() if loaded.size() > 0 else 0), str(content_ok)])
+
 	var combo := DeckCombo.new()
 	combo.combo_name = "Fire + Lightning"
 	combo.deck_a_id = "fire"
@@ -35,7 +47,7 @@ func _ready() -> void:
 	var one_per_run_ok: bool = ComboManager.get_eligible_synergies().is_empty() \
 		and not ComboManager.should_offer_combo(ComboManager.COMBO_UNLOCK_LEVEL)
 
-	var ok: bool = none_ok and one_side_ok and gate_ok and offered_ok and trigger_ok and one_per_run_ok
+	var ok: bool = content_ok and none_ok and one_side_ok and gate_ok and offered_ok and trigger_ok and one_per_run_ok
 	print("COMBOVERIFY none=%s one_side=%s gate=%s offered=%d trigger=%s one_per_run=%s RESULT=%s" % [
 		str(none_ok), str(one_side_ok), str(gate_ok), offered.size(), str(trigger_ok), str(one_per_run_ok),
 		"PASS" if ok else "FAIL"])

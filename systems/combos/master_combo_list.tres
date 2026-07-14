@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ComboList" load_steps=4 format=3 uid="uid://cflmastercombolist01"]
+
+[ext_resource type="Script" path="res://systems/combos/combo_list.gd" id="1_list"]
+[ext_resource type="Script" path="res://systems/combos/deck_combo.gd" id="2_dc"]
+[ext_resource type="Resource" path="res://systems/combos/fire_lightning_combo.tres" id="3_flc"]
+
+[resource]
+script = ExtResource("1_list")
+combos = Array[ExtResource("2_dc")]([ExtResource("3_flc")])

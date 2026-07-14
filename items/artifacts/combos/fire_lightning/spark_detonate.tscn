@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cflsparkdetonate1"]
+
+[ext_resource type="Script" path="res://items/artifacts/combos/fire_lightning/spark_detonate_artifact.gd" id="1_dtnt"]
+
+[node name="SparkDetonateArtifact" type="Node"]
+script = ExtResource("1_dtnt")

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DeckCombo" load_steps=6 format=3 uid="uid://cflfirelightning01"]
+
+[ext_resource type="Script" path="res://systems/combos/deck_combo.gd" id="1_combo"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+[ext_resource type="Resource" path="res://systems/upgrades/combos/synergy_ignite_to_spark.tres" id="3_s1"]
+[ext_resource type="Resource" path="res://systems/upgrades/combos/synergy_spark_rekindle.tres" id="4_s2"]
+[ext_resource type="Resource" path="res://systems/upgrades/combos/synergy_spark_detonate.tres" id="5_s3"]
+
+[resource]
+script = ExtResource("1_combo")
+combo_name = "Fire + Lightning"
+deck_a_id = "fire"
+deck_b_id = "lightning"
+power_gate = 4
+synergies = Array[ExtResource("2_upg")]([ExtResource("3_s1"), ExtResource("4_s2"), ExtResource("5_s3")])

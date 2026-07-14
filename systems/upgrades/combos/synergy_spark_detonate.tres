@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://cflsyndetonate01"]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/combos/fire_lightning/spark_detonate.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "synergy_spark_detonate"
+display_name = "Thermal Shock"
+description = "Fire + Lightning: sparks detonate a burning enemy's remaining burn as instant damage."
+type = 1
+target_class_name = "SparkDetonateArtifact"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 4
+property_to_modify = ""
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

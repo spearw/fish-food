@@ -4,6 +4,8 @@ extends CanvasLayer
 
 # An array to hold the upgrade choices currently being displayed.
 var current_upgrades: Array[Dictionary]
+# True while the current screen is a cross-deck combo choice (vs a normal level-up).
+var _choosing_combo: bool = false
 
 # signal to announce when choice has been made
 signal upgrade_chosen
@@ -56,13 +58,29 @@ func _show_reward_sequence(count: int):
 ## Called when the player levels up. Fetches and displays upgrade choices.
 func on_player_leveled_up(new_level: int):
 	Logs.add_message(["Player leveled up. New level:", new_level])
-	show_upgrade_screen()
-	
+	# At the unlock event, if a cross-deck combo is available, offer it instead of a normal upgrade.
+	if ComboManager.should_offer_combo(new_level):
+		show_combo_screen()
+	else:
+		show_upgrade_screen()
+
 func show_upgrade_screen():
+	current_upgrades = upgrade_manager.get_upgrade_choices(3)
+	_choosing_combo = false
+	_present()
+
+## Shows the cross-deck combo choice: the currently-eligible synergies. Pick ONE (one combo per run).
+func show_combo_screen():
+	current_upgrades = []
+	for syn in ComboManager.get_eligible_synergies():
+		current_upgrades.append({"upgrade": syn, "rarity": Upgrade.Rarity.COMMON})
+	_choosing_combo = true
+	_present()
+
+## Pauses, shows the screen, and populates the buttons from current_upgrades.
+func _present():
 	get_tree().paused = true
 	self.show()
-	current_upgrades = upgrade_manager.get_upgrade_choices(3)
-	
 	for i in range(upgrade_buttons.size()):
 		var button = upgrade_buttons[i]
 		if i < current_upgrades.size():
@@ -105,6 +123,10 @@ func _on_upgrade_button_pressed(choice_index: int) -> void:
 	Logs.add_message(["Player chose upgrade:", choice.upgrade.id, "Rarity:", Upgrade.Rarity.keys()[choice.rarity]])
 	# Apply the selected upgrade.
 	upgrade_manager.apply_upgrade(current_upgrades[choice_index])
+	# If this was a cross-deck combo choice, lock the run's combo (one per run).
+	if _choosing_combo:
+		CurrentRun.combo_taken = true
+		_choosing_combo = false
 	upgrade_chosen.emit()
 		
 	# Hide the UI and unpause the game.

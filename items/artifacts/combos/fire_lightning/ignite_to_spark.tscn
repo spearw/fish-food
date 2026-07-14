@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cflignitetospark1"]
+
+[ext_resource type="Script" path="res://items/artifacts/combos/fire_lightning/ignite_to_spark_artifact.gd" id="1_igsp"]
+
+[node name="IgniteToSparkArtifact" type="Node"]
+script = ExtResource("1_igsp")

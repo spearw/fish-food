@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://cflsynignite01"]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/combos/fire_lightning/ignite_to_spark.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "synergy_ignite_to_spark"
+display_name = "Arc Ignition"
+description = "Fire + Lightning: ignited enemies spawn a spark."
+type = 1
+target_class_name = "IgniteToSparkArtifact"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 4
+property_to_modify = ""
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

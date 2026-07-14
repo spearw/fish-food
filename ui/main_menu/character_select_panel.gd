@@ -126,9 +126,9 @@ func _on_select_and_start_button_pressed():
 	CurrentRun.spawn_intensity = intensity_value as CurrentRun.SpawnIntensity
 	CurrentRun.counter_mode = selected_counter as CurrentRun.CounterMode
 
-	# Pick a random encounter config for this run
-	if all_encounter_configs:
-		CurrentRun.selected_encounter_config = all_encounter_configs.pick_random()
+	# Use the BIOME's own encounter config (its native weighting), not a random one. Clearing any
+	# prior value lets the director fall back to active_biome.encounter_config.
+	CurrentRun.selected_encounter_config = null
 
 	# Change scene to game world.
 	get_tree().change_scene_to_file("res://world/world.tscn")

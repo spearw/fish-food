@@ -171,10 +171,8 @@ func _get_currently_available_enemies() -> Array[EnemyStats]:
 		if is_active:
 			available.append_array(encounter_set.enemies)
 
-	# Filter by biome if one is selected
-	if active_biome:
-		available = available.filter(func(es): return active_biome.can_enemy_spawn(es))
-
+	# Biome no longer HARD-filters the pool -- it's a soft preference now. All time-active enemies stay
+	# eligible; native enemies are simply weighted up in _pick_weighted_enemy (off-biome can still appear).
 	return available
 
 ## Selects an enemy from the pool, weighted by EncounterConfig tags.
@@ -182,11 +180,8 @@ func _pick_theme_enemy(pool: Array[EnemyStats], budget: float) -> EnemyStats:
 	var affordable_pool = pool.filter(func(es): return es.challenge_rating <= budget)
 	if affordable_pool.is_empty(): return null
 
-	# If no encounter_config, fall back to unweighted random selection
-	if not encounter_config:
-		return affordable_pool.pick_random()
-
-	# Build weighted selection based on tag weights
+	# Always go through weighted selection -- it folds in the biome preference and the difficulty
+	# countering even when there is no encounter_config.
 	return _pick_weighted_enemy(affordable_pool)
 
 
@@ -194,17 +189,19 @@ func _pick_theme_enemy(pool: Array[EnemyStats], budget: float) -> EnemyStats:
 ## Applies difficulty-based effectiveness multipliers if in EASY/HARD mode.
 func _pick_weighted_enemy(pool: Array[EnemyStats]) -> EnemyStats:
 	if pool.is_empty(): return null
-	if not encounter_config:
-		return pool.pick_random()
 
-	# Calculate weights for each enemy
+	# Weight = (config tag weight, or 1.0) x biome native-preference x difficulty countering.
+	# The three factors compose, so a biome pulls toward its natives while HARD mode can still pull
+	# toward the enemies that counter your build.
 	var weighted_enemies: Array = []
 	var total_weight = 0.0
 
 	for enemy_stats in pool:
-		var weight = encounter_config.calculate_enemy_weight(enemy_stats)
-
-		# Apply difficulty-based effectiveness multipliers
+		var weight = encounter_config.calculate_enemy_weight(enemy_stats) if encounter_config else 1.0
+		# Biome soft-preference: native enemies more likely (off-biome still possible).
+		if active_biome:
+			weight *= active_biome.get_native_multiplier(enemy_stats)
+		# Adversarial difficulty countering (EASY/HARD).
 		weight = _apply_difficulty_weight(weight, enemy_stats)
 
 		total_weight += weight

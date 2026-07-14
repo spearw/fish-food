@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmgnum0bench0probe"]
+
+[ext_resource type="Script" path="res://dmgnum_bench.gd" id="1_db"]
+
+[node name="DmgNumBench" type="Node"]
+script = ExtResource("1_db")

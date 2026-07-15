@@ -118,6 +118,102 @@ func register_player(player: Node) -> void:
 	else:
 		printerr("UpgradeManager: Failed to register player or find required child nodes (Equipment/Artifacts).")
 		
+# --- Weapon duplicates: copies, merges, in-place upgrades (design doc section 3) ---
+
+## The player's live copies of a weapon type. Matches the weapon_type meta (set at creation), with
+## the node name as fallback; anything without an instance rarity (mocks, non-weapons) is skipped.
+func _owned_copies(weapon_type: String) -> Array:
+	var copies: Array = []
+	if not is_instance_valid(player_equipment):
+		return copies
+	for w in player_equipment.get_children():
+		if String(w.get_meta("weapon_type", w.name)) == weapon_type and "rarity" in w:
+			copies.append(w)
+	return copies
+
+## Any-tier gate: a weapon card stays in the pool while SOME tier of it could be taken. With a free
+## slot every tier is a new copy; otherwise owning any copy below the top tier keeps it alive (that
+## copy's own tier merges, and every tier above it replaces).
+func _weapon_offerable_any_tier(upgrade: Upgrade) -> bool:
+	if has_free_slot():
+		return true
+	for w in _owned_copies(upgrade.target_class_name):
+		if w.rarity < Upgrade.Rarity.size() - 1:
+			return true
+	return false
+
+## Tier gate: offerable iff SLOTTABLE (free slot -> new copy), MERGEABLE (a same-tier copy -> next
+## tier) or UPGRADE-REPLACEABLE (a lower-tier copy -> this tier, in place). Otherwise the card is
+## dead at this tier and must not be shown -- a dead option is a third of a 3-card choice.
+func _weapon_offerable_at(upgrade: Upgrade, rolled_rarity: int) -> bool:
+	if has_free_slot():
+		return true
+	var top := Upgrade.Rarity.size() - 1
+	for w in _owned_copies(upgrade.target_class_name):
+		if w.rarity == rolled_rarity and rolled_rarity < top:
+			return true
+		if w.rarity < rolled_rarity:
+			return true
+	return false
+
+## The action suffix for a weapon card's button text: "" for a new copy, otherwise it names the merge
+## or the in-place upgrade. The card is where the player learns the rule.
+func describe_weapon_take(upgrade: Upgrade, rolled_rarity: int) -> String:
+	if has_free_slot():
+		return ""
+	var owned := _owned_copies(upgrade.target_class_name)
+	var top := Upgrade.Rarity.size() - 1
+	for w in owned:
+		if w.rarity == rolled_rarity and rolled_rarity < top:
+			return " > merges into %s" % Upgrade.Rarity.keys()[rolled_rarity + 1].capitalize()
+	var lowest := -1
+	for w in owned:
+		if w.rarity < rolled_rarity and (lowest == -1 or w.rarity < lowest):
+			lowest = w.rarity
+	if lowest >= 0:
+		return " > upgrades your %s" % Upgrade.Rarity.keys()[lowest].capitalize()
+	return ""
+
+## Resolves a taken weapon card.
+## Free slot (or granted): a NEW COPY at the rolled tier -- never a merge, because two copies in two
+## slots out-damage one merged copy (+1/N), so merging with room to spare would always be a mistake.
+## Full loadout: MERGE with a same-tier copy (it goes up a tier -- the pick costs no slot), else
+## UPGRADE the lowest lower-tier copy in place. Both go through Weapon.set_rarity, so the node -- and
+## its transformations -- survives.
+func _take_weapon_card(upgrade: Upgrade, rolled_rarity: int, granted: bool) -> void:
+	if granted or has_free_slot():
+		var new_weapon = create_weapon(upgrade.scene_to_unlock.instantiate(), upgrade, rolled_rarity)
+		if granted:
+			mark_granted(new_weapon)
+		# Copies need distinct node names or add_child mangles them. The FIRST copy keeps the
+		# canonical name so upgrade/transformation lookups (get_node by target name) keep working.
+		if player_equipment.has_node(NodePath(String(new_weapon.name))):
+			var n := 2
+			while player_equipment.has_node(NodePath("%s_%d" % [upgrade.target_class_name, n])):
+				n += 1
+			new_weapon.name = "%s_%d" % [upgrade.target_class_name, n]
+		player_equipment.add_child(new_weapon)
+		return
+
+	var owned := _owned_copies(upgrade.target_class_name)
+	var top := Upgrade.Rarity.size() - 1
+	if rolled_rarity < top:
+		for w in owned:
+			if w.rarity == rolled_rarity:
+				w.set_rarity(rolled_rarity + 1)  # merge: strictly pairwise, no cascade
+				return
+	var lowest = null
+	for w in owned:
+		if w.rarity < rolled_rarity and (lowest == null or w.rarity < lowest.rarity):
+			lowest = w
+	if lowest:
+		lowest.set_rarity(rolled_rarity)  # replace: the biggest in-place upgrade available
+		return
+	# The offer filter should have hidden this card. Land it as a copy (soft cap violation) rather
+	# than eat the player's pick, and say so.
+	printerr("Weapon card '%s' had no legal action at a full loadout -- offer-filter bug?" % upgrade.id)
+	player_equipment.add_child(create_weapon(upgrade.scene_to_unlock.instantiate(), upgrade, rolled_rarity))
+
 ## Marks an item as granted: earned rather than drafted, so it doesn't spend a loadout slot.
 func mark_granted(item: Node) -> void:
 	item.set_meta(GRANTED_META, true)
@@ -169,7 +265,14 @@ func get_offerable_upgrades() -> Array[Upgrade]:
 	for upgrade in active_upgrade_pool:
 		var target_name = upgrade.target_class_name
 		match upgrade.type:
-			Upgrade.UpgradeType.UNLOCK_WEAPON, Upgrade.UpgradeType.UNLOCK_ARTIFACT:
+			Upgrade.UpgradeType.UNLOCK_WEAPON:
+				# Duplicates are LEGAL for weapons (copies, merges, in-place upgrades -- design doc
+				# section 3), so "already owned" stopped being a disqualifier. This is the any-tier
+				# gate; the exact tier is re-checked at roll time (_weapon_offerable_at).
+				if _weapon_offerable_any_tier(upgrade):
+					offerable.append(upgrade)
+			Upgrade.UpgradeType.UNLOCK_ARTIFACT:
+				# Artifacts are rules, not numbers: no tiers, no merging, one copy ever.
 				if not target_name in player_inventory and slot_free:
 					offerable.append(upgrade)
 			Upgrade.UpgradeType.UPGRADE:
@@ -212,7 +315,13 @@ func get_upgrade_choices(count: int) -> Array[Dictionary]:
 				if upg in filtered_pool:
 					potential_upgrades.append(upg)
 			for upg in bucket_unlocks:
-				if upg in filtered_pool:
+				# Weapon cards are TIER-sensitive: the same card can be live at one rarity (merges
+				# with your same-tier copy) and dead at another (lower than everything you own, at a
+				# full loadout). Re-check at the rolled tier -- never show a card the player can't use.
+				if upg.type == Upgrade.UpgradeType.UNLOCK_WEAPON:
+					if upg in filtered_pool and _weapon_offerable_at(upg, chosen_rarity_enum):
+						potential_upgrades.append(upg)
+				elif upg in filtered_pool:
 					potential_upgrades.append(upg)
 
 			# If no more rarities of this tier exist, downgrade 1 and try again
@@ -280,13 +389,9 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 	match upgrade.type:
 		Upgrade.UpgradeType.UNLOCK_WEAPON:
 			if upgrade.scene_to_unlock:
-				# The rolled rarity IS the weapon's tier -- draw a Rare Fire Staff and you get a Rare
-				# one, not a Common one presented in blue.
-				var new_weapon = create_weapon(
-					upgrade.scene_to_unlock.instantiate(), upgrade, chosen_rarity_enum)
-				if granted:
-					mark_granted(new_weapon)
-				player_equipment.add_child(new_weapon)
+				# The rolled rarity IS the tier. What taking the card does depends on the loadout:
+				# new copy with a free slot, merge or in-place upgrade at a full one.
+				_take_weapon_card(upgrade, chosen_rarity_enum, granted)
 			else:
 				printerr("Unlock upgrade '%s' is missing a scene!" % upgrade.id)
 
@@ -346,6 +451,9 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 ##                Weapon._ready() bakes it into the stats it duplicates for itself.
 func create_weapon(weapon, upgrade, rarity: int = Upgrade.Rarity.COMMON):
 	weapon.name = upgrade.target_class_name
+	# Duplicates get unique NODE names (below), so the type lives in metadata. Name stays the
+	# fallback for tools/mocks that predate this.
+	weapon.set_meta("weapon_type", upgrade.target_class_name)
 	if "rarity" in weapon:
 		weapon.rarity = rarity
 	var stats_comp = weapon.get_node("WeaponStatsComponent")

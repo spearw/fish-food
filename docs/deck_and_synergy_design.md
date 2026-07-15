@@ -220,6 +220,11 @@ See *What would make us revisit* at the end.
   and leaving 20 level-ups of stats: **draft copies → merge up → free slots → draft rules.**
 - **"Three of the same" is therefore a ladder:** 4 copies → 2 second-rarity → 1 third-rarity, ending with
   3 slots freed for artifacts.
+  - *Built (v1, Jul 2026) — one honest gap:* the shipped merge trigger is **drafting a duplicate at a
+    full loadout** (drafted card + your same-tier copy → next tier). That conserves slots rather than
+    freeing them. The **2-owned→1 consolidation that frees a slot has no trigger yet** — it needs a
+    small UI (a merge button on the pause/level screen), deferred. Until then the ladder climbs via
+    drafts; the "free slots for artifacts" payoff needs the UI piece.
 - **Auto-merge when slots are full** and a matching duplicate is drafted (Brotato does this) — do the
   obvious thing rather than block the pick.
 - **Merging is a path, never a gate.** Higher rarities can also be drafted directly; the draw is
@@ -427,17 +432,19 @@ DeckCombo (Resource)
    *composition* (core + picks, capped) survives, as does `exclusive_upgrades` (repointed at the
    identity artifact). Don't build further on the deck link until §3 is settled.
 
-5. **Weapon economy** (§3) — **the next thing to build, and it gates the rest.** Until slots are
-   capped, every level-up is a queue rather than a choice, so tuning anything downstream measures the
-   wrong game. Rough order:
-   1. **Shared slot cap** (~5) + the damage floor via upgrade 0. The cap alone restores exclusion.
-   2. **Instance rarity on weapons** — the one genuinely new piece (weapons currently carry a single
-      fixed `rarity`).
-   3. **Merge** — pairwise same-rarity → next rarity, frees a slot, auto-merges at full slots.
-   4. **The offer filter** — offerable iff slottable / mergeable / upgrade-replaceable; replacement is
-      what taking the card does at full slots.
+5. **Weapon economy** (§3) — gates the rest. Progress:
+   1. ✅ **Shared slot cap** (5, weapons+artifacts; granted items exempt). *Upgrade-0's 1-of-2 starter
+      roll (the damage floor) is NOT built yet — it lands with step 5.*
+   2. ✅ **Instance rarity** — per-weapon curve, scales the whole damage tree (nested stats + DoT).
+   3. ✅ **Merge (v1)** — drafted duplicate at a full loadout fuses with your same-tier copy →
+      next tier, via `Weapon.set_rarity` (in place: transformations survive). Strictly pairwise, no
+      cascade. *Deferred: the 2-owned→1 slot-freeing consolidation needs a small merge UI.*
+   4. ✅ **Offer filter** — a weapon card is offerable iff slottable / mergeable / upgrade-replaceable
+      **at the rolled tier** (`_weapon_offerable_at`); replacement-when-full upgrades the lowest owned
+      copy in place; dead tiers (lower than everything owned, Mythic-on-Mythic) are hidden. The card
+      text says what taking it does ("merges into Epic" / "upgrades your Common").
    5. **Identity artifacts** — retire `primary_deck`, repoint `exclusive_upgrades`, return the
-      extracted weapons to their decks as starter candidates.
+      extracted weapons to their decks as starter candidates, build upgrade-0's 1-of-2 roll.
    Then **playtest**: does the ladder pay off inside ~20–30 picks, and do artifacts eat the pool?
 6. Card manipulation (reroll / banish / swap) — **pre-commitment only** (§3): these act on the offer,
    never on owned slots.

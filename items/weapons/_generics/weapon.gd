@@ -73,6 +73,29 @@ func get_rarity_multiplier() -> float:
 		return 1.0
 	return rarity_scaling[clampi(rarity, 0, rarity_scaling.size() - 1)]
 
+## Raises (or sets) this instance's rarity IN PLACE, rescaling every damage source by the relative
+## multiplier. Used by merge (a same-tier duplicate drafted at a full loadout sends this copy up a
+## tier) and by replacement-when-full (a higher-tier copy drafted upgrades this one). In place means
+## the NODE survives -- transformations and runtime state carry through, which is what "the same
+## weapon, better" should mean.
+func set_rarity(new_rarity: int) -> void:
+	if rarity_scaling.is_empty():
+		rarity = new_rarity
+		return
+	new_rarity = clampi(new_rarity, 0, rarity_scaling.size() - 1)
+	if new_rarity == rarity:
+		return
+	# Before _ready the stats are still the SHARED resource -- just record the tier and let
+	# _apply_rarity_scaling bake it after the stats are localized.
+	if not is_node_ready():
+		rarity = new_rarity
+		return
+	var relative: float = rarity_scaling[new_rarity] / get_rarity_multiplier()
+	rarity = new_rarity
+	var seen: Array = []
+	for prop_name in _own_stats_properties():
+		_scale_stats_tree(get(prop_name), relative, seen)
+
 ## Every damage source this weapon owns, as {damage, armor_pen, dot} -- walking nested stats
 ## (on-death explosions, trails, shockwaves) the same way rarity scaling does.
 ##

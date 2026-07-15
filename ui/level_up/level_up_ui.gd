@@ -102,11 +102,13 @@ func _present():
 				elif upgrade.modifier_type == Upgrade.ModifierType.POWERS:
 					button.text = "%s\n%s (+%s level(s))" % [upgrade.display_name, upgrade.description, value]
 			elif upgrade.type == Upgrade.UpgradeType.UNLOCK_WEAPON:
-				# Name the tier in text, not just by colour. Brotato conveys weapon tier by colour
-				# alone, and players report not being able to tell what tier they're being offered.
-				button.text = "%s (%s)\n%s" % [
+				# Name the tier in text (Brotato conveys tier by colour alone and players report not
+				# being able to read it), AND what taking the card does -- a merge and an in-place
+				# upgrade resolve differently from "new weapon", and the card is where that's learned.
+				button.text = "%s (%s)%s\n%s" % [
 					upgrade.display_name,
 					Upgrade.Rarity.keys()[rarity_enum].capitalize(),
+					upgrade_manager.describe_weapon_take(upgrade, rarity_enum),
 					upgrade.description]
 			else:
 				button.text = "%s\n%s" % [upgrade.display_name, upgrade.description]

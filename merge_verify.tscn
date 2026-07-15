@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://merge0verify00"]
+
+[ext_resource type="Script" path="res://merge_verify.gd" id="1_mv"]
+
+[node name="MergeVerify" type="Node"]
+script = ExtResource("1_mv")

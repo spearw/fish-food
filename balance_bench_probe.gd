@@ -25,13 +25,38 @@ extends Node
 ## The point of a profile over a single number: a weapon's own ratios across archetypes ARE the
 ## intransitive picture -- what it beats and what beats it. That's the shape WeaponTags.COUNTER_MATRIX
 ## encodes today from hand-authored guesses, and the shape this bench can measure instead.
+## SYNTHETIC dummies -- the ones to trust. Each is dummy_baseline.tres (a fish clone) with EXACTLY ONE
+## stat changed, so a measured ratio is attributable to that stat.
+##
+## Real enemies can't do this. They vary AI, speed, armor and size all at once -- fish is HORDE at 90
+## speed, comb_jelly is RANGED+ARMORED at 40, garden_eel is a RANGED skirmisher whose behavior parks it
+## despite a 250 speed stat. Their ratios are real but uninterpretable, and the first archetype table
+## here was built from stats without reading the AI, which made its labels flatly wrong.
+## Cloning one base holds behavior constant so it cancels out of the ratios.
 const ARCHETYPES := {
-	"standard": "res://actors/enemies/normal_enemy_types/fish/fish.tres",        # 150hp, 0 armor
-	"swarm":    "res://actors/enemies/normal_enemy_types/jelly/jelly.tres",      # 8hp, 0 armor
-	"armored":  "res://actors/enemies/normal_enemy_types/comb_jelly/comb_jelly.tres",  # 200hp, 10 armor
-	"fast":     "res://actors/enemies/normal_enemy_types/garden_eel/garden_eel.tres",  # 10hp, 250 speed
-	"tank":     "res://actors/enemies/normal_enemy_types/pike/pike.tres",        # 200hp, 0 armor
+	"baseline": "res://bench_dummies/dummy_baseline.tres",  # the control: fish, unmodified
+	"armor10":  "res://bench_dummies/dummy_armor10.tres",   # +armor only
+	"armor25":  "res://bench_dummies/dummy_armor25.tres",   # +armor only, further along the axis
+	"fast":     "res://bench_dummies/dummy_fast.tres",      # move_speed 90 -> 250 only
+	"slow":     "res://bench_dummies/dummy_slow.tres",      # move_speed 90 -> 30 only
+	"tanky":    "res://bench_dummies/dummy_tanky.tres",     # max_health only (mortal mode only)
 }
+
+## REAL enemies. What the player actually faces, and what COUNTER_MATRIX is keyed on -- but every one
+## confounds several axes, so use these for sanity, not attribution.
+const REAL_ENEMIES := {
+	"real_horde":    "res://actors/enemies/normal_enemy_types/fish/fish.tres",             # HORDE, 90spd
+	"real_swarm":    "res://actors/enemies/normal_enemy_types/jelly/jelly.tres",           # SWARM, 8hp
+	"real_ranged_armored": "res://actors/enemies/normal_enemy_types/comb_jelly/comb_jelly.tres",  # RANGED+ARMORED
+	"real_skirmisher": "res://actors/enemies/normal_enemy_types/garden_eel/garden_eel.tres",      # RANGED+FAST
+	"real_swarm_fast": "res://actors/enemies/normal_enemy_types/pike/pike.tres",           # SWARM+FAST
+}
+
+## Everything selectable via --archetype=.
+static func all_fields() -> Dictionary:
+	var merged := ARCHETYPES.duplicate()
+	merged.merge(REAL_ENEMIES)
+	return merged
 
 var weapon_path := ""       # Upgrade .tres for the weapon under test
 var rarity := 0             # Upgrade.Rarity index
@@ -163,13 +188,14 @@ func _try_setup() -> void:
 ## Sets up one archetype's measurement window.
 func _begin_window() -> void:
 	_current = _queue.pop_front()
-	if not ARCHETYPES.has(_current):
+	var fields := all_fields()
+	if not fields.has(_current):
 		print("BALANCEBENCH ERROR: unknown archetype '%s' (have: %s)" % [
-			_current, ", ".join(ARCHETYPES.keys())])
+			_current, ", ".join(fields.keys())])
 		get_tree().quit()
 		return
 
-	_spawn_dummy_field(ARCHETYPES[_current])
+	_spawn_dummy_field(fields[_current])
 
 	_frames = 0
 	_kills = 0

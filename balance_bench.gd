@@ -21,7 +21,7 @@ func _ready() -> void:
 	var enemies := 40
 	var secs := 20.0
 	var immortal := true
-	var archetype := "standard"
+	var archetype := "baseline"
 	var motion := "orbit"
 
 	for arg in OS.get_cmdline_user_args():

@@ -71,31 +71,48 @@ for a in standard swarm armored fast tank; do
 done
 ```
 
-Archetypes are real enemies chosen to isolate one axis each:
+### Use the SYNTHETIC dummies for attribution
 
-| key | enemy | isolates |
+`bench_dummies/` holds clones of one base (`dummy_baseline.tres` = fish) with **exactly one stat
+changed** each. That's the only way a ratio means anything.
+
+| key | varies | use |
 |---|---|---|
-| `standard` | fish (150hp, 0 armor) | the yardstick — normalise everything to this |
-| `swarm` | jelly (8hp, 0 armor, fast) | many weak targets |
-| `armored` | comb_jelly (200hp, **10 armor**) | **flat armor** |
-| `fast` | garden_eel (10hp, 250 speed) | speed |
-| `tank` | pike (200hp, 0 armor) | health pool |
+| `baseline` | — (the control) | normalise everything to this |
+| `armor10` / `armor25` | `armor` only | the armor axis, two points |
+| `fast` / `slow` | `move_speed` only | the speed axis *(broken — see below)* |
+| `tanky` | `max_health` only | mortal mode; **doubles as the null test in immortal** |
 
-**Armor is the sharpest axis we have, and it's already live.** Damage is `max(0, dmg − armor)`, so a
-spark or DoT tick doing 3 damage deals **literally zero** into 10 armor, while one big hit shrugs it
-off. That's a real intransitivity: many-small-hits builds are hard-countered by armor and the profile
-will show it.
+**Why not real enemies: they're confounded by construction.** fish is HORDE at 90 speed, comb_jelly is
+RANGED+ARMORED at 40, and garden_eel is a RANGED **skirmisher** whose behavior parks it despite a 250
+speed stat. The first version of this table was built from stats without reading the AI, and every
+label was wrong — `standard` was actually a HORDE enemy. The `real_*` keys still exist for sanity
+checks (they're what the player faces, and what COUNTER_MATRIX is keyed on) but **never attribute a
+`real_*` ratio to a cause.**
 
-**Measured example (Jul 2026, 10s windows, immortal):**
+### Measured: the armor axis (Jul 2026, fireball_staff, 10s, `--motion=frozen`)
 
-| weapon | standard | swarm | armored | tank |
-|---|---|---|---|---|
-| fireball_staff | 32.1 | 26.7 | **20.0 (0.62×)** | 26.3 |
-| cinder_volley | 12.4 | 5.2 | **7.6 (0.61×)** | 12.4 |
+| dummy | dps | vs baseline |
+|---|---|---|
+| `baseline` (0 armor) | 26.7 | — |
+| `armor10` | 20.0 | **0.75×** |
+| `armor25` | 9.8 | **0.37×** |
 
-Both land ~0.61× into armor. `COUNTER_MATRIX`'s hand-authored `AOE vs ARMORED = 0.7` is within noise
-of that — **the existing guesses are decent; the bench is for confirming and refining them, not for
-overturning them wholesale.**
+Clean, monotonic, and **far outside the ~3% noise floor** — this is the one axis with a defensible
+reading. It also **validates the hand-authored guess**: `COUNTER_MATRIX`'s `AOE vs ARMORED = 0.7` vs a
+measured **0.75×**. The existing matrix is good; the bench is for confirming and refining it, not for
+overturning it.
+
+**Armor is the sharpest intransitivity we have, and it's already live.** Damage is
+`max(0, dmg − armor)`, so a spark or DoT tick doing 3 damage deals **literally zero** into 10 armor
+while one big hit shrugs it off. Many-small-hits builds are hard-countered by armor.
+
+### The null test — always run it first
+
+**`tanky` vs `baseline` in immortal mode must read equal**: HP is overwritten to a huge pool, and
+nothing else differs. Whatever gap you see IS the noise floor for that config.
+
+Currently **1.03× (~3%)**. Discard any ratio inside that.
 
 ### Motion: the field orbits (`--motion=orbit`, default)
 
@@ -115,43 +132,44 @@ number of frames before stopping. Driving positions explicitly removed it.
 
 `--motion=frozen` still exists for isolating (it removes motion entirely).
 
-## ⚠ What the archetype numbers do NOT yet mean
+## ⚠ Known limitations
 
-**The archetypes confound multiple axes at once, and the model inverts the speed one. Do not feed
-these into COUNTER_MATRIX yet.**
+### The speed axis is BROKEN. Don't use it.
 
-1. **Speed reads backwards.** Measured with fireball_staff: `fast` (eel, 250 speed) = **1.42×**,
-   `tank` (pike, 130) = 1.36×, `standard` (fish, 90) = 1.0×. **Faster enemies took MORE damage.**
-   In a 40-strong field, orbiting enemies sweep *through* the projectile stream rather than dodging
-   it, and a miss still hits someone behind them. Real enemies approach *radially*; orbiting is
-   *tangential*, so the model exaggerates crossing and inverts the sign.
-2. **The archetypes vary several stats each.** fish 90 speed vs pike 130 vs comb_jelly 40 — so
-   `armored` is also *slow* and `tank` is also *fast*. **A ratio can't be attributed to a cause.**
-3. **`tank` stopped being a null test.** Under `--motion=frozen` (HP erased, no motion) `standard` and
-   `tank` differ only by hitbox and should read equal — that's the noise calibration. Under orbit they
-   differ by speed too, so the null is gone. **Use `--motion=frozen` for the null test.**
-4. **Immortal mode erases HP**, so `swarm`/`tank` can't show kill throughput at all. That needs mortal.
+Measured with the single-axis dummies (`--motion=orbit`, so `move_speed` is the only difference):
 
-**Consequence:** only the **armor axis** has produced a defensible reading so far, and even that moved
-between models (0.62× frozen → 0.74× orbit).
+| dummy | dps | vs baseline |
+|---|---|---|
+| `baseline` (90 speed) | 30.6 | — |
+| `slow` (30 speed) | 35.8 | 1.17× |
+| `fast` (250 speed) | 34.4 | 1.12× |
 
-### To fix, in order
+**Non-monotonic** — slower *and* faster both take more damage than normal. That's not a weak signal,
+it's an incoherent one, and it's the model's fault: orbiting is *tangential*, so enemies sweep across
+the projectile stream instead of approaching down it. A density sweep acquits density as the cause
+(the artifact is *stronger* when sparse: 1.55× at `--enemies=5` vs 1.24× at 40).
 
-- **Synthetic single-axis dummies.** Clone `fish` and vary exactly ONE stat (fish+armor10,
-  fish+speed250, fish+tiny). Real enemies are confounded by construction; controlled variables are the
-  only way to attribute an effect. Keep the real-enemy profile too — that's what the player actually
-  faces, and it's what COUNTER_MATRIX is keyed on — but use synthetics to explain *why*.
-- **Chase-and-recycle motion.** Enemies chase the player and respawn at the outer ring on contact — a
-  treadmill. That's the real approach vector, so projectile speed matters with the right sign, while
-  the aggregate geometry stays stationary.
-- ~~Density sweep~~ — **done, and it acquits density.** fast/standard reads **1.55× at `--enemies=5`**
-  and **1.24× at `--enemies=40`**: the inversion is *stronger* when the field is sparse, so it isn't
-  misses landing on someone behind. **The orbit model itself is the culprit** — tangential sweep feeds
-  enemies into the projectile stream. Chase-and-recycle is the fix.
+### The real AI doesn't run — the big one
 
-**Also from that sweep — hold density constant.** Absolute DPS went 8.4 → 31.6 (nearly 4×) from 5 to
-40 enemies. `--enemies` is a first-class variable, not a detail: never compare numbers taken at
-different field sizes.
+**The bench overrides enemy AI and imposes motion. So behavior — the thing COUNTER_MATRIX is actually
+keyed on — is not simulated at all.** This is why the speed axis fails: `move_speed` is a stat that the
+*behavior* decides how to spend, and a skirmisher parks itself regardless of having 250 speed.
+
+The fix is **chase-and-recycle**: let each enemy's real AI run, and respawn anything that reaches the
+player back at the outer ring — a treadmill. Real approach vectors and real behaviors, with the
+aggregate geometry still stationary. **Deferred, deliberately** (Jul 2026): the armor axis is
+measurable without it, and it's the axis we need first.
+
+**Until then: the bench measures stats, not behavior.**
+
+### Other standing limits
+
+- **Immortal mode erases HP**, so `tanky` can't show kill throughput — that needs mortal mode, which
+  reintroduces the AI problem above.
+- **Hold density constant.** Absolute DPS went 8.4 → 31.6 (nearly 4×) from `--enemies=5` to `40`.
+  `--enemies` is a first-class variable: never compare numbers taken at different field sizes.
+- **The fixed ring flatters range and punishes melee**, so cross-weapon absolutes are a ballpark.
+  Same-weapon ratios are what this is for.
 
 **Headless is correct here** — we're measuring damage, not frame time. (The opposite of the perf
 benches in [`../performance/benchmarking.md`](../performance/benchmarking.md), which *must* run

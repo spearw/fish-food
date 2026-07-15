@@ -25,6 +25,18 @@ extends Node
 @export var max_active_enemies: int = 250
 ## Cap on normal top-up spawns per pulse, to smooth ramp-in. Burst/boss events ignore it.
 @export var max_spawns_per_pulse: int = 40
+## No single enemy in the top-up stream may cost more than this share of the current target CR --
+## the director maintains a HORDE, not a duel. At 0.15 any target is filled by at least ~6-7 bodies,
+## and pace is felt in bodies. Authored events/bosses bypass the pulse and stay exempt (big enemies
+## are authored moments), and since the allowance is a share of a GROWING target, heavier enemies
+## re-enter the stream naturally as the run progresses: early = chaff horde, late = mixed.
+@export var max_enemy_budget_share: float = 0.15
+## The field never idles below this many live enemies: when the CR budget is spent but the count is
+## under the floor, the pulse tops up with the cheapest tier anyway (slight CR overshoot, still under
+## the hard perf caps). This is Vampire Survivors' "minimum wave count" -- the half of its model the
+## setpoint didn't take. Without it, a player kiting one tough-but-slow enemy freezes the game quiet:
+## no kills, no budget freed, no spawns, no pace. Count-based on purpose.
+@export var min_active_enemies: int = 6
 ## Enemies farther than this from the player are recycled onto the spawn ring, keeping the fight
 ## local and bounding cost (VS-style off-screen recycling). Must exceed spawn_radius. 0 disables it.
 @export var despawn_radius: float = 1800.0
@@ -143,16 +155,27 @@ func _on_spawn_pulse_timer_timeout():
 	var build := _build_damage_profile()
 	var field := _count_walled_field(build)
 
+	# No single top-up enemy may cost more than this share of the target: a horde, not a duel.
+	var per_enemy_budget: float = target_cr * max_enemy_budget_share
+
 	# Top up toward the target. We stop at the target, the hard perf cap, or the per-pulse limit --
 	# whichever comes first. A strong player who clears fast simply gets refilled to the target;
 	# a struggling player is never buried past it. Either way the object count stays bounded.
+	# The count FLOOR overrides the CR target (never the perf caps): when the field idles below
+	# min_active_enemies -- a turtled fat enemy, a string of walls -- the screen still stays alive.
 	var spawns := 0
-	while _active_threat_cr < target_cr \
+	while spawns < max_spawns_per_pulse \
 			and EntityRegistry.get_alive_enemy_count() < max_active_enemies \
-			and spawns < max_spawns_per_pulse:
-		var enemy_stats = _pick_theme_enemy(available_enemies, INF)
+			and (_active_threat_cr < target_cr \
+				or EntityRegistry.get_alive_enemy_count() < min_active_enemies):
+		var enemy_stats = _pick_theme_enemy(available_enemies, per_enemy_budget)
+		# 15% of an early-game target can price out the entire pool; the cheapest tier is the honest
+		# fallback (the cap exists to force many-and-small, and cheapest IS smallest).
+		if not enemy_stats:
+			enemy_stats = _pick_theme_enemy(available_enemies, _cheapest_cr(available_enemies))
 		if not enemy_stats: break
-		enemy_stats = _apply_walled_cap(enemy_stats, available_enemies, build, field["walled"], field["alive"])
+		enemy_stats = _apply_walled_cap(
+			enemy_stats, available_enemies, build, field["walled"], field["alive"], per_enemy_budget)
 		spawn_enemy(enemy_stats)
 		field["alive"] += 1
 		if _is_walled_candidate(enemy_stats, build):
@@ -235,10 +258,11 @@ func _count_walled_field(build: Dictionary) -> Dictionary:
 	return {"alive": alive, "walled": walled}
 
 ## Enforces the cap at pick time: once the field is at the cap, a walled candidate is re-picked from
-## the non-walled candidates (theme/biome/counter weights still apply within them). If EVERY available
-## enemy is a wall, the candidate stands -- a starved wave is worse than a walled one.
+## the non-walled candidates (theme/biome/counter weights still apply within them, and the re-pick
+## honours the same per-enemy budget). If EVERY available enemy is a wall, the candidate stands --
+## a starved wave is worse than a walled one.
 func _apply_walled_cap(candidate: EnemyStats, available: Array[EnemyStats], build: Dictionary,
-		walled: int, alive: int) -> EnemyStats:
+		walled: int, alive: int, per_enemy_budget: float = INF) -> EnemyStats:
 	if not _is_walled_candidate(candidate, build):
 		return candidate
 	if alive <= 0 or float(walled) / float(alive) < max_walled_share:
@@ -249,8 +273,17 @@ func _apply_walled_cap(candidate: EnemyStats, available: Array[EnemyStats], buil
 			open.append(es)
 	if open.is_empty():
 		return candidate
-	var repick := _pick_theme_enemy(open, INF)
+	var repick := _pick_theme_enemy(open, per_enemy_budget)
+	if not repick:
+		repick = _pick_theme_enemy(open, _cheapest_cr(open))
 	return repick if repick else candidate
+
+## The smallest challenge rating in the pool -- the budget that admits exactly the cheapest tier.
+func _cheapest_cr(pool: Array[EnemyStats]) -> float:
+	var cheapest := INF
+	for es in pool:
+		cheapest = minf(cheapest, es.challenge_rating)
+	return cheapest
 
 ## Gathers all enemies from EncounterSets that are active at the current run_timer.
 ## If a biome is selected, filters to only enemies matching that biome.

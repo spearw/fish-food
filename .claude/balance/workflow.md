@@ -90,22 +90,47 @@ label was wrong — `standard` was actually a HORDE enemy. The `real_*` keys sti
 checks (they're what the player faces, and what COUNTER_MATRIX is keyed on) but **never attribute a
 `real_*` ratio to a cause.**
 
-### Measured: the armor axis (Jul 2026, fireball_staff, 10s, `--motion=frozen`)
+### How armor actually works — read this before interpreting any armor number
 
-| dummy | dps | vs baseline |
-|---|---|---|
-| `baseline` (0 armor) | 26.7 | — |
-| `armor10` | 20.0 | **0.75×** |
-| `armor25` | 9.8 | **0.37×** |
+```gdscript
+# DamageUtils.apply_armor
+effective_armor = armor * (1.0 - clampf(armor_pen, 0.0, 1.0))
+damage_taken    = max(0, int(damage - effective_armor))
+```
 
-Clean, monotonic, and **far outside the ~3% noise floor** — this is the one axis with a defensible
-reading. It also **validates the hand-authored guess**: `COUNTER_MATRIX`'s `AOE vs ARMORED = 0.7` vs a
-measured **0.75×**. The existing matrix is good; the bench is for confirming and refining it, not for
-overturning it.
+**Flat subtraction, uncapped.** But three things that are easy to get wrong, and that I got wrong:
 
-**Armor is the sharpest intransitivity we have, and it's already live.** Damage is
-`max(0, dmg − armor)`, so a spark or DoT tick doing 3 damage deals **literally zero** into 10 armor
-while one big hit shrugs it off. Many-small-hits builds are hard-countered by armor.
+1. **DoT has 100% armor penetration — it ignores armor completely.** `DotStatusEffect._do_damage_tick`
+   calls `take_damage(damage_per_tick * mult, 1, false)` — that `1` is `armor_pen = 1.0`, and the
+   comment says so: *"100% armor pen, no chance to crit."*
+   **So DoT is the ANSWER to armor, not countered by it.** The intuition that many-small-hits builds
+   get hard-countered by flat armor is **wrong here** — it's true for direct hits, and false for the
+   entire DoT half of the game.
+2. **Size multiplies armor.** `SIZE_MULTIPLIERS[LARGE].armor_mult = 1.5`. The dummies are
+   `size_tags = [3]` (LARGE), so **`armor10` actually fields 15 and `armor25` fields 37.5.**
+   The names are the authored stat, not the fielded one.
+3. **Crits are rolled BEFORE armor** (`roll_crit` then `apply_armor`), so a crit can punch through an
+   armor value that fully absorbs a normal hit.
+
+### Measured: armor (Jul 2026, fireball_staff, 10s, `--motion=frozen`)
+
+| dummy | authored | **fielded** | dps | vs baseline |
+|---|---|---|---|---|
+| `baseline` | 0 | 0 | 26.7 | — |
+| `armor10` | 10 | **15** | 20.0 | 0.75× |
+| `armor25` | 25 | **37.5** | 9.8 | 0.37× |
+
+**This is not the armor-counter number it looks like.** The staff's projectile does 25 damage, so at
+37.5 fielded armor the direct hit is **fully absorbed** — the surviving 0.37× is the burn getting
+through untouched (plus the odd crit). So the reading is really **a decomposition: ~37% of this
+weapon's output is armor-immune DoT.**
+
+That's genuinely useful — arguably more useful than the number I was trying to get — but it is **not**
+"how much armor counters this weapon", and it does **not** validate `COUNTER_MATRIX`'s
+`AOE vs ARMORED = 0.7`. That earlier claim is withdrawn.
+
+**To measure the armor axis properly**, use a weapon with no DoT component, and set the dummy's armor
+knowing it'll be multiplied by 1.5.
 
 ### The null test — always run it first
 

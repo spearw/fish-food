@@ -103,6 +103,25 @@ func _ready() -> void:
 	print("WPNRARITY dot_no_leak=%s (fresh common tick=%.2f, expected %.2f)" % [
 		str(dot_no_leak), _dot_tick(dot_fresh), tick_c])
 
+	# --- 5. NESTED stats scale too. This is the one that shipped broken: the fireball staff's own
+	#        damage is 10 but its on-death explosion is a nested stats resource doing 25 -- the bigger
+	#        half -- and checking only the root passed while the weapon barely scaled. Verify the
+	#        whole tree, and that the shared resource on disk is untouched.
+	var nested_common = _spawn(STAFF_UNLOCK, Upgrade.Rarity.COMMON)
+	var nested_epic = _spawn(STAFF_UNLOCK, Upgrade.Rarity.EPIC)
+	var boom_c = nested_common.projectile_stats.get("on_death_effect_stats")
+	var boom_e = nested_epic.projectile_stats.get("on_death_effect_stats")
+	var has_nested: bool = boom_c != null and boom_e != null
+	var nested_ratio: float = (float(boom_e.damage) / float(boom_c.damage)) if has_nested and boom_c.damage > 0 else 0.0
+	var expected_nested: float = nested_epic.get_rarity_multiplier() / nested_common.get_rarity_multiplier()
+	var nested_ok: bool = has_nested and absf(nested_ratio - expected_nested) < 0.15
+	var nested_disk = load(STAFF_UNLOCK).scene_to_unlock.instantiate()
+	var nested_disk_ok: bool = nested_disk.projectile_stats.get("on_death_effect_stats").damage == boom_c.damage
+	nested_disk.queue_free()
+	print("WPNRARITY nested: explosion common=%s epic=%s ratio=%.2f expected=%.2f ok=%s disk_clean=%s" % [
+		str(boom_c.damage) if has_nested else "?", str(boom_e.damage) if has_nested else "?",
+		nested_ratio, expected_nested, str(nested_ok), str(nested_disk_ok)])
+
 	# --- 4. Weapons draw at every rarity; artifacts stay at their own ---
 	var weapon_tiers := _rarities_offering(_um, "FireballStaffWeapon")
 	var artifact_tiers := _rarities_offering(_um, "PyrophobiaArtifact")
@@ -110,6 +129,7 @@ func _ready() -> void:
 	print("WPNRARITY buckets: weapon_in=%d/%d tiers, artifact_in=%d tier ok=%s" % [
 		weapon_tiers, Upgrade.Rarity.size(), artifact_tiers, str(buckets_ok)])
 
-	var pass_all: bool = scales_ok and no_leak and disk_clean and dot_ok and dot_no_leak and buckets_ok
+	var pass_all: bool = scales_ok and no_leak and disk_clean and dot_ok and dot_no_leak \
+		and nested_ok and nested_disk_ok and buckets_ok
 	print("WPNRARITY RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

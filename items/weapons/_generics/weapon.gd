@@ -44,13 +44,28 @@ var is_transformed: bool = false
 @onready var targeting_component: TargetingComponent = $TargetingComponent
 
 func _ready():
-	# Create unique instance for this weapon.
-	projectile_stats = projectile_stats.duplicate(true)
-	# Only now that the stats are this instance's own -- scaling the shared resource would leak this
-	# weapon's rarity into every other copy in the game.
+	# Make every stats resource this weapon owns unique to this instance FIRST. They're shared assets,
+	# so touching one in place would leak this weapon's rarity into every other copy in the game.
+	for prop_name in _own_stats_properties():
+		set(prop_name, get(prop_name).duplicate(true))
 	_apply_rarity_scaling()
 	if not fire_rate_timer.timeout.is_connected(_on_fire_rate_timer_timeout):
 		fire_rate_timer.timeout.connect(_on_fire_rate_timer_timeout)
+
+## The names of every ProjectileStats this weapon exports.
+##
+## Not just projectile_stats: a hammer exports shockwave_stats and the fireball staff exports
+## wall_of_fire_stats, and both carry their own damage. Finding them by type means a new weapon with a
+## new stats export is localized and scaled automatically, rather than silently sharing a resource (a
+## leak) or silently ignoring rarity until someone benches it.
+func _own_stats_properties() -> Array:
+	var out: Array = []
+	for prop in get_property_list():
+		if prop["type"] != TYPE_OBJECT:
+			continue
+		if get(prop["name"]) is ProjectileStats:
+			out.append(prop["name"])
+	return out
 
 ## This instance's damage multiplier for its rarity tier.
 func get_rarity_multiplier() -> float:
@@ -58,22 +73,47 @@ func get_rarity_multiplier() -> float:
 		return 1.0
 	return rarity_scaling[clampi(rarity, 0, rarity_scaling.size() - 1)]
 
-## Bakes the rarity tier into this instance's damage. Callable only AFTER projectile_stats has been
-## duplicated -- see _ready().
+## Bakes the rarity tier into every damage source this weapon owns. Callable only AFTER the stats have
+## been localized -- see _ready().
 func _apply_rarity_scaling() -> void:
 	var mult := get_rarity_multiplier()
-	if not projectile_stats or is_equal_approx(mult, 1.0):
+	if is_equal_approx(mult, 1.0):
 		return
+	var seen: Array = []
+	for prop_name in _own_stats_properties():
+		_scale_stats_tree(get(prop_name), mult, seen)
 
-	projectile_stats.damage = int(round(projectile_stats.damage * mult))
+## Scales every damage source in a stats tree.
+##
+## A weapon does NOT keep its damage in one place, and assuming it does is how rarity silently stopped
+## working: the fireball staff's projectile_stats.damage is 10, but its on-death explosion is a NESTED
+## stats resource doing 25 -- the bigger half. Scaling only the root moved a third of the weapon and a
+## unit test that checked the root passed anyway.
+##
+## `seen` guards against scaling a shared sub-resource twice (the fireball and its explosion both point
+## at burning.tres) and against cycles.
+func _scale_stats_tree(stats, mult: float, seen: Array) -> void:
+	if stats == null or stats in seen:
+		return
+	seen.append(stats)
 
-	# A damage-over-time weapon keeps most of its damage in the status it applies, not in
-	# projectile_stats.damage -- a fire weapon's direct hit is the small half. Without scaling this
-	# too, rarity would barely move a fire weapon and merging one would feel pointless.
-	# duplicate(true) above deep-copies the status, so this stays per-instance.
-	var status = projectile_stats.status_to_apply
-	if status is DotStatusEffect:
+	if "damage" in stats:
+		stats.damage = int(round(stats.damage * mult))
+
+	# DoT keeps its damage in the status it applies, not in .damage -- a fire weapon's direct hit is
+	# the small half, and it's the DoT that ignores armor.
+	var status = stats.status_to_apply if "status_to_apply" in stats else null
+	if status is DotStatusEffect and not status in seen:
+		seen.append(status)
 		status.damage_per_tick *= mult
+
+	# Nested stats carry their own damage: on-death explosions, trails, shockwaves.
+	for prop in stats.get_property_list():
+		if prop["type"] != TYPE_OBJECT:
+			continue
+		var value = stats.get(prop["name"])
+		if value is ProjectileStats:
+			_scale_stats_tree(value, mult, seen)
 
 	# Connect to user's stats_changed signal when available (deferred to ensure stats_component is ready)
 	call_deferred("_connect_to_user_stats")

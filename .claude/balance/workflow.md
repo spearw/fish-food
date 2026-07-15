@@ -129,8 +129,45 @@ That's genuinely useful — arguably more useful than the number I was trying to
 "how much armor counters this weapon", and it does **not** validate `COUNTER_MATRIX`'s
 `AOE vs ARMORED = 0.7`. That earlier claim is withdrawn.
 
-**To measure the armor axis properly**, use a weapon with no DoT component, and set the dummy's armor
-knowing it'll be multiplied by 1.5.
+### The armor model — predictive, and verified
+
+Because armor is **flat**, a weapon's armor profile is decided by exactly three things:
+
+1. **Damage per HIT** (not per second). Flat subtraction is brutal to small hits and shrugs off big
+   ones. A 10-damage dagger into 15 armor does **zero** — not "reduced", *zero*.
+2. **`armor_penetration`** on that damage source (`effective_armor = armor × (1 − pen)`).
+3. **What fraction of output is DoT**, which bypasses armor entirely.
+
+**Measured (Jul 2026, 10s, `--motion=frozen`, dummies field 15 / 37.5 armor after the LARGE 1.5×):**
+
+| weapon | dmg/hit | pen | DoT | baseline | armor10 (15) | armor25 (37.5) |
+|---|---|---|---|---|---|---|
+| dagger | 10 | 0 | no | 7.0 | **0.0** | **0.0** |
+| chain_lightning | 12 | 0 | no | 21.0 | **0.0** | **0.0** |
+| storm_staff | 20 | 0 | no | 11.4 | 1.5 | **0.0** |
+| flamethrower | 1 | 0.5 | **yes** | 8.9 | **5.1** | **5.1** |
+| fireball_staff | 25 (boom) | **0.5** | yes | 26.7 | 20.2 | 11.4 |
+
+**The model predicted every row.** dagger 10−15 → 0. chain_lightning 12−15 → 0. storm_staff 20−15 → 5
+(a sliver), then 20−37.5 → 0. Fireball survives on its explosion's 50% pen. And the flamethrower is
+**flat across armor10 and armor25 — identical to the decimal** — because its damage is essentially all
+DoT and armor cannot touch it.
+
+**So: DoT counters armor. AoE does not** — AoE spreads damage thin, and thin damage is what flat armor
+eats. That's a real, shipped intransitivity, and it's the good kind: it's legible, it's a build
+decision, and the counter is discoverable.
+
+> ### ⚠ DESIGN ALARM: armor isn't a counter, it's a wall
+>
+> **A single armored enemy makes dagger, chain_lightning, tesla_coil and spike_ring do literally zero.**
+> Not weak — zero. If the director counters a dagger build by spawning comb_jellies (`counter_mode =
+> HARD` does exactly this), that player has **no outs at all**: no amount of stacking damage-per-second
+> helps, because the reduction is per-HIT and their hit is under the threshold.
+>
+> Flat armor makes the response a **cliff, not a curve**. Everything above the threshold barely notices;
+> everything below it dies completely. Worth deciding whether that's intended before tuning anything
+> else — options include a damage floor (a hit always does ≥N or ≥X% ), softening armor toward
+> percentage, or guaranteeing every deck has an armor answer.
 
 ### The null test — always run it first
 

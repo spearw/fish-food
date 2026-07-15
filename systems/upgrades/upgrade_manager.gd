@@ -3,10 +3,6 @@
 ## and applies selected upgrades.
 extends Node
 
-## The core deck (base-stat upgrades) is always granted, regardless of selection -- it's what every
-## run needs to have any upgrades at all. Guaranteed into the pool in _build_active_upgrade_pool.
-const CORE_PACK_PATH := "res://systems/upgrades/packs/core_pack.tres"
-
 var active_upgrade_pool: Array[Upgrade] = []
 
 # Pre-computed rarity buckets for O(1) rarity lookup
@@ -44,14 +40,10 @@ func _build_active_upgrade_pool():
 		_upgrade_buckets[rarity_enum] = []
 		_unlock_buckets[rarity_enum] = []
 
-	# Get the selected pack paths, and ALWAYS include the core deck even if the player's selection
-	# didn't (or was empty) -- otherwise a run can start with an empty upgrade pool.
-	var selected_pack_paths := CurrentRun.selected_pack_paths.duplicate()
-	if CORE_PACK_PATH not in selected_pack_paths:
-		selected_pack_paths.insert(0, CORE_PACK_PATH)
-
+	# The run's decks: core + the character's linked primary + the player's picks, capped at the
+	# two-themed-deck rule. CurrentRun owns that composition.
 	var deck_names = []
-	for pack_path in selected_pack_paths:
+	for pack_path in CurrentRun.get_active_deck_paths():
 		var pack_resource: Deck = load(pack_path)
 		if pack_resource:
 			# Add all upgrades from this pack into our active pool for this run.
@@ -61,22 +53,46 @@ func _build_active_upgrade_pool():
 			# Credit each card to its deck (for combo gates) and pre-compute rarity buckets.
 			for upgrade in pack_resource.upgrades:
 				_upgrade_deck_ids[upgrade] = pack_resource.id
-				if upgrade.type == Upgrade.UpgradeType.UNLOCK_WEAPON or upgrade.type == Upgrade.UpgradeType.UNLOCK_ARTIFACT:
-					# UNLOCK types go in their exact rarity bucket
-					_unlock_buckets[upgrade.rarity].append(upgrade)
-				elif upgrade.type == Upgrade.UpgradeType.UPGRADE:
-					# UPGRADE types go in all buckets they support
-					for rarity_idx in range(upgrade.rarity_values.size()):
-						_upgrade_buckets[rarity_idx].append(upgrade)
-				elif upgrade.type == Upgrade.UpgradeType.TRANSFORMATION:
-					# Transformations go in their exact rarity bucket
-					_unlock_buckets[upgrade.rarity].append(upgrade)
+				_bucket_upgrade(upgrade)
 		else:
 			printerr("Failed to load Deck at path: ", pack_path)
+
+	_add_character_exclusives()
 
 	Logs.add_message("UpgradeManager pool built for this run.")
 	Logs.add_message(["Packs added:", deck_names])
 	Logs.add_message(["Total upgrades available: ", active_upgrade_pool.size()])
+
+## Files an upgrade into the rarity bucket(s) it can be drawn from, so choice-time lookup is O(1).
+## Shared by every source of cards (decks, character exclusives) -- a new source only has to call it.
+func _bucket_upgrade(upgrade: Upgrade) -> void:
+	match upgrade.type:
+		Upgrade.UpgradeType.UNLOCK_WEAPON, Upgrade.UpgradeType.UNLOCK_ARTIFACT, \
+		Upgrade.UpgradeType.TRANSFORMATION:
+			# These are drawn at exactly their own rarity.
+			_unlock_buckets[upgrade.rarity].append(upgrade)
+		Upgrade.UpgradeType.UPGRADE:
+			# Stat upgrades scale with rarity, so they can appear in every tier they define a value for.
+			for rarity_idx in range(upgrade.rarity_values.size()):
+				_upgrade_buckets[rarity_idx].append(upgrade)
+
+## Folds the character's exclusive cards into the pool. They're credited to the character's primary
+## deck: a Magic Man drafting a Cinder Volley evolution is investing in fire like any other fire card,
+## and combo gates should count it as such.
+func _add_character_exclusives() -> void:
+	var character: PlayerStats = CurrentRun.selected_character
+	if not character or character.exclusive_upgrades.is_empty():
+		return
+
+	var primary_id: String = character.primary_deck.id if character.primary_deck else ""
+	for upgrade in character.exclusive_upgrades:
+		if upgrade == null:
+			continue
+		active_upgrade_pool.append(upgrade)
+		_upgrade_deck_ids[upgrade] = primary_id
+		_bucket_upgrade(upgrade)
+
+	Logs.add_message(["Character exclusives added:", character.exclusive_upgrades.size()])
 
 ## Store reference to the player's equipment and artifacts.
 ## @param player: Node - The player node instance that is registering itself.

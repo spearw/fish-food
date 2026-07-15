@@ -21,3 +21,13 @@ extends EntityStats
 # --- Starting Loadout ---
 # Defines the character's unique starting weapon(s) and artifact(s).
 @export var starting_upgrades: Array[Upgrade]
+
+# --- Deck Identity (see docs/deck_and_synergy_design.md section 2) ---
+## The character's linked PRIMARY deck -- their identity. Granted automatically at run start; the
+## player only chooses the secondary. Null = an "open" character, who picks both themed decks.
+@export var primary_deck: Deck
+
+## Cards only this character can draw -- their exclusive weapon's evolutions. They live here instead
+## of in a deck, which is exactly what makes the weapon exclusive: no deck can offer them to anyone
+## else. Folded into the run's pool and credited to primary_deck's draft count.
+@export var exclusive_upgrades: Array[Upgrade]

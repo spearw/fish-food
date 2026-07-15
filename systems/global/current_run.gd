@@ -24,11 +24,21 @@ const INTENSITY_MULTIPLIERS = {
 	SpawnIntensity.HIGH: 1.5,
 }
 
+## The core deck is granted every run regardless of selection -- it holds the base-stat upgrades, so
+## without it a run has almost nothing to draft.
+const CORE_DECK_PATH := "res://systems/upgrades/packs/core_pack.tres"
+
 # The PlayerStats resource for the player in this run.
 var selected_character: PlayerStats = null
 
 # The list of resource paths for the packs chosen for this specific run.
 var selected_pack_paths: Array[String] = []
+
+## How many THEMED decks (core excluded) this run may hold. Two is the design: the combo gate rewards
+## depth, and a run's ~20-30 picks only fund about two decks deep enough to reach their payoffs. A
+## third is a rare in-run reward (it's what a second combo needs). Never four.
+## See docs/deck_and_synergy_design.md section 2.
+var max_themed_decks: int = 2
 
 # The biome selected for this run (affects enemy spawning).
 var selected_biome: BiomeDefinition = null
@@ -51,3 +61,31 @@ var combo_taken: bool = false
 ## Returns the budget multiplier for the current spawn intensity.
 func get_intensity_multiplier() -> float:
 	return INTENSITY_MULTIPLIERS.get(spawn_intensity, 1.0)
+
+## The decks whose cards can appear this run: the core deck (always), then the themed decks -- the
+## character's linked primary first, then whatever the player chose -- clamped to max_themed_decks.
+## The primary is added first on purpose: it's the character's identity, so it must never be the deck
+## the cap clips.
+func get_active_deck_paths() -> Array[String]:
+	var themed: Array[String] = []
+
+	if selected_character and selected_character.primary_deck:
+		themed.append(selected_character.primary_deck.resource_path)
+
+	for path in selected_pack_paths:
+		if themed.size() >= max_themed_decks:
+			break
+		if path == CORE_DECK_PATH or path in themed:
+			continue
+		themed.append(path)
+
+	var paths: Array[String] = [CORE_DECK_PATH]
+	paths.append_array(themed)
+	return paths
+
+## How many themed decks a character still leaves the player to choose, given their primary is
+## granted for free. Drives the pre-run deck picker's selection limit. Takes the character as an
+## argument because the picker asks about a character the player hasn't committed to yet.
+func get_secondary_deck_slots_for(character: PlayerStats) -> int:
+	var granted := 1 if (character and character.primary_deck) else 0
+	return max(0, max_themed_decks - granted)

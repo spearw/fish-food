@@ -40,6 +40,16 @@ var selected_pack_paths: Array[String] = []
 ## See docs/deck_and_synergy_design.md section 2.
 var max_themed_decks: int = 2
 
+## How many loadout slots a run has. Weapons and artifacts SHARE this pool, so every pick spends the
+## same currency: another weapon, or another rule.
+##
+## The cap is the whole point. Without it a new weapon costs nothing, so nothing is ever foregone and
+## a level-up is a queue ("what order do I collect everything in?") rather than a choice. Sharing the
+## pool with artifacts is what keeps that choice self-balancing: a weapon's marginal value falls off as
+## +1/N while an artifact's stays flat, so neither category can dominate forever.
+## See docs/deck_and_synergy_design.md section 3.
+var max_loadout_slots: int = 5
+
 # The biome selected for this run (affects enemy spawning).
 var selected_biome: BiomeDefinition = null
 

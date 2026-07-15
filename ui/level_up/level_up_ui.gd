@@ -73,7 +73,10 @@ func show_upgrade_screen():
 func show_combo_screen():
 	current_upgrades = []
 	for syn in ComboManager.get_eligible_synergies():
-		current_upgrades.append({"upgrade": syn, "rarity": Upgrade.Rarity.COMMON})
+		# Granted, not drafted -- a combo doesn't spend a loadout slot. It was already paid for by the
+		# two-deck investment gate, and by the time it's offered the loadout is usually full, which
+		# would otherwise make the reward impossible to accept.
+		current_upgrades.append({"upgrade": syn, "rarity": Upgrade.Rarity.COMMON, "granted": true})
 	_choosing_combo = true
 	_present()
 

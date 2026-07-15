@@ -3,6 +3,12 @@
 ## and applies selected upgrades.
 extends Node
 
+## Node metadata marking an item the player was GIVEN rather than drafted. Granted items don't spend a
+## loadout slot: they're rewards already paid for elsewhere (a combo costs a deep two-deck investment),
+## and they arrive late, when the loadout is usually full -- a level-20 reward you can't accept because
+## your slots are full would be a feel-bomb.
+const GRANTED_META := "granted_not_slotted"
+
 var active_upgrade_pool: Array[Upgrade] = []
 
 # Pre-computed rarity buckets for O(1) rarity lookup
@@ -106,6 +112,29 @@ func register_player(player: Node) -> void:
 	else:
 		printerr("UpgradeManager: Failed to register player or find required child nodes (Equipment/Artifacts).")
 		
+## Marks an item as granted: earned rather than drafted, so it doesn't spend a loadout slot.
+func mark_granted(item: Node) -> void:
+	item.set_meta(GRANTED_META, true)
+
+## True if this item was granted rather than drafted.
+func is_granted(item: Node) -> bool:
+	return item.get_meta(GRANTED_META, false)
+
+## How many loadout slots the player has spent. Weapons and artifacts share one pool (see
+## CurrentRun.max_loadout_slots) -- granted items are excluded, they were never a pick.
+func get_used_slots() -> int:
+	if not is_instance_valid(player_equipment) or not is_instance_valid(player_artifacts):
+		return 0
+	var used := 0
+	for item in player_equipment.get_children() + player_artifacts.get_children():
+		if not is_granted(item):
+			used += 1
+	return used
+
+## Whether the player has room to draft another weapon or artifact.
+func has_free_slot() -> bool:
+	return get_used_slots() < CurrentRun.max_loadout_slots
+
 ## Gathers the names of all items the player currently has.
 ## @return: Array[String] - An array of items names.
 func get_player_inventory_names_and_transformed_item_list() -> Array[Array]:
@@ -119,28 +148,38 @@ func get_player_inventory_names_and_transformed_item_list() -> Array[Array]:
 		inventory.append(item.name)
 	return [inventory, transformed_items]
 
-## Returns a specified number of valid, random upgrade choices.
-func get_upgrade_choices(count: int) -> Array[Dictionary]:
-	Logs.add_message("Getting upgrade choices")
-	# --- Filter the pool for currently valid upgrades ---
+## The cards that are legal to offer right now -- the ones the player could actually use.
+## Offering a card the player can't use is worse than offering nothing: in a 3-choice draw, a dead
+## option is a third of the decision gone.
+func get_offerable_upgrades() -> Array[Upgrade]:
 	var inventory = get_player_inventory_names_and_transformed_item_list()
 	var player_inventory = inventory[0]
 	var transformed_item_list = inventory[1]
-	var filtered_pool: Array[Upgrade] = []
+	# A weapon or artifact needs a slot to live in, so a full loadout stops them being offered at all.
+	# That refusal IS the design: it's what makes a pick cost something instead of just deferring it.
+	var slot_free := has_free_slot()
+
+	var offerable: Array[Upgrade] = []
 	for upgrade in active_upgrade_pool:
 		var target_name = upgrade.target_class_name
 		match upgrade.type:
 			Upgrade.UpgradeType.UNLOCK_WEAPON, Upgrade.UpgradeType.UNLOCK_ARTIFACT:
-				if not target_name in player_inventory:
-					filtered_pool.append(upgrade)
+				if not target_name in player_inventory and slot_free:
+					offerable.append(upgrade)
 			Upgrade.UpgradeType.UPGRADE:
 				# Upgrades are stats buffs or they modify something in the inventory.
 				if target_name == "Player" or target_name in player_inventory:
-					filtered_pool.append(upgrade)
+					offerable.append(upgrade)
 			Upgrade.UpgradeType.TRANSFORMATION:
 				# Only list tranformations if player has the weapon and it has not been transformed.
 				if target_name in player_inventory and target_name not in transformed_item_list:
-					filtered_pool.append(upgrade)
+					offerable.append(upgrade)
+	return offerable
+
+## Returns a specified number of valid, random upgrade choices.
+func get_upgrade_choices(count: int) -> Array[Dictionary]:
+	Logs.add_message("Getting upgrade choices")
+	var filtered_pool: Array[Upgrade] = get_offerable_upgrades()
 
 	var final_choices: Array[Dictionary] = []
 	for i in range(count):
@@ -225,6 +264,9 @@ func _get_random_rarity_tier() -> Upgrade.Rarity:
 func apply_upgrade(upgrade_package: Dictionary) -> void:
 	var upgrade: Upgrade = upgrade_package["upgrade"]
 	var chosen_rarity_enum: Upgrade.Rarity = upgrade_package["rarity"]
+	# Rewards the player earned rather than drafted (combo synergies, a character's identity artifact)
+	# pass "granted": true, which exempts them from the loadout cap.
+	var granted: bool = upgrade_package.get("granted", false)
 	if not player_equipment or not player_artifacts:
 		printerr("UpgradeManager: Cannot apply upgrade, player has not been registered.")
 		return
@@ -233,6 +275,8 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 		Upgrade.UpgradeType.UNLOCK_WEAPON:
 			if upgrade.scene_to_unlock:
 				var new_weapon = create_weapon(upgrade.scene_to_unlock.instantiate(), upgrade)
+				if granted:
+					mark_granted(new_weapon)
 				player_equipment.add_child(new_weapon)
 			else:
 				printerr("Unlock upgrade '%s' is missing a scene!" % upgrade.id)
@@ -242,6 +286,8 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 				var new_artifact = create_artifact(upgrade.scene_to_unlock.instantiate(), upgrade)
 				if "user" in new_artifact:
 					new_artifact.user = self.player
+				if granted:
+					mark_granted(new_artifact)
 				player_artifacts.add_child(new_artifact)
 				# Call on_equipped after artifact is in the tree and has user set
 				if new_artifact.has_method("on_equipped"):

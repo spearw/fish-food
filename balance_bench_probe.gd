@@ -40,7 +40,20 @@ var enemy_count := 40
 var seconds := 20.0
 var immortal := true
 var archetype := "standard"  # key into ARCHETYPES
-var profile := false         # run every archetype in sequence and emit the table
+var profile := false         # (unused; profiling is a shell loop over --archetype=)
+## How the dummy field behaves. "orbit" (default) circles each enemy around the player at ITS OWN
+## move_speed; "frozen" pins them in place.
+##
+## Orbit exists because a frozen dummy can't miss. Projectile speed, travel time, leading a target and
+## homing are all real contributors to damage, and against a stationary target every one of them is
+## free -- a slow projectile hits a frozen enemy exactly as reliably as a fast one. Freezing also made
+## the "fast" archetype identical to "standard", which quietly made a whole axis unmeasurable.
+##
+## Orbiting keeps what freezing bought (the geometry is stationary in aggregate -- same radii, same
+## density, no swarm collapsing onto the player mid-window) while restoring what it destroyed: a
+## garden_eel at 250 speed sweeps ~6x faster than a comb_jelly at 40, so a slow projectile genuinely
+## misses it. Same trick SimulationCraft uses -- scripted movement rather than a static dummy.
+var motion := "orbit"
 
 var _ready_to_measure := false
 var _boot_frames := 0
@@ -53,6 +66,8 @@ var _baseline_hp := 0.0
 var _queue: Array = []          # archetypes still to measure
 var _current := ""              # archetype being measured
 var _results: Dictionary = {}   # archetype -> measured value
+var _orbits: Array = []         # {node, radius, angle, angular_speed} -- the moving dummy field
+var _origin := Vector2.ZERO     # the field's centre (the player's position at spawn)
 
 const BOOT_TIMEOUT := 1500
 const IMMORTAL_HP := 1000000000.0
@@ -89,6 +104,7 @@ func _physics_process(_dt: float) -> void:
 	if is_instance_valid(_player) and "current_health" in _player:
 		_player.current_health = IMMORTAL_HP
 
+	_drive_orbits()
 	_frames += 1
 	if _frames < WARMUP_FRAMES:
 		_kills = 0  # discard warm-up kills
@@ -98,6 +114,22 @@ func _physics_process(_dt: float) -> void:
 
 func _total_frames() -> int:
 	return int(seconds * Engine.physics_ticks_per_second)
+
+## Sweeps the dummy field around the player at each enemy's own speed.
+##
+## Driven on a FIXED timestep, not the real delta: headless dt is arbitrary, and letting it in here
+## would put the run-to-run variance straight back into the enemy positions -- which is exactly what
+## the frozen field was there to prevent.
+func _drive_orbits() -> void:
+	if _orbits.is_empty():
+		return
+	var dt := 1.0 / float(Engine.physics_ticks_per_second)
+	for o in _orbits:
+		var node = o["node"]
+		if not is_instance_valid(node):
+			continue
+		o["angle"] += o["angular_speed"] * dt
+		node.global_position = _origin + Vector2.RIGHT.rotated(o["angle"]) * o["radius"]
 
 func _try_setup() -> void:
 	var scene := get_tree().current_scene
@@ -207,18 +239,22 @@ func _spawn_dummy_field(stats_path: String) -> void:
 
 	# Concentric rings from just outside melee reach to typical projectile range.
 	const RINGS := [80.0, 140.0, 200.0, 260.0]
-	var origin: Vector2 = _player.global_position
+	_origin = _player.global_position
+	_orbits.clear()
+	var placed: Array = []
 	for i in range(enemy_count):
 		var ring: float = RINGS[i % RINGS.size()]
 		var step: int = i / RINGS.size()
 		var per_ring: float = ceil(float(enemy_count) / RINGS.size())
 		var angle: float = TAU * (float(step) / per_ring)
-		_dir.spawn_enemy(stats, origin + Vector2.RIGHT.rotated(angle) * ring)
+		_dir.spawn_enemy(stats, _origin + Vector2.RIGHT.rotated(angle) * ring)
+		placed.append({"ring": ring, "angle": angle})
 
-	# Freeze them: a swarm closing on the player changes the geometry mid-measurement, which is the
-	# single biggest source of run-to-run swing.
+	# Take the enemies' own AI offline: a swarm collapsing onto the player mid-window changes the
+	# geometry, which was the single biggest source of run-to-run swing. We drive them instead.
 	# Deferred: we're inside a physics flush here, and Godot refuses state changes mid-query.
-	for e in get_tree().get_nodes_in_group("enemies"):
+	var enemies := get_tree().get_nodes_in_group("enemies")
+	for e in enemies:
 		if not is_instance_valid(e):
 			continue
 		e.call_deferred("set_physics_process", false)
@@ -226,6 +262,27 @@ func _spawn_dummy_field(stats_path: String) -> void:
 		if ai:
 			ai.call_deferred("set_physics_process", false)
 			ai.call_deferred("set_process", false)
+
+	if motion != "orbit":
+		return
+
+	# Record each enemy's orbit, sweeping at ITS OWN move_speed so the "fast" archetype is genuinely
+	# harder to hit. angular_speed = linear speed / radius, so a garden_eel at 250 covers ground ~6x
+	# faster than a comb_jelly at 40 and a slow projectile will trail behind it.
+	for i in range(min(enemies.size(), placed.size())):
+		var e = enemies[i]
+		if not is_instance_valid(e):
+			continue
+		var speed := 0.0
+		if "stats" in e and e.stats and "move_speed" in e.stats:
+			speed = e.stats.move_speed
+		var radius: float = placed[i]["ring"]
+		_orbits.append({
+			"node": e,
+			"radius": radius,
+			"angle": placed[i]["angle"],
+			"angular_speed": speed / maxf(radius, 1.0),
+		})
 
 ## Strips whatever the character came with and equips exactly the weapon under test, so the number
 ## measures that weapon and nothing else.

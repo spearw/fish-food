@@ -22,13 +22,13 @@ func _ready() -> void:
 	var secs := 20.0
 	var immortal := true
 	var archetype := "standard"
-	var profile := false
+	var motion := "orbit"
 
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--archetype="):
 			archetype = arg.split("=")[1]
-		elif arg.begins_with("--profile="):
-			profile = int(arg.split("=")[1]) != 0
+		elif arg.begins_with("--motion="):
+			motion = arg.split("=")[1]
 		if arg.begins_with("--weapon="):
 			weapon = arg.split("=", true, 1)[1]
 		elif arg.begins_with("--rarity="):
@@ -58,6 +58,6 @@ func _ready() -> void:
 	probe.seconds = secs
 	probe.immortal = immortal
 	probe.archetype = archetype
-	probe.profile = profile
+	probe.motion = motion
 	get_tree().root.add_child.call_deferred(probe)
 	get_tree().change_scene_to_file.call_deferred("res://world/world.tscn")

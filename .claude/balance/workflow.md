@@ -97,19 +97,61 @@ Both land ~0.61× into armor. `COUNTER_MATRIX`'s hand-authored `AOE vs ARMORED =
 of that — **the existing guesses are decent; the bench is for confirming and refining them, not for
 overturning them wholesale.**
 
-### The null test — calibrate the noise floor before believing a ratio
+### Motion: the field orbits (`--motion=orbit`, default)
 
-**In immortal mode, `standard` and `tank` differ only by hitbox** (HP is overwritten to a huge pool,
-and the field is frozen so speed is irrelevant). **They should measure equal.** However far apart they
-land IS your noise floor for that run.
+Each enemy sweeps around the player at **its own `move_speed`**, on a fixed timestep.
 
-Above: cinder_volley reads 12.4/12.4 (clean); fireball reads 32.1/26.3 — **18% apart, with nothing
-real to explain it.** So on that config, ~20% is noise. **Run the null test and discard any ratio
-inside it.**
+**Why not frozen:** a frozen dummy can't miss. Projectile speed, travel time and homing are real
+contributors to damage, and every one of them is free against a stationary target. Freezing also made
+`fast` identical to `standard` — a whole axis silently unmeasurable.
 
-> **Immortal mode erases HP, so it cannot see the swarm/tank axes** — only armor and hitbox survive.
-> **The armor axis is the only one currently trustworthy.** Kill-throughput axes (does AoE really
-> shred swarms?) need mortal mode, which is noisier still.
+**Why orbit and not "let them chase":** a swarm collapsing onto the player rewrites the geometry
+mid-window, which was the original ~2.5× swing. Orbiting keeps the aggregate geometry stationary while
+restoring motion. Same trick SimulationCraft uses — scripted movement, not a static dummy.
+
+**This is what made the bench deterministic.** Run-to-run is now **0%** (30.6 / 30.6 / 30.6, three
+runs). The old ~20% residual was the "freeze" being `call_deferred`, so enemies drifted for a variable
+number of frames before stopping. Driving positions explicitly removed it.
+
+`--motion=frozen` still exists for isolating (it removes motion entirely).
+
+## ⚠ What the archetype numbers do NOT yet mean
+
+**The archetypes confound multiple axes at once, and the model inverts the speed one. Do not feed
+these into COUNTER_MATRIX yet.**
+
+1. **Speed reads backwards.** Measured with fireball_staff: `fast` (eel, 250 speed) = **1.42×**,
+   `tank` (pike, 130) = 1.36×, `standard` (fish, 90) = 1.0×. **Faster enemies took MORE damage.**
+   In a 40-strong field, orbiting enemies sweep *through* the projectile stream rather than dodging
+   it, and a miss still hits someone behind them. Real enemies approach *radially*; orbiting is
+   *tangential*, so the model exaggerates crossing and inverts the sign.
+2. **The archetypes vary several stats each.** fish 90 speed vs pike 130 vs comb_jelly 40 — so
+   `armored` is also *slow* and `tank` is also *fast*. **A ratio can't be attributed to a cause.**
+3. **`tank` stopped being a null test.** Under `--motion=frozen` (HP erased, no motion) `standard` and
+   `tank` differ only by hitbox and should read equal — that's the noise calibration. Under orbit they
+   differ by speed too, so the null is gone. **Use `--motion=frozen` for the null test.**
+4. **Immortal mode erases HP**, so `swarm`/`tank` can't show kill throughput at all. That needs mortal.
+
+**Consequence:** only the **armor axis** has produced a defensible reading so far, and even that moved
+between models (0.62× frozen → 0.74× orbit).
+
+### To fix, in order
+
+- **Synthetic single-axis dummies.** Clone `fish` and vary exactly ONE stat (fish+armor10,
+  fish+speed250, fish+tiny). Real enemies are confounded by construction; controlled variables are the
+  only way to attribute an effect. Keep the real-enemy profile too — that's what the player actually
+  faces, and it's what COUNTER_MATRIX is keyed on — but use synthetics to explain *why*.
+- **Chase-and-recycle motion.** Enemies chase the player and respawn at the outer ring on contact — a
+  treadmill. That's the real approach vector, so projectile speed matters with the right sign, while
+  the aggregate geometry stays stationary.
+- ~~Density sweep~~ — **done, and it acquits density.** fast/standard reads **1.55× at `--enemies=5`**
+  and **1.24× at `--enemies=40`**: the inversion is *stronger* when the field is sparse, so it isn't
+  misses landing on someone behind. **The orbit model itself is the culprit** — tangential sweep feeds
+  enemies into the projectile stream. Chase-and-recycle is the fix.
+
+**Also from that sweep — hold density constant.** Absolute DPS went 8.4 → 31.6 (nearly 4×) from 5 to
+40 enemies. `--enemies` is a first-class variable, not a detail: never compare numbers taken at
+different field sizes.
 
 **Headless is correct here** — we're measuring damage, not frame time. (The opposite of the perf
 benches in [`../performance/benchmarking.md`](../performance/benchmarking.md), which *must* run

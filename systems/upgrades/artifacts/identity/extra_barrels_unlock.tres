@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://idunlock0barrl1"]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/identity/extra_barrels/extra_barrels.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "identity_extra_barrels"
+display_name = "Extra Barrels"
+description = "Identity: your weapons fire 2 extra projectiles."
+type = 1
+target_class_name = "ExtraBarrelsArtifact"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 0
+property_to_modify = ""
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

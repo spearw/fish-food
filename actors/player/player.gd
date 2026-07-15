@@ -77,10 +77,12 @@ func initialize_character(character_data: PlayerStats, world_upgrade_manager: No
 	if is_instance_valid(upgrade_manager):
 		upgrade_manager.register_player(self)
 		
-	# Grant any starting items defined in the character's data.
+	# Grant the character's identity loadout. GRANTED: earned by being this character, not drafted,
+	# so it never spends a loadout slot (the identity artifact must not be a tax -- design doc s3).
 	if stats and stats.starting_upgrades:
 		for upgrade_resource in stats.starting_upgrades:
-			var upgrade_package = { "upgrade": upgrade_resource, "rarity": upgrade_resource.rarity }
+			var upgrade_package = {
+				"upgrade": upgrade_resource, "rarity": upgrade_resource.rarity, "granted": true }
 			upgrade_manager.apply_upgrade(upgrade_package)
 
 

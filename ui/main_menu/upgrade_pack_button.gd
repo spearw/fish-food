@@ -15,8 +15,6 @@ signal selection_toggled(button_instance)
 
 var deck_data: Deck
 var is_unlocked: bool = false
-## Granted by the character (it's their primary deck), so it's always in the run and can't be toggled.
-var is_granted: bool = false
 var _is_selected: bool = false
 
 func _ready():
@@ -27,31 +25,17 @@ func set_deck_data(data: Deck, unlocked: bool):
 	self.deck_data = data
 	self.is_unlocked = unlocked
 
-## Marks this deck as the character's primary: shown locked ON rather than offered as a choice.
-func set_granted(value: bool) -> void:
-	is_granted = value
-	if value:
-		_is_selected = true
-	# Safe before the button enters the tree -- update_display() no-ops until its nodes exist, and
-	# _ready() calls it again.
-	update_display()
-
 func update_display():
 	if not is_instance_valid(name_label):
 		return
 
-	if not is_unlocked:
-		name_label.text = "LOCKED"
-		description_label.text = ""
-	else:
-		name_label.text = "%s (Primary)" % deck_data.deck_name if is_granted else deck_data.deck_name
-		description_label.text = deck_data.deck_description
+	name_label.text = deck_data.deck_name if is_unlocked else "LOCKED"
+	description_label.text = deck_data.deck_description if is_unlocked else ""
 
 	if is_unlocked:
 		icon_rect.texture = deck_data.deck_icon
-		# Tint the granted deck so it reads as the character's, not as something you picked.
-		self.modulate = Color(0.75, 0.9, 1.0) if is_granted else Color.WHITE
-		select_button.disabled = is_granted
+		self.modulate = Color.WHITE
+		select_button.disabled = false
 	else:
 		icon_rect.texture = null
 		self.modulate = Color.DARK_GRAY

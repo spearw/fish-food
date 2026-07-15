@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://merge0verify00"]
+[gd_scene load_steps=2 format=3 uid="uid://c265hvx2my7ox"]
 
 [ext_resource type="Script" path="res://merge_verify.gd" id="1_mv"]
 

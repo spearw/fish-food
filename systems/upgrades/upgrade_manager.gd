@@ -88,23 +88,38 @@ func _bucket_upgrade(upgrade: Upgrade) -> void:
 			for rarity_idx in range(upgrade.rarity_values.size()):
 				_upgrade_buckets[rarity_idx].append(upgrade)
 
-## Folds the character's exclusive cards into the pool. They're credited to the character's primary
-## deck: a Magic Man drafting a Cinder Volley evolution is investing in fire like any other fire card,
-## and combo gates should count it as such.
+## Folds the character's exclusive cards into the pool. Credited to no deck -- characters aren't
+## linked to decks anymore, so an exclusive card is identity investment, not theme investment.
 func _add_character_exclusives() -> void:
 	var character: PlayerStats = CurrentRun.selected_character
 	if not character or character.exclusive_upgrades.is_empty():
 		return
 
-	var primary_id: String = character.primary_deck.id if character.primary_deck else ""
 	for upgrade in character.exclusive_upgrades:
 		if upgrade == null:
 			continue
 		active_upgrade_pool.append(upgrade)
-		_upgrade_deck_ids[upgrade] = primary_id
+		_upgrade_deck_ids[upgrade] = ""
 		_bucket_upgrade(upgrade)
 
 	Logs.add_message(["Character exclusives added:", character.exclusive_upgrades.size()])
+
+## Upgrade 0: one starting-weapon candidate rolled from EACH themed deck this run holds. The player
+## picks one -- the first decision is a fork between their chosen themes, and the pick doubles as the
+## damage floor the shared slot pool relies on (a run can never have zero weapons).
+func get_starting_weapon_candidates() -> Array[Dictionary]:
+	var candidates: Array[Dictionary] = []
+	for path in CurrentRun.get_active_deck_paths():
+		if path == CurrentRun.CORE_DECK_PATH:
+			continue
+		var deck: Deck = load(path)
+		if not deck:
+			continue
+		var weapons: Array = deck.upgrades.filter(
+			func(u): return u != null and u.type == Upgrade.UpgradeType.UNLOCK_WEAPON)
+		if not weapons.is_empty():
+			candidates.append({"upgrade": weapons.pick_random(), "rarity": Upgrade.Rarity.COMMON})
+	return candidates
 
 ## Store reference to the player's equipment and artifacts.
 ## @param player: Node - The player node instance that is registering itself.

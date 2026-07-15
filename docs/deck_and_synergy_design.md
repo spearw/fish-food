@@ -26,13 +26,13 @@ The code currently calls these **packs** (`UpgradePack`). Rename to **decks** �
 
 ## 2. Characters ↔ Decks — identity, and how many decks a run gets
 
-> **⚠ Partly superseded by §3's working direction (July 2026).** The **deck-count rule below is
-> unaffected and still locked.** But §3 moves character identity from a linked *deck* to a granted
-> *artifact* and unlinks characters from decks entirely — which would retire `primary_deck` and the
-> character-exclusive weapon. The "lock the verb, free the sentence" principle survives; §3 argues an
-> artifact is a *better* verb than a deck. §3 also settles the secondary-deck timing (both decks from
-> the start), which removes this section's mid-run ladder rung. Read §2 for the deck-count reasoning,
-> §3 for where identity now lives.
+> **⚠ SUPERSEDED by §3, and the supersession is now BUILT (July 2026).** The **deck-count rule below
+> is unaffected and still locked** (2 themed decks, 3 rare, never 4). Everything else here about the
+> character↔deck *link* is history: `primary_deck` is retired, characters carry a granted identity
+> **artifact** instead (Emberheart / Bushido / Adrenaline Rush / Extra Barrels), decks are chosen
+> freely by any character, and the starting weapon is upgrade 0's cross-deck roll. "Lock the verb,
+> free the sentence" survives — the verb just lives in an artifact now. Read §2 for the deck-count
+> reasoning only; §3 is current for identity.
 
 ### Characters link to a deck
 
@@ -443,8 +443,14 @@ DeckCombo (Resource)
       **at the rolled tier** (`_weapon_offerable_at`); replacement-when-full upgrades the lowest owned
       copy in place; dead tiers (lower than everything owned, Mythic-on-Mythic) are hidden. The card
       text says what taking it does ("merges into Epic" / "upgrades your Common").
-   5. **Identity artifacts** — retire `primary_deck`, repoint `exclusive_upgrades`, return the
-      extracted weapons to their decks as starter candidates, build upgrade-0's 1-of-2 roll.
+   5. ✅ **Identity artifacts + upgrade 0** (Jul 2026) — `primary_deck` retired; characters carry a
+      GRANTED identity artifact in `starting_upgrades` (Magic Man: **Emberheart**, burns can escalate
+      to ignite; Samurai: **Bushido**, kills grow crit; Edgerunner: **Adrenaline Rush**, kills surge
+      speed; Shotgunner: **Extra Barrels**, +2 projectiles on everything). Cinder Volley and the Axe
+      returned to fire/melee; **daggers + shotgun fill the projectile deck** (no longer empty, added
+      to the master list). **Upgrade 0 built**: at run start, one weapon candidate rolled per chosen
+      deck, pick one — the fork between your themes, and the damage floor. Decks are chosen freely
+      (any character, any pair). *Numbers on all four artifacts are playtest fodder.*
    Then **playtest**: does the ladder pay off inside ~20–30 picks, and do artifacts eat the pool?
 6. Card manipulation (reroll / banish / swap) — **pre-commitment only** (§3): these act on the offer,
    never on owned slots.

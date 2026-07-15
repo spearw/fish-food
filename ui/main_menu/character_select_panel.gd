@@ -55,9 +55,10 @@ func _ready():
 	populate_character_grid()
 
 	GameData.unlocked_packs_changed.connect(populate_pack_grid)
+	populate_pack_grid()
 
-	# Select current character initially. This also fills the deck grid, which depends on which
-	# character is selected -- their primary deck is granted rather than offered.
+	# Select current character initially. Characters aren't linked to decks, so the deck grid is
+	# character-independent -- any character can run any pair.
 	var default_char_path = GameData.data["selected_character_path"]
 	var default_char_data = load(default_char_path)
 	_select_character_by_data(default_char_data)
@@ -93,10 +94,6 @@ func _select_character_by_data(char_data: PlayerStats):
 
 	# Update visual selection on buttons
 	_update_character_selection_visuals(char_data)
-
-	# The character decides which deck is granted and how many are left to pick, so the grid has to
-	# be rebuilt for them.
-	populate_pack_grid()
 
 func _update_character_selection_visuals(char_data: PlayerStats):
 	# Deselect previous
@@ -148,8 +145,6 @@ func populate_pack_grid():
 		child.queue_free()
 	selected_packs.clear()
 
-	var primary: Deck = _primary_deck()
-	var slots := CurrentRun.get_secondary_deck_slots_for(selected_character)
 	var unlocked_paths = GameData.data["unlocked_pack_paths"]
 	var remembered: Array = GameData.data.get("selected_pack_paths", [])
 
@@ -161,23 +156,14 @@ func populate_pack_grid():
 		var button: DeckButton = upgrade_pack_button_scene.instantiate()
 		var is_unlocked = pack_data.resource_path in unlocked_paths
 		button.set_deck_data(pack_data, is_unlocked)
-
-		# The character's primary deck is shown as theirs -- always on, and it doesn't spend a slot.
-		if primary and pack_data.resource_path == primary.resource_path:
-			button.set_granted(true)
-			pack_grid.add_child(button)
-			continue
-
 		button.selection_toggled.connect(_on_pack_selection_toggled)
 		pack_grid.add_child(button)
 
-		# Restore last run's picks, but only as far as this character leaves slots open.
-		if is_unlocked and pack_data.resource_path in remembered and selected_packs.size() < slots:
+		# Restore last run's picks, up to the run's themed-deck cap.
+		if is_unlocked and pack_data.resource_path in remembered \
+				and selected_packs.size() < CurrentRun.max_themed_decks:
 			button.set_selected(true)
 			selected_packs.append(button)
-
-func _primary_deck() -> Deck:
-	return selected_character.primary_deck if selected_character else null
 
 func _on_pack_selection_toggled(button_instance: DeckButton):
 	if button_instance.is_selected():
@@ -185,8 +171,8 @@ func _on_pack_selection_toggled(button_instance: DeckButton):
 		if not button_instance in selected_packs:
 			selected_packs.append(button_instance)
 
-		# Enforce the selection limit: the two-deck rule, minus the character's granted primary.
-		while selected_packs.size() > CurrentRun.get_secondary_deck_slots_for(selected_character):
+		# Enforce the two-themed-decks rule.
+		while selected_packs.size() > CurrentRun.max_themed_decks:
 			# Too many selected. Deselect the oldest one.
 			var oldest_selection = selected_packs.pop_front()
 			oldest_selection.set_selected(false)
@@ -195,8 +181,7 @@ func _on_pack_selection_toggled(button_instance: DeckButton):
 		if button_instance in selected_packs:
 			selected_packs.erase(button_instance)
 
-# Get the player's chosen decks. The character's primary is NOT included -- it comes from the
-# character itself when the run composes its decks (CurrentRun.get_active_deck_paths).
+# Get the player's chosen decks (the core deck joins automatically at run composition).
 func get_currently_selected_pack_paths_from_ui() -> Array[String]:
 	var paths: Array[String] = []
 	for button in selected_packs:

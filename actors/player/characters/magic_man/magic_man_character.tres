@@ -1,16 +1,13 @@
-[gd_resource type="Resource" script_class="PlayerStats" load_steps=8 format=3 uid="uid://b5yscp3npggn5"]
+[gd_resource type="Resource" script_class="PlayerStats" load_steps=5 format=3 uid="uid://b5yscp3npggn5"]
 
 [ext_resource type="SpriteFrames" uid="uid://nbeutjhl0hto" path="res://actors/player/characters/magic_man/magic_man_animation.tres" id="1_dou2t"]
 [ext_resource type="Script" uid="uid://nwbrj5ockot1" path="res://actors/player/player_stats.gd" id="1_lqmeo"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="3_vnxkr"]
-[ext_resource type="Resource" uid="uid://dsde3c8s08fs0" path="res://systems/upgrades/weapons/fire/cinder_volley/cinder_volley_unlock.tres" id="4_dou2t"]
-[ext_resource type="Resource" uid="uid://dy0thirxxtsv" path="res://systems/upgrades/packs/fire_pack.tres" id="5_deck"]
-[ext_resource type="Resource" uid="uid://cj61shiwcw7uo" path="res://systems/upgrades/weapons/fire/cinder_volley/cinder_volley_wild_magic_transform.tres" id="6_excl"]
-[ext_resource type="Resource" uid="uid://d3omotwe5x3y4" path="res://systems/upgrades/weapons/fire/cinder_volley/cinder_volley_seeker_missiles_transform.tres" id="7_excl"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/identity/emberheart_unlock.tres" id="4_ident"]
 
 [resource]
 script = ExtResource("1_lqmeo")
-character_description = "Fire mage. Starts with Cinder Volley -- homing firebolts that catch targets on fire -- a weapon only he can wield."
+character_description = "Emberheart: burns he applies can escalate into a true ignite. Pick any decks -- his fire follows."
 unlock_cost = 100
 pickup_radius = 150.0
 luck = 1.0
@@ -18,9 +15,7 @@ firerate_modifier = 1.0
 projectile_count_multiplier = 1.0
 critical_chance = 0.0
 critical_damage = 0.0
-starting_upgrades = Array[ExtResource("3_vnxkr")]([ExtResource("4_dou2t")])
-primary_deck = ExtResource("5_deck")
-exclusive_upgrades = Array[ExtResource("3_vnxkr")]([ExtResource("6_excl"), ExtResource("7_excl")])
+starting_upgrades = Array[ExtResource("3_vnxkr")]([ExtResource("4_ident")])
 move_speed = 175.0
 display_name = "Magic Man"
 max_health = 100

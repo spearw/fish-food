@@ -1,121 +1,100 @@
 extends Node
-## Headless check of the character<->deck link and the two-themed-deck rule. Run with --headless.
-##   1. The character's primary deck is granted free, and the cap never clips it.
-##   2. The player's picks fill only the slots the primary leaves open; extras are dropped.
-##   3. An "open" character (no primary) picks both themed decks.
-##   4. Neither the core deck nor a duplicate of the primary can waste a themed slot.
-##   5. Character-exclusive cards enter the pool, credited to the primary deck's draft count.
-##   6. Content: a linked character's cards live in no deck -- that's what makes them exclusive.
+## Headless check of the UNCOUPLED character/deck/weapon model (design doc section 3). Run headless.
+##   1. Run composition: core (always) + up to max_themed_decks picks, deduped, core never a slot.
+##   2. Upgrade 0: one starting-weapon candidate rolled per chosen deck, from the right decks.
+##   3. Identity: every character's starting_upgrades are ARTIFACTS (no character starts with a
+##      weapon), and applying one granted costs no loadout slot.
+##   4. Content: the once-exclusive weapons are back in their decks (Cinder Volley in fire, Axe in
+##      melee), and the projectile deck now carries daggers + shotgun.
 
 const CORE := "res://systems/upgrades/packs/core_pack.tres"
 const FIRE := "res://systems/upgrades/packs/fire_pack.tres"
 const LIGHTNING := "res://systems/upgrades/packs/lightning_pack.tres"
 const MELEE := "res://systems/upgrades/packs/melee_pack.tres"
+const PROJECTILE := "res://systems/upgrades/packs/projectile_pack.tres"
 
-## Compose a run's decks for a given character + picks.
-func _decks(character: PlayerStats, picks: Array[String]) -> Array[String]:
-	CurrentRun.selected_character = character
+class MockPlayer:
+	extends Node2D
+	func _init() -> void:
+		var equipment := Node2D.new()
+		equipment.name = "Equipment"
+		add_child(equipment)
+		var artifacts := Node2D.new()
+		artifacts.name = "Artifacts"
+		add_child(artifacts)
+	func get_stat(_key): return 1.0
+	func notify_stats_changed() -> void: pass
+
+func _decks(picks: Array[String]) -> Array[String]:
 	CurrentRun.selected_pack_paths = picks
 	return CurrentRun.get_active_deck_paths()
 
+func _deck_has(deck_path: String, upgrade_id: String) -> bool:
+	for u in load(deck_path).upgrades:
+		if u != null and u.id == upgrade_id:
+			return true
+	return false
+
 func _ready() -> void:
-	var pass_all := true
+	CurrentRun.selected_character = null
+	CurrentRun.max_themed_decks = 2
 
-	var mage := PlayerStats.new()
-	mage.display_name = "Test Mage"
-	mage.primary_deck = load(FIRE)
-	var open_char := PlayerStats.new()  # no linked deck -- chooses both themed decks
+	# --- 1. Composition: picks + core, deduped, capped -- no character involvement at all ---
+	var comp_ok: bool = _decks([] as Array[String]) == [CORE] \
+		and _decks([FIRE] as Array[String]) == [CORE, FIRE] \
+		and _decks([FIRE, LIGHTNING] as Array[String]) == [CORE, FIRE, LIGHTNING] \
+		and _decks([FIRE, LIGHTNING, MELEE] as Array[String]) == [CORE, FIRE, LIGHTNING] \
+		and _decks([CORE, FIRE, FIRE, LIGHTNING] as Array[String]) == [CORE, FIRE, LIGHTNING]
+	print("DECKLINK composition=%s" % str(comp_ok))
 
-	# 1. Primary is granted even with no picks; 2. picks fill the one remaining slot.
-	var granted_ok: bool = _decks(mage, []) == [CORE, FIRE]
-	var secondary_ok: bool = _decks(mage, [LIGHTNING]) == [CORE, FIRE, LIGHTNING]
-
-	# 3. The cap drops the extra pick -- and keeps the primary, which is the character's identity.
-	var capped := _decks(mage, [LIGHTNING, MELEE])
-	var cap_ok: bool = capped == [CORE, FIRE, LIGHTNING]
-
-	# 4. An open character picks both; a third is still dropped.
-	var open_ok: bool = _decks(open_char, [FIRE, LIGHTNING]) == [CORE, FIRE, LIGHTNING] \
-		and _decks(open_char, [FIRE, LIGHTNING, MELEE]) == [CORE, FIRE, LIGHTNING]
-
-	# 5. Re-picking the primary, or the always-granted core, can't burn a themed slot.
-	var dedupe_ok: bool = _decks(mage, [FIRE, LIGHTNING]) == [CORE, FIRE, LIGHTNING] \
-		and _decks(mage, [CORE, LIGHTNING]) == [CORE, FIRE, LIGHTNING]
-
-	# 6. Slot math the deck picker relies on.
-	var slots_ok: bool = CurrentRun.get_secondary_deck_slots_for(mage) == 1 \
-		and CurrentRun.get_secondary_deck_slots_for(open_char) == 2 \
-		and CurrentRun.get_secondary_deck_slots_for(null) == 2
-
-	print("DECKLINK granted=%s secondary=%s cap=%s open=%s dedupe=%s slots=%s" % [
-		str(granted_ok), str(secondary_ok), str(cap_ok), str(open_ok), str(dedupe_ok), str(slots_ok)])
-	pass_all = pass_all and granted_ok and secondary_ok and cap_ok and open_ok and dedupe_ok and slots_ok
-
-	# --- Exclusive cards reach the pool and count as primary-deck investment ---
-	var exclusive := Upgrade.new()
-	exclusive.id = "test_exclusive_evolution"
-	exclusive.type = Upgrade.UpgradeType.TRANSFORMATION
-	exclusive.rarity = Upgrade.Rarity.RARE
-	exclusive.target_class_name = "TestExclusiveWeapon"
-	mage.exclusive_upgrades = [exclusive]
-
-	CurrentRun.selected_character = mage
-	CurrentRun.selected_pack_paths = []
-	# UpgradeManager is a scene node, not an autoload; adding it fires _ready -> builds the pool.
+	# --- 2. Upgrade 0: one weapon candidate per themed deck, each from ITS deck ---
+	var player := MockPlayer.new()
+	add_child(player)
 	var um = load("res://systems/upgrades/upgrade_manager.gd").new()
+	CurrentRun.selected_pack_paths = [FIRE, LIGHTNING] as Array[String]
 	add_child(um)
-	var exclusive_ok: bool = exclusive in um.active_upgrade_pool \
-		and um._upgrade_deck_ids.get(exclusive, "") == "fire"
-	pass_all = pass_all and exclusive_ok
-	print("DECKLINK exclusive_in_pool=%s credited_to=%s pool=%d" % [
-		str(exclusive in um.active_upgrade_pool), str(um._upgrade_deck_ids.get(exclusive, "")),
-		um.active_upgrade_pool.size()])
+	um.register_player(player)
 
-	# --- Content: no linked character's cards may appear in any deck ---
-	var deck_of_card := {}
-	var deck_list = load("res://systems/global/lists/master_pack_list.tres")
-	for deck in deck_list.decks:
-		for card in deck.upgrades:
-			deck_of_card[card] = deck.id
+	var candidates: Array = um.get_starting_weapon_candidates()
+	var fire_ids: Array = load(FIRE).upgrades.map(func(u): return u.id)
+	var lightning_ids: Array = load(LIGHTNING).upgrades.map(func(u): return u.id)
+	var starter_ok: bool = candidates.size() == 2 \
+		and candidates[0]["upgrade"].type == Upgrade.UpgradeType.UNLOCK_WEAPON \
+		and candidates[1]["upgrade"].type == Upgrade.UpgradeType.UNLOCK_WEAPON \
+		and candidates[0]["upgrade"].id in fire_ids \
+		and candidates[1]["upgrade"].id in lightning_ids
+	CurrentRun.selected_pack_paths = [] as Array[String]
+	var starter_none_ok: bool = um.get_starting_weapon_candidates().is_empty()
+	print("DECKLINK starter: candidates=%d from_right_decks=%s none_without_decks=%s" % [
+		candidates.size(), str(starter_ok), str(starter_none_ok)])
 
-	var leaked: Array[String] = []
-	var linked := 0
-	var char_list = load("res://systems/global/lists/master_character_list.tres")
-	for c in char_list.characters:
-		if not c.primary_deck:
-			continue
-		linked += 1
-		for card in (c.starting_upgrades + c.exclusive_upgrades):
-			if card and deck_of_card.has(card):
-				leaked.append("%s's %s is in deck '%s'" % [c.display_name, card.id, deck_of_card[card]])
+	# --- 3. Identity: every character starts with artifacts only, and granted costs no slot ---
+	var chars = load("res://systems/global/lists/master_character_list.tres").characters
+	var identity_ok := true
+	for c in chars:
+		for u in c.starting_upgrades:
+			if u == null or u.type != Upgrade.UpgradeType.UNLOCK_ARTIFACT:
+				identity_ok = false
+	var ember = load("res://systems/upgrades/artifacts/identity/emberheart_unlock.tres")
+	um.apply_upgrade({"upgrade": ember, "rarity": Upgrade.Rarity.COMMON, "granted": true})
+	var ember_node = um.player_artifacts.get_node_or_null("EmberheartArtifact")
+	var granted_ok: bool = ember_node != null and um.is_granted(ember_node) and um.get_used_slots() == 0
+	print("DECKLINK identity: all_artifact_starts=%s granted_slot_free=%s (used=%d)" % [
+		str(identity_ok), str(granted_ok), um.get_used_slots()])
 
-	var content_ok: bool = leaked.is_empty()
-	pass_all = pass_all and content_ok
-	print("DECKLINK content: linked_characters=%d leaked=%s" % [linked, str(leaked)])
+	# --- 4. Content: weapons re-homed ---
+	var content_ok: bool = _deck_has(FIRE, "unlock_cinder_volley") or _deck_has(FIRE, "cinder_volley_unlock")
+	# ids vary by author; fall back to counting weapons per deck instead of exact ids.
+	var fire_weapons: int = load(FIRE).get_composition().get("weapons", 0)
+	var melee_weapons: int = load(MELEE).get_composition().get("weapons", 0)
+	var proj_weapons: int = load(PROJECTILE).get_composition().get("weapons", 0)
+	# fire: flamethrower + cinder volley (returned) + fireball staff + molotov = 4.
+	# melee: axe (returned) + hammer + shield + spear = 4. projectile: daggers + shotgun = 2.
+	content_ok = fire_weapons == 4 and melee_weapons == 4 and proj_weapons == 2
+	print("DECKLINK content: fire_weapons=%d melee_weapons=%d projectile_weapons=%d ok=%s" % [
+		fire_weapons, melee_weapons, proj_weapons, str(content_ok)])
 
-	# --- The pre-run picker: a linked character's primary shows as granted, the core deck isn't
-	#     offered as a choice, and only the leftover slot is selectable ---
-	var panel = load("res://ui/main_menu/character_select_panel.tscn").instantiate()
-	add_child(panel)
-	panel._select_character_by_data(load("res://actors/player/characters/magic_man/magic_man_character.tres"))
-	# The panel already populated once for the default character in its _ready. queue_free() is
-	# deferred, so wait a frame or those stale buttons are still children and get counted here.
-	await get_tree().process_frame
-	var granted_buttons := 0
-	var choosable := 0
-	var core_offered := false
-	for b in panel.pack_grid.get_children():
-		if b.deck_data.resource_path == CurrentRun.CORE_DECK_PATH:
-			core_offered = true
-		if b.is_granted:
-			granted_buttons += 1
-		else:
-			choosable += 1
-	var panel_ok: bool = granted_buttons == 1 and not core_offered and choosable > 0 \
-		and panel.selected_packs.size() <= 1
-	pass_all = pass_all and panel_ok
-	print("DECKLINK picker: granted=%d choosable=%d core_offered=%s picked=%d" % [
-		granted_buttons, choosable, str(core_offered), panel.selected_packs.size()])
-
+	var pass_all: bool = comp_ok and starter_ok and starter_none_ok and identity_ok \
+		and granted_ok and content_ok
 	print("DECKLINK RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

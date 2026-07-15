@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://idunlock0ember1"]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/identity/emberheart/emberheart.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "identity_emberheart"
+display_name = "Emberheart"
+description = "Identity: burns you apply have a 25% chance to escalate into a true ignite."
+type = 1
+target_class_name = "EmberheartArtifact"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 0
+property_to_modify = ""
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

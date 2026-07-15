@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://identity0idadren1"]
+
+[ext_resource type="Script" path="res://items/artifacts/identity/adrenaline/adrenaline_artifact.gd" id="1_art"]
+
+[node name="AdrenalineArtifact" type="Node"]
+script = ExtResource("1_art")

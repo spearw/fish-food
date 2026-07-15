@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://identity0idbushi1"]
+
+[ext_resource type="Script" path="res://items/artifacts/identity/bushido/bushido_artifact.gd" id="1_art"]
+
+[node name="BushidoArtifact" type="Node"]
+script = ExtResource("1_art")

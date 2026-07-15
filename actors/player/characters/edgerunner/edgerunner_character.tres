@@ -3,11 +3,11 @@
 [ext_resource type="Script" uid="uid://nwbrj5ockot1" path="res://actors/player/player_stats.gd" id="1_blbt3"]
 [ext_resource type="SpriteFrames" uid="uid://dpd2rd3gsogan" path="res://actors/player/characters/edgerunner/edgerunner_animations.tres" id="1_f1v6m"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_f1v6m"]
-[ext_resource type="Resource" uid="uid://deynodmipwbdh" path="res://systems/upgrades/weapons/daggers_unlock.tres" id="4_f1v6m"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/identity/adrenaline_unlock.tres" id="4_f1v6m"]
 
 [resource]
 script = ExtResource("1_blbt3")
-character_description = "A fast edgerunner that throws daggers at her enemies"
+character_description = "Adrenaline Rush: kills surge her speed. Fast, fragile, and faster when it's working."
 unlock_cost = 100
 pickup_radius = 150.0
 luck = 1.0

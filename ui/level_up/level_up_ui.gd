@@ -26,12 +26,30 @@ var player_node: Node2D
 
 func _ready() -> void:
 	self.hide()
-	
+
 	# Connect all button presses to a single handler.
 	for i in range(upgrade_buttons.size()):
 		# .bind(i) passes the index 'i' as an argument to the function.
 		upgrade_buttons[i].pressed.connect(_on_upgrade_button_pressed.bind(i))
 	Events.boss_reward_requested.connect(on_boss_reward_requested)
+	# Upgrade 0: the starting-weapon roll. Deferred so the whole world (player registration included)
+	# has finished assembling first.
+	call_deferred("_offer_starting_weapon")
+
+## Upgrade 0 (design doc section 3): one weapon candidate rolled from EACH chosen deck; pick one.
+## The first decision of the run is a fork between your themes, and the pick is the damage floor --
+## a run can never start weaponless. Skips silently when no themed decks are selected (benches, test
+## setups), which also keeps every headless probe working.
+func _offer_starting_weapon() -> void:
+	if CurrentRun.starting_weapon_chosen:
+		return
+	var candidates: Array[Dictionary] = upgrade_manager.get_starting_weapon_candidates()
+	if candidates.is_empty():
+		return
+	CurrentRun.starting_weapon_chosen = true
+	current_upgrades = candidates
+	_choosing_combo = false
+	_present()
 	
 ## Called by the global 'boss_reward_requested' signal.
 func on_boss_reward_requested():

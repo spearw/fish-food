@@ -3,11 +3,11 @@
 [ext_resource type="Script" uid="uid://nwbrj5ockot1" path="res://actors/player/player_stats.gd" id="1_4b2tc"]
 [ext_resource type="SpriteFrames" uid="uid://do1qfw5yr1lu0" path="res://actors/player/characters/shotgunner/shotgun_animation.tres" id="1_vryq4"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_4b2tc"]
-[ext_resource type="Resource" uid="uid://btc5l6uhsaoqk" path="res://systems/upgrades/weapons/shotgun_unlock.tres" id="4_vryq4"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/identity/extra_barrels_unlock.tres" id="4_vryq4"]
 
 [resource]
 script = ExtResource("1_4b2tc")
-character_description = "Has a shotgun. Slow but healthy"
+character_description = "Extra Barrels: every weapon he holds fires 2 extra projectiles. Slow but healthy."
 unlock_cost = 100
 pickup_radius = 150.0
 luck = 1.0

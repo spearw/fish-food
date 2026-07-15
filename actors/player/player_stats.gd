@@ -18,16 +18,12 @@ extends EntityStats
 @export var critical_chance: float = 0.0
 @export var critical_damage: float = 0.0
 
-# --- Starting Loadout ---
-# Defines the character's unique starting weapon(s) and artifact(s).
+# --- Identity Loadout (see docs/deck_and_synergy_design.md section 3) ---
+## Applied GRANTED at run start (slot-exempt): the character's identity ARTIFACT lives here -- a verb
+## that changes a rule, not a stat line. Characters are deliberately NOT linked to decks or weapons:
+## decks are chosen freely, and the starting weapon comes from upgrade 0's cross-deck roll.
 @export var starting_upgrades: Array[Upgrade]
 
-# --- Deck Identity (see docs/deck_and_synergy_design.md section 2) ---
-## The character's linked PRIMARY deck -- their identity. Granted automatically at run start; the
-## player only chooses the secondary. Null = an "open" character, who picks both themed decks.
-@export var primary_deck: Deck
-
-## Cards only this character can draw -- their exclusive weapon's evolutions. They live here instead
-## of in a deck, which is exactly what makes the weapon exclusive: no deck can offer them to anyone
-## else. Folded into the run's pool and credited to primary_deck's draft count.
+## Cards only this character can draw, folded into the run's pool (credited to no deck). Empty for
+## everyone right now -- kept as the hook for identity-support cards later.
 @export var exclusive_upgrades: Array[Upgrade]

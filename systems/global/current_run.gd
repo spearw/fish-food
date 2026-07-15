@@ -62,6 +62,9 @@ var spawn_intensity: SpawnIntensity = SpawnIntensity.NORMAL
 # Counter mode (X-axis): Which enemies spawn based on build.
 var counter_mode: CounterMode = CounterMode.NORMAL
 
+# True once upgrade 0 (the starting-weapon roll) has been offered this run -- it fires exactly once.
+var starting_weapon_chosen: bool = false
+
 # --- Cross-deck combo state (see systems/combos/) ---
 ## Cards drafted from each deck this run, keyed by Deck.id. Feeds combo power gates.
 var deck_draft_counts: Dictionary = {}
@@ -72,16 +75,11 @@ var combo_taken: bool = false
 func get_intensity_multiplier() -> float:
 	return INTENSITY_MULTIPLIERS.get(spawn_intensity, 1.0)
 
-## The decks whose cards can appear this run: the core deck (always), then the themed decks -- the
-## character's linked primary first, then whatever the player chose -- clamped to max_themed_decks.
-## The primary is added first on purpose: it's the character's identity, so it must never be the deck
-## the cap clips.
+## The decks whose cards can appear this run: the core deck (always) plus the player's picks,
+## clamped to max_themed_decks. Characters are NOT linked to decks -- identity lives in the granted
+## identity artifact, and any character can run any pair (design doc section 3).
 func get_active_deck_paths() -> Array[String]:
 	var themed: Array[String] = []
-
-	if selected_character and selected_character.primary_deck:
-		themed.append(selected_character.primary_deck.resource_path)
-
 	for path in selected_pack_paths:
 		if themed.size() >= max_themed_decks:
 			break
@@ -92,10 +90,3 @@ func get_active_deck_paths() -> Array[String]:
 	var paths: Array[String] = [CORE_DECK_PATH]
 	paths.append_array(themed)
 	return paths
-
-## How many themed decks a character still leaves the player to choose, given their primary is
-## granted for free. Drives the pre-run deck picker's selection limit. Takes the character as an
-## argument because the picker asks about a character the player hasn't committed to yet.
-func get_secondary_deck_slots_for(character: PlayerStats) -> int:
-	var granted := 1 if (character and character.primary_deck) else 0
-	return max(0, max_themed_decks - granted)

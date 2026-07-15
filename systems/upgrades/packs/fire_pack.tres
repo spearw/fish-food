@@ -1,10 +1,13 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=19 format=3 uid="uid://dy0thirxxtsv"]
+[gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://dy0thirxxtsv"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_cpco1"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_vldj6"]
 [ext_resource type="Resource" uid="uid://5ukacd4uvq0a" path="res://systems/upgrades/weapons/fire/flamethrower/flamethrower_unlock.tres" id="3_io1kt"]
 [ext_resource type="Resource" uid="uid://s6pxfcgpngps" path="res://systems/upgrades/weapons/fire/flamethrower/flamethrower_ring_of_fire_transform.tres" id="4_2rgh6"]
 [ext_resource type="Resource" uid="uid://jm5ekkgbhktd" path="res://systems/upgrades/weapons/fire/flamethrower/flamethrower_flaming_tongues_transform.tres" id="5_wu2a6"]
+[ext_resource type="Resource" uid="uid://dsde3c8s08fs0" path="res://systems/upgrades/weapons/fire/cinder_volley/cinder_volley_unlock.tres" id="6_fh3pm"]
+[ext_resource type="Resource" uid="uid://cj61shiwcw7uo" path="res://systems/upgrades/weapons/fire/cinder_volley/cinder_volley_wild_magic_transform.tres" id="7_x3r5g"]
+[ext_resource type="Resource" uid="uid://d3omotwe5x3y4" path="res://systems/upgrades/weapons/fire/cinder_volley/cinder_volley_seeker_missiles_transform.tres" id="8_mf568"]
 [ext_resource type="Resource" uid="uid://of54uih30ise" path="res://systems/upgrades/weapons/fire/fireball_staff/fireball_staff_unlock.tres" id="9_m1h8x"]
 [ext_resource type="Resource" uid="uid://stebqaf6f7fu" path="res://systems/upgrades/weapons/fire/fireball_staff/fireball_staff_living_flame_transform.tres" id="10_wu2a6"]
 [ext_resource type="Resource" uid="uid://bvs083xtal688" path="res://systems/upgrades/weapons/fire/fireball_staff/fireball_staff_wall_of_fire_transform.tres" id="11_fh3pm"]
@@ -25,5 +28,5 @@ id = "fire"
 deck_name = "Fire"
 deck_description = "All weapons apply DoT on hit. DoT has chance of igniting, causing more damage and additional effects."
 unlock_cost = 0
-upgrades = Array[ExtResource("2_vldj6")]([ExtResource("3_io1kt"), ExtResource("4_2rgh6"), ExtResource("5_wu2a6"), ExtResource("9_m1h8x"), ExtResource("10_wu2a6"), ExtResource("11_fh3pm"), ExtResource("12_fh3pm"), ExtResource("13_mf568"), ExtResource("14_m1h8x"), ExtResource("15_bnntq"), ExtResource("16_ga686"), ExtResource("17_1152r"), ExtResource("18_jumii"), ExtResource("19_ga686"), ExtResource("20_1152r"), ExtResource("21_jumii")])
+upgrades = Array[ExtResource("2_vldj6")]([ExtResource("3_io1kt"), ExtResource("4_2rgh6"), ExtResource("5_wu2a6"), ExtResource("6_fh3pm"), ExtResource("7_x3r5g"), ExtResource("8_mf568"), ExtResource("9_m1h8x"), ExtResource("10_wu2a6"), ExtResource("11_fh3pm"), ExtResource("12_fh3pm"), ExtResource("13_mf568"), ExtResource("14_m1h8x"), ExtResource("15_bnntq"), ExtResource("16_ga686"), ExtResource("17_1152r"), ExtResource("18_jumii"), ExtResource("19_ga686"), ExtResource("20_1152r"), ExtResource("21_jumii")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

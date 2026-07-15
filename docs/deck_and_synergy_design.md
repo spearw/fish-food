@@ -26,6 +26,14 @@ The code currently calls these **packs** (`UpgradePack`). Rename to **decks** �
 
 ## 2. Characters ↔ Decks — identity, and how many decks a run gets
 
+> **⚠ Partly superseded by §3's working direction (July 2026).** The **deck-count rule below is
+> unaffected and still locked.** But §3 moves character identity from a linked *deck* to a granted
+> *artifact* and unlinks characters from decks entirely — which would retire `primary_deck` and the
+> character-exclusive weapon. The "lock the verb, free the sentence" principle survives; §3 argues an
+> artifact is a *better* verb than a deck. §3 also settles the secondary-deck timing (both decks from
+> the start), which removes this section's mid-run ladder rung. Read §2 for the deck-count reasoning,
+> §3 for where identity now lives.
+
 ### Characters link to a deck
 
 A character starts with a **linked primary deck** + a **character-exclusive weapon** (and its
@@ -61,19 +69,22 @@ Why not 3–4 by default:
 needs a 2nd pair, which needs a 3rd deck (A+B+C → combo A+B *and* B+C). A 3rd deck isn't more soup;
 it's the **key to the 2-combo chase**, which is exactly why it must stay rare and hard-earned.
 
-### The escalation ladder (in-run deck acquisition)
+### The escalation ladder (in-run deck acquisition) — *revised by §3*
 
 Deck acquisition rides the same milestone rhythm as combos, so a run has an arc:
 
 | When | What |
 |---|---|
-| Start | Character's **primary deck** (+ core). Focused mono-theme early game. |
-| Early milestone (~level 5) | **Choose your secondary deck** → the dual-theme build you'll invest in. |
+| Start | **Both themed decks** (+ core), chosen at character-select. Upgrade 0 rolls one starter weapon candidate from *each* — the first fork between your themes (§3). |
 | Level 20 / mini-boss | **Combo unlocks** (enough runway to have hit the ≥N-each gate). |
 | Rare, hard-earned (condition TBD) | **3rd deck + 2nd combo** — the "go wide" reward for exceptional runs. |
 
 Each unlock is an **event**, reusing the milestone-reward pattern the combo trigger already
 establishes.
+
+*(Superseded: the original ladder started with the character's linked primary deck and drafted the
+secondary at an early milestone. §3's upgrade-0 roll needs both decks present from turn one, so the
+mid-run rung is gone and the secondary is picked at character-select — which is what's already built.)*
 
 ### Current state (un-built)
 
@@ -162,21 +173,157 @@ shortly after." No GDC talk on survivors-like progression exists. This is a genr
 confirmed `P = rarity / poolWeight` formula; one Steam thread disputes it); whether VS evolutions
 require the paired passive to be *maxed* (sources contradict each other).
 
-### Direction (PROPOSED — under discussion, not locked)
+### Direction (WORKING — agreed July 2026, deliberately NOT locked)
 
-- **Cap weapon slots at 3.** The cap is load-bearing: it restores exclusion and turns the queue back
-  into a choice.
-- **Weapons stop being unique** — neither character-exclusive nor one-per-run. Duplicates become legal,
-  so the pick becomes *"three of the same, or three different?"* — one currency (slots) buys either
-  breadth or depth.
-- **Character identity moves to artifacts**, not decks (§2). Characters stop being tied to a deck, which
-  multiplies the character × deck combinations a player can try.
-- **Decks offer a starting weapon choice** — pick 1 of 2 of the deck's weapons at run start
-  ("upgrade 0").
-- **The crux, unresolved:** *what a duplicate actually does.* If three copies are just three instances,
-  "three of the same" is strictly worse than three different weapons (same damage, less coverage) and
-  the choice is fake. A duplicate needs a non-linear payoff — a merge/tier-up (Brotato), a level
-  (Rogue: Genesia), or a stacking bonus.
+The direction to build against and playtest. **Reversible on purpose** — merge especially is "convinced
+for now, not forever." Reversal cost is low: this is one economy plus an offer filter, not a rewrite.
+See *What would make us revisit* at the end.
+
+#### The shape
+
+- **~5 slots, SHARED between weapons and artifacts.** One currency buys either damage or rules.
+  - *Why shared — the economy self-balances.* A weapon's marginal value is **+1/N**: it *declines* as you
+    take more. An artifact's is roughly flat — a rule is a rule. So a 4th weapon is worth +25% and
+    falling while an artifact is still worth what it's worth, and every build slides to its own mix
+    point. **Neither category can permanently dominate, because taking more of one makes it worth less.**
+    That is the exact inverse of the diagnosed disease (weapons never got worse, because nothing was
+    foregone).
+  - *And narrow builds become native.* "1 weapon + 4 artifacts buffing it" is HoloCure's Solo Stamp
+    fantasy expressed through the core economy — no bolted-on "+X% per empty slot" card needed.
+  - *Why 5, not 3.* 3 was right for weapons-only; with artifacts sharing, three things total is a thin
+    build. 5 keeps every pick heavy while leaving the spectrum expressible (3 weapons + 2 artifacts /
+    1 weapon + 4 artifacts / five of one thing).
+  - *Known risk:* if artifacts are flatly stronger per slot, "always take the artifact" simply replaces
+    "always take the weapon." +1/N protects at low weapon counts; it does **not** protect against
+    artifacts just being numerically bigger. **Watch in playtest.**
+  - *Known deviation:* VS, Brotato, Halls of Torment and DRG:S all keep weapon and item slots
+    **separate**; only Backpack Survivors shares (spatially). We're doing the rarer thing knowingly.
+- **Weapons are not unique** — neither character-exclusive nor one-per-run. Duplicates are legal, so the
+  pick becomes *"three of the same, or three different?"*
+- **Character identity lives in ARTIFACTS, not decks.** A deck is a *noun* (a theme); an artifact is a
+  **verb** (it changes a rule) — so this honours §2's *"lock the verb, free the sentence"* harder than
+  the deck link did, and unlinking characters from decks multiplies the combinations a player can try.
+  **The identity artifact is GRANTED, not slotted** — otherwise identity costs a slot and is really a
+  tax (same principle as §2's granted primary deck).
+  - *Cost, accepted:* Magic Man can now run melee. We gain combinations and lose thematic coherence, so
+    **the artifact must carry the whole identity** or characters become hats. VS accepts this same trade.
+- **Upgrade 0 — one starting weapon, chosen from two candidates, one drawn at random from each of your
+  starting decks.** The first decision is a fork between your two themes; randomised candidates give
+  replay variance without letting the run be pre-scripted. It doubles as the **damage floor**, so a
+  shared pool can never produce a "0 weapons, dead run."
+
+#### Duplicates merge (Brotato's rule)
+
+- **Two identical weapons of the same rarity → one of the next rarity.** Strictly **pairwise, not bulk**
+  — three copies don't collapse in one action.
+- **Merging frees a slot** (2 → 1). That's what keeps the economy churning instead of filling at ~pick 5
+  and leaving 20 level-ups of stats: **draft copies → merge up → free slots → draft rules.**
+- **"Three of the same" is therefore a ladder:** 4 copies → 2 second-rarity → 1 third-rarity, ending with
+  3 slots freed for artifacts.
+- **Auto-merge when slots are full** and a matching duplicate is drafted (Brotato does this) — do the
+  obvious thing rather than block the pick.
+- **Merging is a path, never a gate.** Higher rarities can also be drafted directly; the draw is
+  rarity-weighted and luck-scaled, so **luck is the "find it in the wild" lever** (Brotato gates high
+  tiers on wave + Luck the same way).
+- **Per-weapon rarity curves, not a uniform ladder.** Brotato scales per weapon on purpose — Fist doubles
+  every tier (8/16/32/64) while Wrench crawls (12/16/20/24) — making some weapons merge-hungry and others
+  not worth it. That texture is worth stealing.
+
+#### The slot economy: pre-commitment vs post-commitment
+
+The rule that keeps each lever distinct — and the reason a discard would undermine merge:
+
+- **Pre-commitment tools act on the OFFER.** Reroll / banish / swap (§7) shape what you're *shown*.
+  Free by nature: at a level-up you already pick 1 of 3, so declining costs nothing.
+- **Post-commitment: MERGE IS THE ONLY LEVER. There is no owned-weapon discard.**
+  - *This is Brotato's actual design, and it's deliberate.* There is no way to sell or discard an owned
+    weapon; its "recycle" is **crate-only** (pre-pickup). The New Dawn DLC's ban system covers items and
+    **explicitly excludes weapons** — reportedly tested and cut as overpowered. Steam Workshop mods exist
+    *solely* to add owned-item selling: players want it, the dev withheld it. A player defending its
+    absence: *"the point that you can't sell them is part of the decision process."*
+  - *Cleaner here than in Brotato:* we're always pre-commitment at a level-up, so **you only ever own
+    what you chose.** There's nothing to be rescued from, so no discard is needed.
+- **Every game checked follows the same split** — Rogue: Genesia's banish/reroll, Boneraiser's seal,
+  Brotato's crate recycle all act on *offers*, never on owned slots. They never compete with merge
+  because they answer a different question: *"do I want this at all?"* vs *"I own two — consolidate?"*
+
+#### Replacement-when-full (the anti-dead-card rule)
+
+**The hole:** slots full, you own a Common Fire Staff, you're offered a Rare one. They can't merge
+(different rarities) and there's no slot — so a strict upgrade is unusable. Brotato has this exact hole;
+it just doesn't hurt there, because a blocked *shop purchase* is one of four options you chose to browse
+and can reroll. **In a 3-card level-up draw, a dead card is a third of your choice, gone.** Different
+delivery model, different rule — don't copy the reference here.
+
+**The rule:** *at full slots, drafting a higher-rarity copy of a weapon you own replaces it in place.*
+
+- **"Only when full" is the correct gate, and it falls out of the math** rather than being special-cased:
+  with a free slot, taking it as a *second copy* is strictly more damage (Common 10 + Rare 20 = 30 > a
+  lone Rare's 20). You'd never *want* to replace while a slot is open. Full slots is precisely the
+  condition where replacement is the only way to gain.
+- **It doesn't reopen the post-commitment door.** Same weapon, better — you can't pivot themes, dodge a
+  bad call, or convert a weapon into an artifact. It *deepens* a commitment rather than escaping one.
+- **It sharpens merge rather than diluting it.** Replacement frees no slot, so it takes the "I just want
+  a higher rarity" job off merge. Each mechanic now has exactly one job: **merge consolidates,
+  replacement upgrades in place.**
+- **Accepted cost:** with a free slot, "take as a 2nd copy" vs "replace" is arguably a real choice (two
+  sources vs one better source + a freed slot). This rule forecloses it — buying a one-sentence rule at
+  the price of one point of expressiveness. Two-sources is usually the better play anyway.
+- **The healthy tradeoff survives:** Common + Rare in two slots (30 damage, never mergeable) vs two
+  Commons merged into a Rare with a slot freed (20 damage + an artifact). A real decision, not a trap.
+
+#### The general form: never offer a card the player can't use
+
+Replacement is one instance of a class. The mirror bites too: full slots, you own a **Rare** Fire Staff,
+you're offered a **Common** — can't merge, can't slot, can't upgrade. Dead card again. So the thing to
+implement is not "allow replacement when full" but the **offer filter**:
+
+> A weapon is offerable if it can be **slotted**, **merged**, or **upgrade-replaced**. Otherwise don't
+> show it.
+
+Replacement is then simply what taking the card *does* in one of those cases. This extends machinery that
+already exists — `UpgradeManager.get_upgrade_choices()` already filters offers against inventory (UNLOCK
+cards only appear if you don't own the target). Legal duplicates just mean "already owned" stops being a
+disqualifier, and that check becomes the three-way test above. Same machinery, better predicate.
+
+#### How it maps to what exists
+
+- **`Upgrade.Rarity`** (COMMON/RARE/EPIC/LEGENDARY/MYTHIC) is already the merge ladder.
+- **The rarity-weighted draw** (85/40/25/15/5), already scaled by the player's **`luck`** stat, is
+  already Brotato's "higher tiers appear with luck."
+- **`rarity_values: Array[float]`** already does per-card scaling → per-weapon rarity curves are
+  expressible today.
+- **`PlayerStats.exclusive_upgrades`** is already the mechanism for a granted identity artifact — same
+  field, different content.
+- Weapons currently carry a single fixed `rarity` (UNLOCK cards match an exact bucket). A merge ladder
+  needs an **instance** rarity that can grow — the one genuinely new piece.
+
+#### Knock-on effects
+
+- **§2's ladder loses its middle rung.** "Both decks at start" (required by the 1-of-2 starter roll)
+  settles §6's open secondary-deck timing: **chosen at character-select** — which is what's already
+  built. The ladder becomes: 2 decks at start → combo at level 20 → 3rd deck rare.
+- **§2's character↔deck link is superseded** if this lands: `primary_deck` goes away, identity moves to a
+  granted artifact, and Cinder Volley / the Axe return to their decks (probably as starter candidates).
+  The unwind is small — deck composition, the cap and the picker are untouched.
+- **Multiplicativity (§7):** this direction argues for **multiplicative**. Additive stat cards decay
+  exactly when weapons stay strong, which is the shape of the diagnosed problem.
+
+#### What would make us revisit merge
+
+- The ladder proves **too slow** to matter within a run's ~20–30 picks (4 copies for a third-rarity
+  weapon is a lot of RNG to ask for).
+- **Artifacts dominate the shared pool**, making weapon merging moot.
+- "Three of the same" turns out **visually or mechanically dull** next to three different weapons.
+- Held in reserve: **level-in-place** (Rogue: Genesia — a re-pick levels the weapon; consumes no slot, so
+  it doesn't participate in the shared economy, which is why it lost) and **stacking bonuses**.
+
+#### Uncertain
+
+- **Noobs Are Coming** was cited as corroboration for the merge pattern, but **its weapon-duplicate merge
+  is unconfirmed** after dedicated research (its wiki is unreadable to tooling). What *is* confirmed there
+  is a **"Character Merge"** fusing 2–3 characters' *passive kits* — a different mechanic. Treat NAC as
+  un-cited support until verified in-game.
 
 ---
 
@@ -242,8 +389,9 @@ DeckCombo (Resource)
 
 ## 6. Open / deferred (tune in playtest)
 
-- **Secondary deck timing:** chosen at **character-select** (planned, intentional) vs **drafted early
-  in-run** (discovery, makes decks feel *unlocked*). Leaning **in-run draft**.
+- ~~**Secondary deck timing**~~ — **SETTLED (§3):** both decks are held from the start, because
+  upgrade 0 rolls one starter candidate *from each* deck. So the secondary is chosen at
+  **character-select**, which is what's already built. §2's ladder loses its middle rung.
 - **3rd-deck unlock condition:** deliberately hard — "some combination of difficult things"
   (secret boss and/or other feats). To flesh out; keep it rare enough that 3 decks stays exceptional.
 - **Presentation:** combo as a special card in a gated pool **vs.** a dedicated "choose your fusion"
@@ -268,11 +416,23 @@ DeckCombo (Resource)
    `CurrentRun.get_active_deck_paths()` owns composition (core + primary + picks, capped at
    `max_themed_decks = 2`); the picker grants the primary and offers only the leftover slot.
    Magic Man→fire (Cinder Volley), Samurai→melee (Axe), both weapons pulled out of their decks.
-   *Remaining:* Edgerunner / Shotgunner / Test are still **open** characters (theme = a design call;
-   the projectile deck is empty); the secondary is chosen **at character-select** — moving it to an
-   in-run draft milestone is the open call in §6. The 3rd deck is deferred with the secret boss.
-   *May be revisited:* §3's proposed direction moves character identity to **artifacts** and unlinks
-   characters from decks.
-5. **Weapon economy** (§3) — slot cap + what a duplicate does. Blocks meaningful level-up choice.
-6. Card manipulation (reroll / banish / swap).
+   **⚠ Partly superseded by §3** — identity moves to a granted artifact and characters unlink from
+   decks, retiring `primary_deck` and returning Cinder Volley / the Axe to their decks. The deck
+   *composition* (core + picks, capped) survives, as does `exclusive_upgrades` (repointed at the
+   identity artifact). Don't build further on the deck link until §3 is settled.
+
+5. **Weapon economy** (§3) — **the next thing to build, and it gates the rest.** Until slots are
+   capped, every level-up is a queue rather than a choice, so tuning anything downstream measures the
+   wrong game. Rough order:
+   1. **Shared slot cap** (~5) + the damage floor via upgrade 0. The cap alone restores exclusion.
+   2. **Instance rarity on weapons** — the one genuinely new piece (weapons currently carry a single
+      fixed `rarity`).
+   3. **Merge** — pairwise same-rarity → next rarity, frees a slot, auto-merges at full slots.
+   4. **The offer filter** — offerable iff slottable / mergeable / upgrade-replaceable; replacement is
+      what taking the card does at full slots.
+   5. **Identity artifacts** — retire `primary_deck`, repoint `exclusive_upgrades`, return the
+      extracted weapons to their decks as starter candidates.
+   Then **playtest**: does the ladder pay off inside ~20–30 picks, and do artifacts eat the pool?
+6. Card manipulation (reroll / banish / swap) — **pre-commitment only** (§3): these act on the offer,
+   never on owned slots.
 7. Content + the multiplicativity decision (§3 argues for multiplicative).

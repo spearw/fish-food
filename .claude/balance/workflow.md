@@ -19,6 +19,7 @@ This decides whether the rest of the workflow even applies.
   artifact. → **Don't price it.** It's balanced by counter-play (`WeaponTags.COUNTER_MATRIX`,
   `BuildAnalyzer`, `CurrentRun.counter_mode`), not by matching a number. Ask "what beats it and what
   does it beat?", not "is its DPS right?".
+  **Answer that with the archetype profile (step 2b) — it measures exactly this.**
 
 Conflating these is the named cause of balance confusion. Most new *weapons* are intransitive against
 each other and transitive against themselves — so a new weapon needs a **sane ballpark** (steps 1–3)
@@ -50,6 +51,65 @@ Godot_v4.4.1-stable_win64_console.exe --headless --path . res://balance_bench.ts
 ```
 
 `--rarity=` 0=COMMON 1=RARE 2=EPIC 3=LEGENDARY 4=MYTHIC.
+
+### Step 2b — Profile it across enemy archetypes (the important one)
+
+A single DPS number is the *transitive* view. **A weapon's ratios across archetypes are the
+*intransitive* view — what it beats and what beats it.** That's the shape
+`WeaponTags.COUNTER_MATRIX` encodes from hand-authored guesses, and it's what the director uses to
+counter a build. Measuring it closes the loop: **the profile is counter-matrix data.**
+
+It also plays to the bench's strength. Cross-*weapon* DPS is shaky (the fixed ring flatters range);
+a weapon's own ratios against itself across archetypes are **same-weapon comparisons**, which is
+exactly what this bench is reliable for.
+
+```bash
+# One archetype per process (in-process teardown leaves dangling refs). Divide by "standard".
+for a in standard swarm armored fast tank; do
+  Godot_..._console.exe --headless --path . res://balance_bench.tscn -- \
+      --weapon=<unlock.tres> --archetype=$a --secs=20
+done
+```
+
+Archetypes are real enemies chosen to isolate one axis each:
+
+| key | enemy | isolates |
+|---|---|---|
+| `standard` | fish (150hp, 0 armor) | the yardstick — normalise everything to this |
+| `swarm` | jelly (8hp, 0 armor, fast) | many weak targets |
+| `armored` | comb_jelly (200hp, **10 armor**) | **flat armor** |
+| `fast` | garden_eel (10hp, 250 speed) | speed |
+| `tank` | pike (200hp, 0 armor) | health pool |
+
+**Armor is the sharpest axis we have, and it's already live.** Damage is `max(0, dmg − armor)`, so a
+spark or DoT tick doing 3 damage deals **literally zero** into 10 armor, while one big hit shrugs it
+off. That's a real intransitivity: many-small-hits builds are hard-countered by armor and the profile
+will show it.
+
+**Measured example (Jul 2026, 10s windows, immortal):**
+
+| weapon | standard | swarm | armored | tank |
+|---|---|---|---|---|
+| fireball_staff | 32.1 | 26.7 | **20.0 (0.62×)** | 26.3 |
+| cinder_volley | 12.4 | 5.2 | **7.6 (0.61×)** | 12.4 |
+
+Both land ~0.61× into armor. `COUNTER_MATRIX`'s hand-authored `AOE vs ARMORED = 0.7` is within noise
+of that — **the existing guesses are decent; the bench is for confirming and refining them, not for
+overturning them wholesale.**
+
+### The null test — calibrate the noise floor before believing a ratio
+
+**In immortal mode, `standard` and `tank` differ only by hitbox** (HP is overwritten to a huge pool,
+and the field is frozen so speed is irrelevant). **They should measure equal.** However far apart they
+land IS your noise floor for that run.
+
+Above: cinder_volley reads 12.4/12.4 (clean); fireball reads 32.1/26.3 — **18% apart, with nothing
+real to explain it.** So on that config, ~20% is noise. **Run the null test and discard any ratio
+inside it.**
+
+> **Immortal mode erases HP, so it cannot see the swarm/tank axes** — only armor and hitbox survive.
+> **The armor axis is the only one currently trustworthy.** Kill-throughput axes (does AoE really
+> shred swarms?) need mortal mode, which is noisier still.
 
 **Headless is correct here** — we're measuring damage, not frame time. (The opposite of the perf
 benches in [`../performance/benchmarking.md`](../performance/benchmarking.md), which *must* run

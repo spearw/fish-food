@@ -21,8 +21,14 @@ func _ready() -> void:
 	var enemies := 40
 	var secs := 20.0
 	var immortal := true
+	var archetype := "standard"
+	var profile := false
 
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--archetype="):
+			archetype = arg.split("=")[1]
+		elif arg.begins_with("--profile="):
+			profile = int(arg.split("=")[1]) != 0
 		if arg.begins_with("--weapon="):
 			weapon = arg.split("=", true, 1)[1]
 		elif arg.begins_with("--rarity="):
@@ -51,5 +57,7 @@ func _ready() -> void:
 	probe.enemy_count = enemies
 	probe.seconds = secs
 	probe.immortal = immortal
+	probe.archetype = archetype
+	probe.profile = profile
 	get_tree().root.add_child.call_deferred(probe)
 	get_tree().change_scene_to_file.call_deferred("res://world/world.tscn")

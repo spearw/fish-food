@@ -19,12 +19,28 @@ extends Node
 ## meaningful in MORTAL mode. In IMMORTAL mode two copies trivially measure 2.0x, because nothing can
 ## be wasted.
 
+## The archetypes a weapon gets profiled against. Each entry is a real enemy already in the game,
+## picked because it isolates one axis. STANDARD is the yardstick everything else is normalised to.
+##
+## The point of a profile over a single number: a weapon's own ratios across archetypes ARE the
+## intransitive picture -- what it beats and what beats it. That's the shape WeaponTags.COUNTER_MATRIX
+## encodes today from hand-authored guesses, and the shape this bench can measure instead.
+const ARCHETYPES := {
+	"standard": "res://actors/enemies/normal_enemy_types/fish/fish.tres",        # 150hp, 0 armor
+	"swarm":    "res://actors/enemies/normal_enemy_types/jelly/jelly.tres",      # 8hp, 0 armor
+	"armored":  "res://actors/enemies/normal_enemy_types/comb_jelly/comb_jelly.tres",  # 200hp, 10 armor
+	"fast":     "res://actors/enemies/normal_enemy_types/garden_eel/garden_eel.tres",  # 10hp, 250 speed
+	"tank":     "res://actors/enemies/normal_enemy_types/pike/pike.tres",        # 200hp, 0 armor
+}
+
 var weapon_path := ""       # Upgrade .tres for the weapon under test
 var rarity := 0             # Upgrade.Rarity index
 var copies := 1
 var enemy_count := 40
 var seconds := 20.0
 var immortal := true
+var archetype := "standard"  # key into ARCHETYPES
+var profile := false         # run every archetype in sequence and emit the table
 
 var _ready_to_measure := false
 var _boot_frames := 0
@@ -34,6 +50,9 @@ var _player: Node = null
 var _dir: Node = null
 var _enemies: Array = []
 var _baseline_hp := 0.0
+var _queue: Array = []          # archetypes still to measure
+var _current := ""              # archetype being measured
+var _results: Dictionary = {}   # archetype -> measured value
 
 const BOOT_TIMEOUT := 1500
 const IMMORTAL_HP := 1000000000.0
@@ -75,7 +94,7 @@ func _physics_process(_dt: float) -> void:
 		_kills = 0  # discard warm-up kills
 		return
 	if _frames >= _total_frames() + WARMUP_FRAMES:
-		_report()
+		_finish_window()
 
 func _total_frames() -> int:
 	return int(seconds * Engine.physics_ticks_per_second)
@@ -95,29 +114,70 @@ func _try_setup() -> void:
 			_player.leveled_up.disconnect(c.callable)
 
 	_dir = scene.find_child("EncounterDirector", true, false)
-
-	if immortal:
-		# Fixed field, no churn: the director would otherwise keep changing what we're shooting at.
-		if _dir:
-			_dir.set_physics_process(false)
-			var t = _dir.get_node_or_null("Timer")
-			if t:
-				t.stop()
-		_spawn_dummy_field()
-	# In mortal mode the director is left running on purpose -- its population model IS the scenario.
+	# The director would keep changing what we're shooting at. In mortal mode we spawn the archetype
+	# field ourselves too, so the profile compares like with like -- letting the director pick would
+	# reintroduce the enemy-type randomness the seed exists to remove.
+	if _dir:
+		_dir.set_physics_process(false)
+		var t = _dir.get_node_or_null("Timer")
+		if t:
+			t.stop()
 
 	_equip_test_loadout()
 
-	# Snapshot the field. In immortal mode, give it a health pool nothing can chew through, and record
-	# the baseline so damage dealt = the sum of what's missing.
+	_queue = [archetype]
+	_begin_window()
+
+## Sets up one archetype's measurement window.
+func _begin_window() -> void:
+	_current = _queue.pop_front()
+	if not ARCHETYPES.has(_current):
+		print("BALANCEBENCH ERROR: unknown archetype '%s' (have: %s)" % [
+			_current, ", ".join(ARCHETYPES.keys())])
+		get_tree().quit()
+		return
+
+	_spawn_dummy_field(ARCHETYPES[_current])
+
+	_frames = 0
+	_kills = 0
+	_baseline_hp = 0.0
 	_enemies = get_tree().get_nodes_in_group("enemies")
 	if immortal:
+		# A health pool nothing can chew through, so damage dealt = the sum of what's missing.
+		# Note this erases the archetype's HP: in immortal mode only ARMOR (and hitbox) still
+		# differentiates them. Kill throughput needs mortal mode.
 		for e in _enemies:
 			if is_instance_valid(e) and "current_health" in e:
 				e.current_health = IMMORTAL_HP
 				_baseline_hp += IMMORTAL_HP
 
 	_ready_to_measure = true
+
+## Records the finished window and reports.
+##
+## One archetype per process, on purpose. Tearing the field down in-process to run the next archetype
+## leaves dangling references (the director's ledger and live projectiles both still hold enemies), and
+## a bench that spams "previously freed" errors is a bench nobody trusts. Profiling is a shell loop over
+## --archetype= instead -- same shape the perf benches already use.
+func _finish_window() -> void:
+	_ready_to_measure = false
+	_results[_current] = _measure()
+	_report()
+
+## The window's result: damage dealt (immortal) or kills (mortal).
+func _measure() -> float:
+	if not immortal:
+		return float(_kills)
+	var remaining := 0.0
+	var alive := 0
+	for e in _enemies:
+		if is_instance_valid(e) and "current_health" in e:
+			remaining += e.current_health
+			alive += 1
+	# Enemies that despawned took their damage with them; discount them rather than silently
+	# deflating the number.
+	return _baseline_hp - remaining - (IMMORTAL_HP * (_enemies.size() - alive))
 
 ## Builds a deterministic target-dummy field: one enemy type, placed on fixed concentric rings, frozen
 ## in place.
@@ -128,23 +188,21 @@ func _try_setup() -> void:
 ##
 ## Cost of this choice, worth knowing: a fixed ring flatters range and punishes melee, so cross-weapon
 ## numbers are a ballpark only. Same-weapon comparisons (rarity, copies) are what this is for.
-func _spawn_dummy_field() -> void:
+func _spawn_dummy_field(stats_path: String) -> void:
 	if not _dir or not _dir.has_method("spawn_enemy"):
 		print("BALANCEBENCH ERROR: no EncounterDirector.spawn_enemy")
 		get_tree().quit()
 		return
 
-	var pool: Array = []
-	for es in _dir.encounter_sets:
-		pool.append_array(es.enemies)
-	if pool.is_empty():
-		print("BALANCEBENCH ERROR: no enemies in the biome's encounter sets")
+	var stats = load(stats_path)
+	if stats == null:
+		print("BALANCEBENCH ERROR: no enemy stats at %s" % stats_path)
 		get_tree().quit()
 		return
-	var stats = pool[0]  # first, not random: the type must not change between runs
 
 	# Re-seed HERE, not at probe start. Booting the world consumes random numbers over a variable
 	# number of frames, so a seed set in _ready() has already drifted by the time we spawn.
+	# Re-seeding per window also means every archetype in a profile faces the same rolls.
 	seed(BENCH_SEED)
 
 	# Concentric rings from just outside melee reach to typical projectile range.
@@ -195,28 +253,15 @@ func _equip_test_loadout() -> void:
 		equipment.add_child(weapon)
 
 func _report() -> void:
-	var damage := 0.0
-	if immortal:
-		var remaining := 0.0
-		var alive := 0
-		for e in _enemies:
-			if is_instance_valid(e) and "current_health" in e:
-				remaining += e.current_health
-				alive += 1
-		# Enemies that despawned took their damage with them; report alive count so a big shortfall
-		# is visible rather than silently deflating the number.
-		damage = _baseline_hp - remaining - (IMMORTAL_HP * (_enemies.size() - alive))
-
-	var dps := damage / seconds
-	var kps := float(_kills) / seconds
 	var rarity_name: String = Upgrade.Rarity.keys()[clampi(rarity, 0, Upgrade.Rarity.size() - 1)]
+	var unit := "dps" if immortal else "kills_per_sec"
 
 	print("BALANCEBENCH weapon=%s rarity=%s copies=%d mode=%s enemies=%d secs=%.0f" % [
 		weapon_path.get_file(), rarity_name, copies,
 		"immortal" if immortal else "mortal", enemy_count, seconds])
-	if immortal:
-		print("BALANCEBENCH damage=%.0f dps=%.1f dps_per_copy=%.1f" % [damage, dps, dps / maxf(copies, 1)])
-	else:
-		print("BALANCEBENCH kills=%d kills_per_sec=%.2f kps_per_copy=%.2f" % [
-			_kills, kps, kps / maxf(copies, 1)])
+
+	# Loop this over --archetype= and divide each result by the "standard" one. Those ratios are the
+	# same shape WeaponTags.COUNTER_MATRIX encodes by hand: >1 means the weapon is better than usual
+	# into that archetype, <1 means that archetype counters it.
+	print("BALANCEBENCH   archetype=%-9s %s=%.1f" % [_current, unit, _results[_current] / seconds])
 	get_tree().quit()

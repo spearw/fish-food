@@ -1,13 +1,16 @@
-[gd_resource type="Resource" script_class="PlayerStats" load_steps=5 format=3 uid="uid://liwk46c4l1c8"]
+[gd_resource type="Resource" script_class="PlayerStats" load_steps=8 format=3 uid="uid://liwk46c4l1c8"]
 
 [ext_resource type="SpriteFrames" uid="uid://clntba2ovejcx" path="res://actors/player/characters/samurai/samurai_animation.tres" id="1_4frsp"]
 [ext_resource type="Script" uid="uid://nwbrj5ockot1" path="res://actors/player/player_stats.gd" id="1_ic6mu"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_l5u3w"]
 [ext_resource type="Resource" uid="uid://hdwb478pexpn" path="res://systems/upgrades/weapons/axe/axe_unlock.tres" id="3_l5u3w"]
+[ext_resource type="Resource" uid="uid://c7go0mrrcgyyi" path="res://systems/upgrades/packs/melee_pack.tres" id="4_deck"]
+[ext_resource type="Resource" uid="uid://cw15bs4a6jwep" path="res://systems/upgrades/weapons/axe/axe_charge_transform.tres" id="5_excl"]
+[ext_resource type="Resource" uid="uid://i5vja6euego6" path="res://systems/upgrades/weapons/axe/axe_berserk_transform.tres" id="6_excl"]
 
 [resource]
 script = ExtResource("1_ic6mu")
-character_description = "Starts with an axe and a boosted critical hit chance."
+character_description = "Melee duelist. Starts with his own axe and a boosted critical hit chance."
 unlock_cost = 100
 pickup_radius = 150.0
 luck = 1.0
@@ -16,6 +19,8 @@ projectile_count_multiplier = 1.0
 critical_chance = 0.1
 critical_damage = 0.5
 starting_upgrades = Array[ExtResource("2_l5u3w")]([ExtResource("3_l5u3w")])
+primary_deck = ExtResource("4_deck")
+exclusive_upgrades = Array[ExtResource("2_l5u3w")]([ExtResource("5_excl"), ExtResource("6_excl")])
 move_speed = 180.0
 display_name = "Samurai"
 max_health = 120

@@ -1,13 +1,10 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://c7go0mrrcgyyi"]
+[gd_resource type="Resource" script_class="Deck" load_steps=19 format=3 uid="uid://c7go0mrrcgyyi"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_l02k6"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_v22cx"]
 [ext_resource type="Resource" uid="uid://c4n7wnw26wwb3" path="res://systems/upgrades/upgrades/melee/fight_or_flight.tres" id="3_n2chr"]
 [ext_resource type="Resource" uid="uid://c41xljwy48ci" path="res://systems/upgrades/upgrades/melee/undaunted_upgrade.tres" id="4_x762d"]
 [ext_resource type="Resource" uid="uid://u61x5f65ho0e" path="res://systems/upgrades/upgrades/melee/whirlwind_upgrade.tres" id="5_chv20"]
-[ext_resource type="Resource" uid="uid://hdwb478pexpn" path="res://systems/upgrades/weapons/axe/axe_unlock.tres" id="6_5a720"]
-[ext_resource type="Resource" uid="uid://cw15bs4a6jwep" path="res://systems/upgrades/weapons/axe/axe_charge_transform.tres" id="7_thdsj"]
-[ext_resource type="Resource" uid="uid://i5vja6euego6" path="res://systems/upgrades/weapons/axe/axe_berserk_transform.tres" id="8_lpvku"]
 [ext_resource type="Resource" uid="uid://dmlakkyluenqa" path="res://systems/upgrades/weapons/melee/hammer/hammer_shockwave_transform.tres" id="9_e4wt0"]
 [ext_resource type="Resource" uid="uid://c2j443uoq6kgn" path="res://systems/upgrades/weapons/melee/hammer/hammer_smash_transform.tres" id="10_xwp00"]
 [ext_resource type="Resource" uid="uid://bl22e3qpounco" path="res://systems/upgrades/weapons/melee/hammer/hammer_unlock.tres" id="11_1n2fc"]
@@ -28,5 +25,5 @@ id = "melee"
 deck_name = "Melee"
 deck_description = "Must be adjacent to enemy, but does high damage"
 unlock_cost = 0
-upgrades = Array[ExtResource("2_v22cx")]([ExtResource("3_n2chr"), ExtResource("4_x762d"), ExtResource("5_chv20"), ExtResource("6_5a720"), ExtResource("7_thdsj"), ExtResource("8_lpvku"), ExtResource("9_e4wt0"), ExtResource("10_xwp00"), ExtResource("11_1n2fc"), ExtResource("12_7h14r"), ExtResource("13_s5atr"), ExtResource("14_uq0ht"), ExtResource("15_k6aj6"), ExtResource("16_puna0"), ExtResource("17_lcqdh"), ExtResource("18_tpjyj"), ExtResource("19_x762d"), ExtResource("20_chv20"), ExtResource("21_5a720")])
+upgrades = Array[ExtResource("2_v22cx")]([ExtResource("3_n2chr"), ExtResource("4_x762d"), ExtResource("5_chv20"), ExtResource("9_e4wt0"), ExtResource("10_xwp00"), ExtResource("11_1n2fc"), ExtResource("12_7h14r"), ExtResource("13_s5atr"), ExtResource("14_uq0ht"), ExtResource("15_k6aj6"), ExtResource("16_puna0"), ExtResource("17_lcqdh"), ExtResource("18_tpjyj"), ExtResource("19_x762d"), ExtResource("20_chv20"), ExtResource("21_5a720")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

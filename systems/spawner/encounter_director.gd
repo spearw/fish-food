@@ -31,6 +31,17 @@ extends Node
 ## How often (seconds) the director tops up population and recycles stragglers.
 @export var spawn_pulse_interval: float = 0.25
 
+## --- WALLED-SHARE CAP (armor) ---
+## Armor is a flat per-hit subtraction, so an armored enemy can be LITERALLY undamageable by a build
+## whose hits all land under the threshold (no DoT -- DoT ticks with 100% armor pen -- and no hit
+## clearing armor after pen). That's intended: hard counters stay hard, and in HARD counter mode being
+## walled is the player's own drafting mistake, answerable by tiering up (merge raises damage-per-hit).
+## But a field the build cannot interact with is a gate, not a counter -- so the share of live enemies
+## that are walls to the CURRENT build is capped. Design band 0.35-0.5.
+## The cap self-disables the moment the build gains any armor answer (a DoT source, enough pen, a
+## future chip artifact): nothing is walled, so every candidate passes untouched.
+@export var max_walled_share: float = 0.4
+
 @onready var spawn_pulse_timer: Timer = $Timer
 
 # --- RUNTIME STATE ---
@@ -127,6 +138,11 @@ func _on_spawn_pulse_timer_timeout():
 	var target_cr: float = difficulty_curve.sample(run_timer) * threat_level \
 		* CurrentRun.get_intensity_multiplier() * target_threat_scale
 
+	# The walled-share cap needs the build's damage profile and the field's current composition.
+	# Both are computed once per pulse and the counts tracked locally as we spawn.
+	var build := _build_damage_profile()
+	var field := _count_walled_field(build)
+
 	# Top up toward the target. We stop at the target, the hard perf cap, or the per-pulse limit --
 	# whichever comes first. A strong player who clears fast simply gets refilled to the target;
 	# a struggling player is never buried past it. Either way the object count stays bounded.
@@ -136,7 +152,11 @@ func _on_spawn_pulse_timer_timeout():
 			and spawns < max_spawns_per_pulse:
 		var enemy_stats = _pick_theme_enemy(available_enemies, INF)
 		if not enemy_stats: break
+		enemy_stats = _apply_walled_cap(enemy_stats, available_enemies, build, field["walled"], field["alive"])
 		spawn_enemy(enemy_stats)
+		field["alive"] += 1
+		if _is_walled_candidate(enemy_stats, build):
+			field["walled"] += 1
 		spawns += 1
 
 ## Repositions enemies that have fallen too far behind the player back onto the spawn ring. It moves
@@ -159,6 +179,78 @@ func _recycle_distant_enemies() -> void:
 func _update_build_analysis():
 	if is_instance_valid(player_node):
 		build_analyzer = BuildAnalyzer.analyze_player(player_node)
+
+# --- Walled-share cap helpers ---
+
+## The player's current damage fingerprint: every (damage, armor_pen, dot) source across equipped
+## weapons, nested stats included (a fireball's explosion is where its pen lives). Artifacts are NOT
+## counted -- their contributions aren't statically readable -- which errs toward judging the build
+## LESS capable, i.e. spawning fewer walls. The safe direction.
+func _build_damage_profile() -> Dictionary:
+	var sources: Array = []
+	var any_dot := false
+	if is_instance_valid(player_node) and player_node.has_node("Equipment"):
+		for weapon in player_node.get_node("Equipment").get_children():
+			if weapon.has_method("get_damage_sources"):
+				for s in weapon.get_damage_sources():
+					sources.append(s)
+					any_dot = any_dot or s["dot"]
+	return {"sources": sources, "any_dot": any_dot}
+
+## The wall test: true if this much armor zeroes the build's every hit.
+func _armor_walls_build(armor: float, build: Dictionary) -> bool:
+	# No armor never walls; DoT ignores armor entirely; an empty profile is a boot-order quirk, not
+	# a wall.
+	if armor <= 0.0 or build["any_dot"] or build["sources"].is_empty():
+		return false
+	for s in build["sources"]:
+		if s["damage"] - armor * (1.0 - s["armor_pen"]) > 0.0:
+			return false
+	return true
+
+## A candidate's WORST-case fielded armor: base armor times the largest size multiplier it can spawn
+## at. Conservative on purpose -- a might-be-large enemy counts as a wall before it rolls large.
+func _is_walled_candidate(stats: EnemyStats, build: Dictionary) -> bool:
+	var mult := 1.0
+	for size_tag in stats.size_tags:
+		mult = maxf(mult, EnemyTags.get_size_multipliers(size_tag)["armor_mult"])
+	return _armor_walls_build(stats.armor * mult, build)
+
+## Counts the live field: enemies alive, and how many of those the build cannot damage. Live enemies
+## carry final size-scaled stats, so no size multiplier here.
+func _count_walled_field(build: Dictionary) -> Dictionary:
+	# Nothing can be walled for this build -> skip the scan. (The zero counts are consistent: the
+	# cap logic never reads them, because no candidate tests as walled either.)
+	if build["any_dot"] or build["sources"].is_empty():
+		return {"alive": 0, "walled": 0}
+	var alive := 0
+	var walled := 0
+	for enemy in EntityRegistry.get_enemy_candidates():
+		if not is_instance_valid(enemy) or enemy.is_dying \
+				or not ("stats" in enemy) or enemy.stats == null:
+			continue
+		alive += 1
+		if _armor_walls_build(enemy.stats.armor, build):
+			walled += 1
+	return {"alive": alive, "walled": walled}
+
+## Enforces the cap at pick time: once the field is at the cap, a walled candidate is re-picked from
+## the non-walled candidates (theme/biome/counter weights still apply within them). If EVERY available
+## enemy is a wall, the candidate stands -- a starved wave is worse than a walled one.
+func _apply_walled_cap(candidate: EnemyStats, available: Array[EnemyStats], build: Dictionary,
+		walled: int, alive: int) -> EnemyStats:
+	if not _is_walled_candidate(candidate, build):
+		return candidate
+	if alive <= 0 or float(walled) / float(alive) < max_walled_share:
+		return candidate
+	var open: Array[EnemyStats] = []
+	for es in available:
+		if not _is_walled_candidate(es, build):
+			open.append(es)
+	if open.is_empty():
+		return candidate
+	var repick := _pick_theme_enemy(open, INF)
+	return repick if repick else candidate
 
 ## Gathers all enemies from EncounterSets that are active at the current run_timer.
 ## If a biome is selected, filters to only enemies matching that biome.

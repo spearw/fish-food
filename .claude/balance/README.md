@@ -106,3 +106,10 @@ Changeable — but change them knowingly, and read the rationale first.
 - **Slot-cost exemptions** (granted combo synergies, the identity artifact, replacement-when-full).
   Each is individually justified; **the risk is what they sum to** — see the Lutri finding in
   [methods.md](methods.md).
+- **Armor stays flat and hard** (`max(0, dmg − armor×(1−pen))`), and a walled build is a legitimate
+  HARD-mode outcome — the outs are DoT (ignores armor), pen, and tiers (merge depth raises per-hit
+  damage over any wall). The safety is systemic, not mechanical:
+  **`EncounterDirector.max_walled_share` (0.4)** caps how much of the live field a build literally
+  cannot damage, and self-disables once the build has any answer. Armor-interaction (break bars, chip
+  floors) is **artifact content, never a formula change**. Full decision in
+  [workflow.md](workflow.md).

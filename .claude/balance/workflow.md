@@ -157,17 +157,36 @@ DoT and armor cannot touch it.
 eats. That's a real, shipped intransitivity, and it's the good kind: it's legible, it's a build
 decision, and the counter is discoverable.
 
-> ### ⚠ DESIGN ALARM: armor isn't a counter, it's a wall
+> ### ✅ DECIDED (Jul 2026): the wall stays — the system routes around it
 >
-> **A single armored enemy makes dagger, chain_lightning, tesla_coil and spike_ring do literally zero.**
-> Not weak — zero. If the director counters a dagger build by spawning comb_jellies (`counter_mode =
-> HARD` does exactly this), that player has **no outs at all**: no amount of stacking damage-per-second
-> helps, because the reduction is per-HIT and their hit is under the threshold.
+> The formula is **untouched, deliberately**: hard counters staying hard is part of what makes the game
+> feel unique, and in HARD counter mode being walled is the player's own drafting mistake. Three outs
+> already exist without homogenizing decks: **DoT** (fire — ignores armor), **pen** (melee — baked in),
+> and **tiers** (universal — per-hit rarity scaling means merge depth climbs over any wall). What
+> changed instead:
 >
-> Flat armor makes the response a **cliff, not a curve**. Everything above the threshold barely notices;
-> everything below it dies completely. Worth deciding whether that's intended before tuning anything
-> else — options include a damage floor (a hit always does ≥N or ≥X% ), softening armor toward
-> percentage, or guaranteeing every deck has an armor answer.
+> 1. **The director caps the walled share of the live field.** `EncounterDirector.max_walled_share`
+>    (default **0.4**, design band 0.35–0.5): the share of live enemies the current build *literally
+>    cannot damage* — no DoT, every hit zeroed after pen, judged via `Weapon.get_damage_sources()`
+>    walking the full nested-stats tree — never exceeds the cap. Walls still spawn (pressure, flavor,
+>    a reason to tier up); the majority of the field stays interactive. If *everything* available is
+>    a wall, spawning proceeds anyway — a starved wave is worse than a walled one.
+>    **The cap self-disables** the moment the build gains any armor answer (a DoT source, enough pen,
+>    a chip artifact): nothing tests as walled, so it never triggers. Draft the answer, the training
+>    wheels fall off, the director gets its full counter budget back.
+> 2. **Armor-interaction mechanics are ARTIFACT design space, never formula changes.** Planned content:
+>    an **armor-BREAK artifact** (your hits shred armor — turns fast weapons into can-openers) and a
+>    **CHIP-floor artifact** (your hits always deal ≥X% of raw through armor — the enabler that makes a
+>    million-hits lightning build *work* into heavy armor). Player-side verbs only: no artifact ever
+>    changes the global rule, so `max(0, dmg − armor×(1−pen))` stays legible forever.
+> 3. Still open (parked): blocked-hit feedback (a visible clink, so a wall reads as a rule rather than
+>    a bug) and tuning early-biome armor bands so the first armored enemy teaches the check (~5
+>    authored armor) rather than enforcing a Rare-tier check at Common tier.
+>
+> Watch-out, recorded for honesty: the walled test treats **exactly-zero** as walled but **1 damage per
+> hit** as answered. A build chipping 1s into 200 HP is a wall in practice. If playtests surface that,
+> the fix is a threshold ("walled unless some hit clears X% of the hit") — one line in
+> `_armor_walls_build`.
 
 ### The null test — always run it first
 

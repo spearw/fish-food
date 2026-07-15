@@ -400,6 +400,12 @@ DeckCombo (Resource)
 - **Gate value `N`** (cards drafted) — tune. Currently **4** for Fire+Lightning.
 - **Synergy effect numbers** — Fire+Lightning's three options are built but **unplaytested**; tune.
 - **Content:** authored pairs beyond Fire+Lightning — incremental, added over time.
+- **Armor-interaction artifacts** (content, decided Jul 2026): an **armor-BREAK** artifact (hits shred
+  armor — turns fast weapons into can-openers) and a **CHIP-floor** artifact (hits always deal ≥X% of
+  raw through armor — makes a million-hits lightning build work into heavy armor). Player-side verbs
+  only — **no artifact ever changes the global armor rule.** Either also silently disables the
+  director's walled-share cap for that build, since nothing is walled anymore (see
+  `.claude/balance/workflow.md`).
 
 ---
 

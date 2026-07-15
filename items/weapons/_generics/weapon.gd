@@ -73,6 +73,36 @@ func get_rarity_multiplier() -> float:
 		return 1.0
 	return rarity_scaling[clampi(rarity, 0, rarity_scaling.size() - 1)]
 
+## Every damage source this weapon owns, as {damage, armor_pen, dot} -- walking nested stats
+## (on-death explosions, trails, shockwaves) the same way rarity scaling does.
+##
+## This is the weapon's armor fingerprint. The encounter director reads it to decide whether an
+## armored enemy is literally undamageable by the current build (see EncounterDirector.max_walled_share).
+## Reads the live per-instance stats, so rarity tiers and transformations are reflected.
+func get_damage_sources() -> Array:
+	var out: Array = []
+	var seen: Array = []
+	for prop_name in _own_stats_properties():
+		_collect_damage_sources(get(prop_name), out, seen)
+	return out
+
+func _collect_damage_sources(stats, out: Array, seen: Array) -> void:
+	if stats == null or stats in seen:
+		return
+	seen.append(stats)
+	var status = stats.status_to_apply if "status_to_apply" in stats else null
+	out.append({
+		"damage": float(stats.damage) if "damage" in stats else 0.0,
+		"armor_pen": float(stats.armor_penetration) if "armor_penetration" in stats else 0.0,
+		"dot": status is DotStatusEffect,
+	})
+	for prop in stats.get_property_list():
+		if prop["type"] != TYPE_OBJECT:
+			continue
+		var value = stats.get(prop["name"])
+		if value is ProjectileStats:
+			_collect_damage_sources(value, out, seen)
+
 ## Bakes the rarity tier into every damage source this weapon owns. Callable only AFTER the stats have
 ## been localized -- see _ready().
 func _apply_rarity_scaling() -> void:

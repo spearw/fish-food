@@ -2,8 +2,8 @@
 
 [ext_resource type="SpriteFrames" uid="uid://clntba2ovejcx" path="res://actors/player/characters/samurai/samurai_animation.tres" id="1_4frsp"]
 [ext_resource type="Script" uid="uid://nwbrj5ockot1" path="res://actors/player/player_stats.gd" id="1_ic6mu"]
-[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_l5u3w"]
-[ext_resource type="Resource" path="res://systems/upgrades/artifacts/identity/bushido_unlock.tres" id="3_ident"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_l5u3w"]
+[ext_resource type="Resource" uid="uid://b1p3fqwoumwne" path="res://systems/upgrades/artifacts/identity/bushido_unlock.tres" id="3_ident"]
 
 [resource]
 script = ExtResource("1_ic6mu")
@@ -16,6 +16,7 @@ projectile_count_multiplier = 1.0
 critical_chance = 0.1
 critical_damage = 0.5
 starting_upgrades = Array[ExtResource("2_l5u3w")]([ExtResource("3_ident")])
+exclusive_upgrades = Array[ExtResource("2_l5u3w")]([])
 move_speed = 180.0
 display_name = "Samurai"
 max_health = 120

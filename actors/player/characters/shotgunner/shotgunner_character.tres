@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://nwbrj5ockot1" path="res://actors/player/player_stats.gd" id="1_4b2tc"]
 [ext_resource type="SpriteFrames" uid="uid://do1qfw5yr1lu0" path="res://actors/player/characters/shotgunner/shotgun_animation.tres" id="1_vryq4"]
-[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_4b2tc"]
-[ext_resource type="Resource" path="res://systems/upgrades/artifacts/identity/extra_barrels_unlock.tres" id="4_vryq4"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_4b2tc"]
+[ext_resource type="Resource" uid="uid://b1p3fqwoal7qe" path="res://systems/upgrades/artifacts/identity/extra_barrels_unlock.tres" id="4_vryq4"]
 
 [resource]
 script = ExtResource("1_4b2tc")
@@ -16,6 +16,7 @@ projectile_count_multiplier = 1.0
 critical_chance = 0.0
 critical_damage = 0.0
 starting_upgrades = Array[ExtResource("2_4b2tc")]([ExtResource("4_vryq4")])
+exclusive_upgrades = Array[ExtResource("2_4b2tc")]([])
 move_speed = 160.0
 display_name = "Shotgunner"
 max_health = 200

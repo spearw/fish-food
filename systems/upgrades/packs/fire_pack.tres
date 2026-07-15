@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://dy0thirxxtsv"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_cpco1"]
-[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_vldj6"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_vldj6"]
 [ext_resource type="Resource" uid="uid://5ukacd4uvq0a" path="res://systems/upgrades/weapons/fire/flamethrower/flamethrower_unlock.tres" id="3_io1kt"]
 [ext_resource type="Resource" uid="uid://s6pxfcgpngps" path="res://systems/upgrades/weapons/fire/flamethrower/flamethrower_ring_of_fire_transform.tres" id="4_2rgh6"]
 [ext_resource type="Resource" uid="uid://jm5ekkgbhktd" path="res://systems/upgrades/weapons/fire/flamethrower/flamethrower_flaming_tongues_transform.tres" id="5_wu2a6"]

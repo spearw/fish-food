@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://c7go0mrrcgyyi"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_l02k6"]
-[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_v22cx"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_v22cx"]
 [ext_resource type="Resource" uid="uid://c4n7wnw26wwb3" path="res://systems/upgrades/upgrades/melee/fight_or_flight.tres" id="3_n2chr"]
 [ext_resource type="Resource" uid="uid://c41xljwy48ci" path="res://systems/upgrades/upgrades/melee/undaunted_upgrade.tres" id="4_x762d"]
 [ext_resource type="Resource" uid="uid://u61x5f65ho0e" path="res://systems/upgrades/upgrades/melee/whirlwind_upgrade.tres" id="5_chv20"]

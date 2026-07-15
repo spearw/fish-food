@@ -65,6 +65,31 @@ var counter_mode: CounterMode = CounterMode.NORMAL
 # True once upgrade 0 (the starting-weapon roll) has been offered this run -- it fires exactly once.
 var starting_weapon_chosen: bool = false
 
+# --- Card manipulation (design doc section 7 item 6) ---
+# PRE-commitment only: these act on the OFFER, never on owned slots -- the principle that keeps them
+# from colliding with merge (the one post-commitment lever). Flat per-run charges for now; a meta
+# unlock can feed these later (VS gates its charges behind meta progression the same way).
+const REROLLS_PER_RUN := 2
+const BANISHES_PER_RUN := 2
+
+## Charges left this run. Reroll = redraw all current choices; banish = remove a card from this
+## run's pool permanently, refilling its slot.
+var rerolls_remaining: int = REROLLS_PER_RUN
+var banishes_remaining: int = BANISHES_PER_RUN
+## Cards banished this run -- excluded from every draw until the next run.
+var banished_upgrades: Array[Upgrade] = []
+
+## Resets all per-run state. Called when a run starts (the character-select start button).
+## Without this, a second run in the same session inherits the first run's flags -- no starter roll,
+## no combo offer, stale draft counts.
+func reset_run_state() -> void:
+	deck_draft_counts = {}
+	combo_taken = false
+	starting_weapon_chosen = false
+	rerolls_remaining = REROLLS_PER_RUN
+	banishes_remaining = BANISHES_PER_RUN
+	banished_upgrades.clear()
+
 # --- Cross-deck combo state (see systems/combos/) ---
 ## Cards drafted from each deck this run, keyed by Deck.id. Feeds combo power gates.
 var deck_draft_counts: Dictionary = {}

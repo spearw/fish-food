@@ -6,6 +6,14 @@ extends CanvasLayer
 var current_upgrades: Array[Dictionary]
 # True while the current screen is a cross-deck combo choice (vs a normal level-up).
 var _choosing_combo: bool = false
+# True when reroll/banish apply to this screen: normal level-up drafts only. The combo choice and
+# the starting-weapon roll are one-shot offers, not drafts -- no manipulation there.
+var _manipulation_allowed: bool = false
+
+# Card-manipulation bar (built in code -- see _build_manipulation_bar).
+var _manip_bar: HBoxContainer
+var _banish_buttons: Array[Button] = []
+var _reroll_button: Button
 
 # signal to announce when choice has been made
 signal upgrade_chosen
@@ -32,9 +40,73 @@ func _ready() -> void:
 		# .bind(i) passes the index 'i' as an argument to the function.
 		upgrade_buttons[i].pressed.connect(_on_upgrade_button_pressed.bind(i))
 	Events.boss_reward_requested.connect(on_boss_reward_requested)
+	_build_manipulation_bar()
 	# Upgrade 0: the starting-weapon roll. Deferred so the whole world (player registration included)
 	# has finished assembling first.
 	call_deferred("_offer_starting_weapon")
+
+## Builds the reroll/banish row under the choice buttons, in code -- the scene keeps its simple
+## 3-button structure and the bar can grow without scene surgery.
+func _build_manipulation_bar() -> void:
+	var vbox := upgrade_buttons[0].get_parent()
+	_manip_bar = HBoxContainer.new()
+	_manip_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	_manip_bar.add_theme_constant_override("separation", 16)
+	for i in range(upgrade_buttons.size()):
+		var b := Button.new()
+		b.pressed.connect(_on_banish_pressed.bind(i))
+		_manip_bar.add_child(b)
+		_banish_buttons.append(b)
+	_reroll_button = Button.new()
+	_reroll_button.pressed.connect(_on_reroll_pressed)
+	_manip_bar.add_child(_reroll_button)
+	vbox.add_child(_manip_bar)
+
+func _refresh_manipulation_bar() -> void:
+	if not _manip_bar:
+		return
+	_manip_bar.visible = _manipulation_allowed
+	if not _manipulation_allowed:
+		return
+	_reroll_button.text = "Reroll (%d)" % CurrentRun.rerolls_remaining
+	_reroll_button.disabled = CurrentRun.rerolls_remaining <= 0
+	for i in range(_banish_buttons.size()):
+		_banish_buttons[i].visible = i < current_upgrades.size()
+		_banish_buttons[i].text = "Banish #%d (%d)" % [i + 1, CurrentRun.banishes_remaining]
+		_banish_buttons[i].disabled = CurrentRun.banishes_remaining <= 0
+
+## Redraws all current choices for a charge. Refunds if the pool comes back empty -- an empty paused
+## screen would be a softlock, and a refunded charge beats one.
+func _on_reroll_pressed() -> void:
+	if not upgrade_manager.try_spend_reroll():
+		return
+	var fresh: Array[Dictionary] = upgrade_manager.get_upgrade_choices(3)
+	if fresh.is_empty():
+		CurrentRun.rerolls_remaining += 1
+		return
+	current_upgrades = fresh
+	_present()
+
+## Banishes the card in slot i from this run's pool and refills the slot (or drops it when the pool
+## is too thin to offer anything new).
+func _on_banish_pressed(i: int) -> void:
+	if i >= current_upgrades.size():
+		return
+	if not upgrade_manager.try_banish(current_upgrades[i]["upgrade"]):
+		return
+	var exclude: Array = current_upgrades.map(func(c): return c["upgrade"])
+	var replacement: Dictionary = upgrade_manager.redraw_choice(exclude)
+	if replacement.is_empty():
+		current_upgrades.remove_at(i)
+	else:
+		current_upgrades[i] = replacement
+	# Banished the last card with nothing left to draw: close out as a skip rather than softlock.
+	if current_upgrades.is_empty():
+		upgrade_chosen.emit()
+		self.hide()
+		get_tree().paused = false
+		return
+	_present()
 
 ## Upgrade 0 (design doc section 3): one weapon candidate rolled from EACH chosen deck; pick one.
 ## The first decision of the run is a fork between your themes, and the pick is the damage floor --
@@ -49,6 +121,7 @@ func _offer_starting_weapon() -> void:
 	CurrentRun.starting_weapon_chosen = true
 	current_upgrades = candidates
 	_choosing_combo = false
+	_manipulation_allowed = false
 	_present()
 	
 ## Called by the global 'boss_reward_requested' signal.
@@ -85,6 +158,7 @@ func on_player_leveled_up(new_level: int):
 func show_upgrade_screen():
 	current_upgrades = upgrade_manager.get_upgrade_choices(3)
 	_choosing_combo = false
+	_manipulation_allowed = true
 	_present()
 
 ## Shows the cross-deck combo choice: the currently-eligible synergies. Pick ONE (one combo per run).
@@ -96,12 +170,14 @@ func show_combo_screen():
 		# would otherwise make the reward impossible to accept.
 		current_upgrades.append({"upgrade": syn, "rarity": Upgrade.Rarity.COMMON, "granted": true})
 	_choosing_combo = true
+	_manipulation_allowed = false
 	_present()
 
 ## Pauses, shows the screen, and populates the buttons from current_upgrades.
 func _present():
 	get_tree().paused = true
 	self.show()
+	_refresh_manipulation_bar()
 	for i in range(upgrade_buttons.size()):
 		var button = upgrade_buttons[i]
 		if i < current_upgrades.size():

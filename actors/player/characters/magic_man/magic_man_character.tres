@@ -2,8 +2,8 @@
 
 [ext_resource type="SpriteFrames" uid="uid://nbeutjhl0hto" path="res://actors/player/characters/magic_man/magic_man_animation.tres" id="1_dou2t"]
 [ext_resource type="Script" uid="uid://nwbrj5ockot1" path="res://actors/player/player_stats.gd" id="1_lqmeo"]
-[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="3_vnxkr"]
-[ext_resource type="Resource" path="res://systems/upgrades/artifacts/identity/emberheart_unlock.tres" id="4_ident"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="3_vnxkr"]
+[ext_resource type="Resource" uid="uid://b1p3fqwrl4twe" path="res://systems/upgrades/artifacts/identity/emberheart_unlock.tres" id="4_ident"]
 
 [resource]
 script = ExtResource("1_lqmeo")
@@ -16,6 +16,7 @@ projectile_count_multiplier = 1.0
 critical_chance = 0.0
 critical_damage = 0.0
 starting_upgrades = Array[ExtResource("3_vnxkr")]([ExtResource("4_ident")])
+exclusive_upgrades = Array[ExtResource("3_vnxkr")]([])
 move_speed = 175.0
 display_name = "Magic Man"
 max_health = 100

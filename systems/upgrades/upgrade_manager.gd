@@ -278,6 +278,9 @@ func get_offerable_upgrades() -> Array[Upgrade]:
 
 	var offerable: Array[Upgrade] = []
 	for upgrade in active_upgrade_pool:
+		# Banished this run: out of every draw until the next run starts.
+		if upgrade in CurrentRun.banished_upgrades:
+			continue
 		var target_name = upgrade.target_class_name
 		match upgrade.type:
 			Upgrade.UpgradeType.UNLOCK_WEAPON:
@@ -389,6 +392,35 @@ func _get_random_rarity_tier() -> Upgrade.Rarity:
 			
 	# Fallback
 	return Upgrade.Rarity.COMMON
+
+# --- Card manipulation (pre-commitment: acts on the OFFER, never on owned slots) ---
+
+## Spends a reroll charge. The UI redraws all choices on true.
+func try_spend_reroll() -> bool:
+	if CurrentRun.rerolls_remaining <= 0:
+		return false
+	CurrentRun.rerolls_remaining -= 1
+	return true
+
+## Banishes a card from this run's pool permanently and spends a charge. Banishing a weapon card
+## removes it at EVERY tier -- the card is one resource, the tiers are rolled at draw time.
+func try_banish(upgrade: Upgrade) -> bool:
+	if CurrentRun.banishes_remaining <= 0:
+		return false
+	CurrentRun.banishes_remaining -= 1
+	CurrentRun.banished_upgrades.append(upgrade)
+	return true
+
+## One replacement choice for a banished slot, avoiding the cards already on screen. Returns {} when
+## the pool is too thin to offer anything new -- the UI drops the slot rather than showing a twin.
+func redraw_choice(exclude: Array) -> Dictionary:
+	for attempt in range(8):
+		var draw := get_upgrade_choices(1)
+		if draw.is_empty():
+			return {}
+		if not draw[0]["upgrade"] in exclude:
+			return draw[0]
+	return {}
 
 ## Applies the logic for a given upgrade.
 func apply_upgrade(upgrade_package: Dictionary) -> void:

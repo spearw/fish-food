@@ -452,6 +452,12 @@ DeckCombo (Resource)
       deck, pick one — the fork between your themes, and the damage floor. Decks are chosen freely
       (any character, any pair). *Numbers on all four artifacts are playtest fodder.*
    Then **playtest**: does the ladder pay off inside ~20–30 picks, and do artifacts eat the pool?
-6. Card manipulation (reroll / banish / swap) — **pre-commitment only** (§3): these act on the offer,
-   never on owned slots.
+6. ✅ **Card manipulation** (Jul 2026) — **pre-commitment only** (§3), acting on the offer, never on
+   owned slots. **Reroll** (redraw all 3) and **Banish** (remove a card from this run's pool at every
+   tier, refill the slot) — flat **2 charges each per run** (`CurrentRun.REROLLS_PER_RUN`/
+   `BANISHES_PER_RUN`; a meta unlock can feed these later, as VS does). One-shot offers (the combo
+   choice, the starter roll) are exempt. Also fixed in passing: **per-run state now actually resets**
+   (`CurrentRun.reset_run_state()` from the start button) — run 2 in a session used to inherit run 1's
+   flags, killing the starter roll and combo. *"Swap" folded into banish (banish = swap this card for
+   another); a dedicated swap can come later if playtest wants it.*
 7. Content + the multiplicativity decision (§3 argues for multiplicative).

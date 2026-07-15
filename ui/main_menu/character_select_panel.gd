@@ -112,6 +112,10 @@ func update_details_panel(char_data: PlayerStats):
 	_select_character_by_data(char_data)
 
 func _on_select_and_start_button_pressed():
+	# Fresh per-run state FIRST -- draft counts, combo/starter flags, manipulation charges, banishes.
+	# Without this, run 2 in the same session inherits run 1's flags (no starter roll, no combo).
+	CurrentRun.reset_run_state()
+
 	# Save selected character to persisted data
 	GameData.set_selected_character(selected_character.resource_path)
 

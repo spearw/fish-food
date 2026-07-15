@@ -167,7 +167,12 @@ DeckCombo (Resource)
 3. ✅ **Combo system** — `DeckCombo`/`ComboList`/`ComboManager` + drafted-card counter
    (`CurrentRun.deck_draft_counts`) + gate/trigger + level-20 choice flow; Fire+Lightning authored
    (Arc Ignition / Sustained Burn / Thermal Shock). *Numbers unplaytested.*
-4. **Characters ↔ decks** (§2) — link a primary deck + character-exclusive weapon to each character;
-   the secondary-deck choice; enforce the **2-deck** run (3rd deck deferred with the secret boss).
+4. ✅ **Characters ↔ decks** (§2) — `PlayerStats.primary_deck` + `exclusive_upgrades`;
+   `CurrentRun.get_active_deck_paths()` owns composition (core + primary + picks, capped at
+   `max_themed_decks = 2`); the picker grants the primary and offers only the leftover slot.
+   Magic Man→fire (Cinder Volley), Samurai→melee (Axe), both weapons pulled out of their decks.
+   *Remaining:* Edgerunner / Shotgunner / Test are still **open** characters (theme = a design call;
+   the projectile deck is empty); the secondary is chosen **at character-select** — moving it to an
+   in-run draft milestone is the open call in §5. The 3rd deck is deferred with the secret boss.
 5. Card manipulation (reroll / banish / swap).
 6. Content + the multiplicativity decision.

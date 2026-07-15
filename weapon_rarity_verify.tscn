@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://wpnrarity0verify0"]
+
+[ext_resource type="Script" path="res://weapon_rarity_verify.gd" id="1_wr"]
+
+[node name="WeaponRarityVerify" type="Node"]
+script = ExtResource("1_wr")

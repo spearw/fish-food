@@ -73,9 +73,15 @@ func _build_active_upgrade_pool():
 ## Shared by every source of cards (decks, character exclusives) -- a new source only has to call it.
 func _bucket_upgrade(upgrade: Upgrade) -> void:
 	match upgrade.type:
-		Upgrade.UpgradeType.UNLOCK_WEAPON, Upgrade.UpgradeType.UNLOCK_ARTIFACT, \
-		Upgrade.UpgradeType.TRANSFORMATION:
-			# These are drawn at exactly their own rarity.
+		Upgrade.UpgradeType.UNLOCK_WEAPON:
+			# A weapon can turn up at ANY rarity -- the rolled tier becomes that instance's rarity. So
+			# luck is the "find a better one in the wild" lever, and merging is a path to a higher tier
+			# rather than the only one. (Brotato likewise sells high tiers directly, gated on wave+Luck.)
+			for rarity_idx in Upgrade.Rarity.values():
+				_unlock_buckets[rarity_idx].append(upgrade)
+		Upgrade.UpgradeType.UNLOCK_ARTIFACT, Upgrade.UpgradeType.TRANSFORMATION:
+			# Artifacts and evolutions are rules rather than numbers -- they don't tier, so they're
+			# drawn at exactly their own rarity.
 			_unlock_buckets[upgrade.rarity].append(upgrade)
 		Upgrade.UpgradeType.UPGRADE:
 			# Stat upgrades scale with rarity, so they can appear in every tier they define a value for.
@@ -274,7 +280,10 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 	match upgrade.type:
 		Upgrade.UpgradeType.UNLOCK_WEAPON:
 			if upgrade.scene_to_unlock:
-				var new_weapon = create_weapon(upgrade.scene_to_unlock.instantiate(), upgrade)
+				# The rolled rarity IS the weapon's tier -- draw a Rare Fire Staff and you get a Rare
+				# one, not a Common one presented in blue.
+				var new_weapon = create_weapon(
+					upgrade.scene_to_unlock.instantiate(), upgrade, chosen_rarity_enum)
 				if granted:
 					mark_granted(new_weapon)
 				player_equipment.add_child(new_weapon)
@@ -332,8 +341,13 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 	if is_instance_valid(player):
 		player.notify_stats_changed()
 			
-func create_weapon(weapon, upgrade):
+## Builds a weapon instance at a given rarity tier.
+## @param rarity: The tier this instance is. Must be applied before the weapon enters the tree --
+##                Weapon._ready() bakes it into the stats it duplicates for itself.
+func create_weapon(weapon, upgrade, rarity: int = Upgrade.Rarity.COMMON):
 	weapon.name = upgrade.target_class_name
+	if "rarity" in weapon:
+		weapon.rarity = rarity
 	var stats_comp = weapon.get_node("WeaponStatsComponent")
 	stats_comp.user = self.player
 	var timer = weapon.get_node_or_null("FireRateTimer")

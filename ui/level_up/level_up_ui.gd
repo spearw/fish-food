@@ -101,7 +101,14 @@ func _present():
 					button.text = "%s\n%s (+%s)" % [upgrade.display_name, upgrade.description, value]
 				elif upgrade.modifier_type == Upgrade.ModifierType.POWERS:
 					button.text = "%s\n%s (+%s level(s))" % [upgrade.display_name, upgrade.description, value]
-			else: 
+			elif upgrade.type == Upgrade.UpgradeType.UNLOCK_WEAPON:
+				# Name the tier in text, not just by colour. Brotato conveys weapon tier by colour
+				# alone, and players report not being able to tell what tier they're being offered.
+				button.text = "%s (%s)\n%s" % [
+					upgrade.display_name,
+					Upgrade.Rarity.keys()[rarity_enum].capitalize(),
+					upgrade.description]
+			else:
 				button.text = "%s\n%s" % [upgrade.display_name, upgrade.description]
 				
 			match rarity_enum:

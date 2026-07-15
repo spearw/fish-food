@@ -3,6 +3,17 @@
 A bullet-heaven / Vampire-Survivors-like infinite-wave game. **Godot 4.4** (GDScript, "GL
 Compatibility" renderer). Layout: `actors/`, `systems/`, `items/`, `world/`, `ui/`, `tests/`.
 
+## Balance is a first-class concern
+
+**Adding a weapon, artifact or upgrade? Read [`.claude/balance/`](.claude/balance/README.md) first**,
+and follow [`workflow.md`](.claude/balance/workflow.md) to ballpark it.
+
+The short version: **feel is law** — bullet heavens are built on the rush of feeling overpowered at the
+end, so a build that's behind on a spreadsheet but feels incredible is *correct*. There is no formula
+to look balance up in (the research is in [`methods.md`](.claude/balance/methods.md)); the state of the
+art is to **simulate**, which is what `balance_bench.tscn` is for. And keep **transitive** (rarity
+tiers → price them) apart from **intransitive** (weapon vs weapon → counter-play, don't price them).
+
 ## Performance is a first-class constraint
 
 This is a horde game: the frame must stay smooth with a screen full of enemies and projectiles, on

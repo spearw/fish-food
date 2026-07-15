@@ -37,8 +37,27 @@ var starter_data = {
 }
 var data = starter_data.duplicate()
 
+## DEV SWITCH ("for now", July 2026): every character and deck is unlocked at boot. Runs every start
+## and unions with the save, so new content auto-unlocks and existing saves aren't wiped. Note that
+## saving persists the unions -- flipping this back off later won't re-lock anything already saved.
+const DEV_UNLOCK_ALL := true
+
 func _ready():
 	load_data()
+	if DEV_UNLOCK_ALL:
+		_dev_unlock_all()
+
+## Unions the unlock lists with everything in the master lists (quietly -- no signals; this runs
+## before any UI exists).
+func _dev_unlock_all() -> void:
+	var characters = load("res://systems/global/lists/master_character_list.tres")
+	for c in characters.characters:
+		if not c.resource_path in data["unlocked_character_paths"]:
+			data["unlocked_character_paths"].append(c.resource_path)
+	var decks = load("res://systems/global/lists/master_pack_list.tres")
+	for deck in decks.decks:
+		if not deck.resource_path in data["unlocked_pack_paths"]:
+			data["unlocked_pack_paths"].append(deck.resource_path)
 
 # --- Public API ---
 func add_souls(amount: int):

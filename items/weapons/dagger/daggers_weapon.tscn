@@ -9,7 +9,7 @@
 [node name="DaggersWeapon" type="Node2D"]
 script = ExtResource("1_umv4o")
 projectile_stats = ExtResource("2_umv4o")
-base_fire_rate = 1.5
+base_fire_rate = 0.5
 themes = Array[int]([6])
 effects = Array[int]([11, 15])
 

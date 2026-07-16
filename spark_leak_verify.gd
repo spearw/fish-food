@@ -61,15 +61,15 @@ func _ready() -> void:
 	#     silenced every pooled weapon -- including all enemy ranged attacks (the eel bug).
 	var before_generic: int = ProjectilePool._active_generic
 	var p = ProjectilePool.get_projectile()
-	add_child_if_needed(p)
 	var got_slot: bool = ProjectilePool._active_generic == before_generic + 1
+	# Match the REAL spawn order (fire_behavior): configure stats BEFORE entering the tree --
+	# _ready's _initialize self-destructs on null stats, which sank this test's first draft.
 	var s := ProjectileStats.new()
 	s.lifetime = 0.0
 	s.can_retarget = true  # the evolution state that made it unpoolable
 	p.stats = s
-	# fire_behavior marks every pool-obtained projectile pooled (activate() on reuse, direct
-	# assignment on a fresh instantiate) -- mimic the fresh path.
-	p._is_pooled = true
+	p._is_pooled = true  # fire_behavior marks every pool-obtained projectile pooled
+	add_child_if_needed(p)
 	p._destroy()
 	var generic_ok: bool = got_slot and ProjectilePool._active_generic == before_generic
 	print("SPARKLEAK generic_abandon: slot_taken=%s released_after_destroy=%s (active=%d)" % [

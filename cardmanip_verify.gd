@@ -80,6 +80,19 @@ func _ready() -> void:
 	var unbanished: bool = flamethrower in um.get_offerable_upgrades()
 	print("CARDMANIP reset: state_cleared=%s banished_restored=%s" % [str(reset_ok), str(unbanished)])
 
-	var pass_all: bool = banish_ok and reroll_ok and redraw_ok and reset_ok and unbanished
+	# --- 5. Zero-value tiers are never offered: the Common armor card gave 0 armor (and fire_stoke
+	#        0 at Common) -- those cards now start at their first REAL tier.
+	var armor_card = load("res://systems/upgrades/upgrades/core/player_armor.tres")
+	var stoke_card = load("res://systems/upgrades/upgrades/fire/fire_stoke_upgrade.tres")
+	var zero_tier_ok: bool = not armor_card in um._upgrade_buckets[Upgrade.Rarity.COMMON] \
+		and armor_card in um._upgrade_buckets[Upgrade.Rarity.RARE] \
+		and not stoke_card in um._upgrade_buckets[Upgrade.Rarity.COMMON] \
+		and stoke_card in um._upgrade_buckets[Upgrade.Rarity.RARE]
+	print("CARDMANIP zero_tiers_hidden: armor_common=%s armor_rare=%s stoke_common=%s ok=%s" % [
+		str(armor_card in um._upgrade_buckets[Upgrade.Rarity.COMMON]),
+		str(armor_card in um._upgrade_buckets[Upgrade.Rarity.RARE]),
+		str(stoke_card in um._upgrade_buckets[Upgrade.Rarity.COMMON]), str(zero_tier_ok)])
+
+	var pass_all: bool = banish_ok and reroll_ok and redraw_ok and reset_ok and unbanished and zero_tier_ok
 	print("CARDMANIP RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

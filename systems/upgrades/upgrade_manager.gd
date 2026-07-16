@@ -86,8 +86,12 @@ func _bucket_upgrade(upgrade: Upgrade) -> void:
 			# drawn at exactly their own rarity.
 			_unlock_buckets[upgrade.rarity].append(upgrade)
 		Upgrade.UpgradeType.UPGRADE:
-			# Stat upgrades scale with rarity, so they can appear in every tier they define a value for.
+			# Stat upgrades scale with rarity, so they can appear in every tier they define a value
+			# for -- EXCEPT tiers authored 0.0. A zero-value tier is a blank card (the Common armor
+			# card gave literally nothing), so the card simply starts at its first real tier.
 			for rarity_idx in range(upgrade.rarity_values.size()):
+				if upgrade.rarity_values[rarity_idx] == 0.0:
+					continue
 				_upgrade_buckets[rarity_idx].append(upgrade)
 
 ## Folds the character's exclusive cards into the pool. Credited to no deck -- characters aren't

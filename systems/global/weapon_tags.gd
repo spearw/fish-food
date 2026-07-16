@@ -119,6 +119,14 @@ const COUNTER_MATRIX = {
 		0: 1.2,   # SWARM - crowd control
 		3: 0.8,   # FAST - they close distance quickly
 	},
+	Effect.SPARK: {
+		# Sweep-measured (Jul 2026): the whole spark family (n=5 -- chain lightning, tesla, spark
+		# dagger, lightning sword, storm staff) held ~0.09x the field-typical output into armor.
+		# Causal -- sparks are the many-tiny-hits archetype (3-6 damage per hit) and flat armor eats
+		# small hits wholesale. Softened above the raw measurement so Abyssal pressures lightning
+		# builds without deleting them; their real out is tiers (merge depth) or drafting pen/DoT.
+		2: 0.5,   # ARMORED - armor eats tiny spark hits
+	},
 }
 
 ## Gets the effectiveness of a player effect tag against an enemy behavior.

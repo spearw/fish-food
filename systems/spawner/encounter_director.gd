@@ -54,6 +54,13 @@ extends Node
 ## future chip artifact): nothing is walled, so every candidate passes untouched.
 @export var max_walled_share: float = 0.4
 
+## Counter STRENGTH: the exponent on effectiveness in the difficulty weighting -- weight x eff^k
+## (FAVORING) or weight / eff^k (ADVERSARIAL). 0 = indifferent (counter modes stop mattering),
+## 1 = the measured counter relationships as-is, >1 amplifies them. This is the dial the sweep
+## pipeline anticipated: a lever for tiers above Abyssal, or for ramping counter pressure across a
+## run, without ever touching the measured grid values.
+@export var counter_strength: float = 1.0
+
 @onready var spawn_pulse_timer: Timer = $Timer
 
 # --- RUNTIME STATE ---
@@ -370,14 +377,14 @@ func _apply_difficulty_weight(base_weight: float, enemy_stats: EnemyStats) -> fl
 
 	match CurrentRun.counter_mode:
 		CurrentRun.CounterMode.FAVORING:
-			# Higher effectiveness = spawn more (player is strong against this)
-			# Scale: effectiveness 1.5 -> weight * 1.5, effectiveness 0.5 -> weight * 0.5
-			return base_weight * avg_effectiveness
+			# Higher effectiveness = spawn more (player is strong against this).
+			# counter_strength exponentiates: k=1 -> eff 1.5 = weight x1.5; k=2 = x2.25.
+			return base_weight * pow(avg_effectiveness, counter_strength)
 		CurrentRun.CounterMode.ADVERSARIAL:
-			# Lower effectiveness = spawn more (player is weak against this)
-			# Invert: effectiveness 0.5 -> weight * 2.0, effectiveness 2.0 -> weight * 0.5
+			# Lower effectiveness = spawn more (player is weak against this).
+			# Inverted and exponentiated: k=1 -> eff 0.5 = weight x2.0; k=2 = x4.0.
 			if avg_effectiveness > 0:
-				return base_weight / avg_effectiveness
+				return base_weight / pow(avg_effectiveness, counter_strength)
 			return base_weight
 
 	return base_weight

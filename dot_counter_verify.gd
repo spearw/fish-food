@@ -30,13 +30,14 @@ func _fake_enemy(behaviors: Array) -> EnemyStats:
 
 func _ready() -> void:
 	# --- 1. The matrix row ---
-	# DOT vs ARMORED = 1.8 and PIERCE vs ARMORED = 0.7 are SWEEP-MEASURED values (Jul 2026).
+	# DOT=1.8, PIERCE=0.7 and SPARK=0.5 vs ARMORED are SWEEP-MEASURED values (Jul 2026).
 	var m_ok: bool = WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.ARMORED) == 1.8 \
 		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.FAST) == 0.7 \
 		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.EVASIVE) == 1.3 \
 		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.RANGED) == 0.8 \
-		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.PIERCE, EnemyTags.Behavior.ARMORED) == 0.7
-	print("DOTCOUNTER matrix: dot_armored=1.8 fast=0.7 evasive=1.3 ranged=0.8 pierce_armored=0.7 ok=%s" % str(m_ok))
+		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.PIERCE, EnemyTags.Behavior.ARMORED) == 0.7 \
+		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.SPARK, EnemyTags.Behavior.ARMORED) == 0.5
+	print("DOTCOUNTER matrix: dot=1.8 pierce=0.7 spark=0.5 (vs armored) fast=0.7 evasive=1.3 ranged=0.8 ok=%s" % str(m_ok))
 
 	# --- 2. BuildAnalyzer sees the flamethrower's DOT tag ---
 	var player := MockPlayer.new()
@@ -77,9 +78,20 @@ func _ready() -> void:
 		and director._apply_difficulty_weight(1.0, armored) == 1.0
 	print("DOTCOUNTER hard(neutral): passthrough ok=%s" % str(neutral_ok))
 
+	# The eff^k dial: k=0 neutralizes counter modes entirely; k=2 amplifies the measured spread.
+	CurrentRun.counter_mode = CurrentRun.CounterMode.ADVERSARIAL
+	director.counter_strength = 0.0
+	var k0: float = director._apply_difficulty_weight(1.0, fast)
+	director.counter_strength = 2.0
+	var k2: float = director._apply_difficulty_weight(1.0, fast)
+	director.counter_strength = 1.0
+	var dial_ok: bool = is_equal_approx(k0, 1.0) and k2 > w_fast and absf(k2 - w_fast * w_fast) < 0.01
+	print("DOTCOUNTER dial: k=0 -> %.2f (neutral) k=1 -> %.2f k=2 -> %.2f (= k1 squared) ok=%s" % [
+		k0, w_fast, k2, str(dial_ok)])
+
 	CurrentRun.counter_mode = CurrentRun.CounterMode.FAVORING  # restore the game default
 	director.free()
 
-	var pass_all: bool = m_ok and sees_dot and hard_ok and favoring_ok and neutral_ok
+	var pass_all: bool = m_ok and sees_dot and hard_ok and favoring_ok and neutral_ok and dial_ok
 	print("DOTCOUNTER RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

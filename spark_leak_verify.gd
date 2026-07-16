@@ -54,7 +54,29 @@ func _ready() -> void:
 	third._destroy()
 
 	await get_tree().process_frame
-	var pass_all: bool = first_ok and reuse_ok and slerp_ok and ProjectilePool._active_sparks == 0
+
+	# --- The GENERIC pool's twin leak: a pooled projectile that became unpoolable at runtime
+	#     (retarget/phasing evolutions -> _destroy queue_frees it instead of returning it) must
+	#     still release its cap slot. Pre-fix, every Living Flame shot leaked +1 until the 300 cap
+	#     silenced every pooled weapon -- including all enemy ranged attacks (the eel bug).
+	var before_generic: int = ProjectilePool._active_generic
+	var p = ProjectilePool.get_projectile()
+	add_child_if_needed(p)
+	var got_slot: bool = ProjectilePool._active_generic == before_generic + 1
+	var s := ProjectileStats.new()
+	s.lifetime = 0.0
+	s.can_retarget = true  # the evolution state that made it unpoolable
+	p.stats = s
+	# fire_behavior marks every pool-obtained projectile pooled (activate() on reuse, direct
+	# assignment on a fresh instantiate) -- mimic the fresh path.
+	p._is_pooled = true
+	p._destroy()
+	var generic_ok: bool = got_slot and ProjectilePool._active_generic == before_generic
+	print("SPARKLEAK generic_abandon: slot_taken=%s released_after_destroy=%s (active=%d)" % [
+		str(got_slot), str(ProjectilePool._active_generic == before_generic), ProjectilePool._active_generic])
+
+	var pass_all: bool = first_ok and reuse_ok and slerp_ok and generic_ok \
+		and ProjectilePool._active_sparks == 0
 	print("SPARKLEAK RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()
 

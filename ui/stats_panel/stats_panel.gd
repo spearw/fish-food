@@ -72,25 +72,43 @@ func _refresh_player_stats():
 	area_size_label.text = "%s   %s   %s" % [m["area"], m["dot"], m["status_chance"]]
 	armor_label.text = m["armor"]
 
+# Shows the clicked weapon's live numbers. Created on first use (no scene surgery).
+var _weapon_detail_label: Label
+
 func _refresh_weapon_icons():
 	for child in weapons_grid.get_children(): child.queue_free()
-	
+
 	var equipment = player.get_node("Equipment")
 	for weapon in equipment.get_children():
-		
+
 		# Create targeting button for each weapon
 		var button = weapon_button_scene.instantiate()
 		button.weapon_node = weapon
-		# Configure the button's icon.
-		# TODO: Weapon icons
+		# The buttons collapsed to ~zero size (icons are TODO, so they were empty) and piled onto
+		# one spot -- unclickable. A minimum size and a NAME (with tier) make them a real row.
+		button.custom_minimum_size = Vector2(150, 44)
+		if "rarity" in weapon:
+			button.text = "%s (%s)%s" % [
+				BuildSummary._pretty_name(String(weapon.get_meta("weapon_type", weapon.name))),
+				Upgrade.Rarity.keys()[weapon.rarity].capitalize(),
+				"*" if weapon.is_transformed else ""]
 		var icon_rect = button.get_node("Icon")
 		if weapon.projectile_stats:
 			icon_rect.texture = weapon.projectile_stats.texture
-		
+
 		# Pass the weapon node reference directly with the signal.
 		button.pressed.connect(_on_weapon_button_pressed.bind(weapon))
-		
+		# Clicking also shows the weapon's ACTUAL numbers (player multipliers applied).
+		button.pressed.connect(func(): _show_weapon_detail(weapon))
+
 		weapons_grid.add_child(button)
+
+func _show_weapon_detail(weapon: Node) -> void:
+	if not _weapon_detail_label:
+		_weapon_detail_label = Label.new()
+		_weapon_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		weapons_grid.get_parent().add_child(_weapon_detail_label)
+	_weapon_detail_label.text = BuildSummary.weapon_detail_line(weapon, player)
 
 func _refresh_artifact_icons():
 	for child in artifacts_grid.get_children(): child.queue_free()

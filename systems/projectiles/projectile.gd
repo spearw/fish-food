@@ -437,6 +437,11 @@ func _destroy():
 		has_redirected = false
 		ProjectilePool.return_projectile(self)
 	else:
+		# A POOLED projectile that became unpoolable (a retarget/phasing evolution) still holds a
+		# generic-cap slot -- release it, or the counter leaks one per shot until the cap silences
+		# every pooled weapon in the game (player and enemy ranged alike).
+		if _is_pooled:
+			ProjectilePool.abandon_generic(self)
 		call_deferred("queue_free")
 
 ## Called by the global "enemy_killed" signal.

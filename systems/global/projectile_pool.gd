@@ -108,6 +108,16 @@ func get_pool_stats() -> Dictionary:
 		stats[scene_path] = _pools[scene_path].size()
 	return stats
 
+## Releases a pooled GENERIC projectile's cap slot WITHOUT parking the node -- for projectiles that
+## became unpoolable at runtime (retargeting/phasing evolutions add state the pool can't reset, so
+## _destroy queue_frees them instead of returning them). Without this, every such shot LEAKED
+## _active_generic: after an evolution like Living Flame (sets can_retarget), the counter ratcheted
+## to the 300 cap and every generic-pool weapon went silent -- the player's AND all enemy ranged
+## attacks (the "eels stopped shooting" playtest bug, and the spark leak's twin).
+func abandon_generic(projectile: Node) -> void:
+	if projectile.get("_is_pooled"):
+		_active_generic = max(0, _active_generic - 1)
+
 ## Convenience method to get a spark projectile from the pool.
 func get_spark() -> Node:
 	if _active_sparks >= max_active_sparks:

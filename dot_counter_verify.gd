@@ -30,11 +30,13 @@ func _fake_enemy(behaviors: Array) -> EnemyStats:
 
 func _ready() -> void:
 	# --- 1. The matrix row ---
-	var m_ok: bool = WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.ARMORED) == 1.5 \
+	# DOT vs ARMORED = 1.8 and PIERCE vs ARMORED = 0.7 are SWEEP-MEASURED values (Jul 2026).
+	var m_ok: bool = WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.ARMORED) == 1.8 \
 		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.FAST) == 0.7 \
 		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.EVASIVE) == 1.3 \
-		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.RANGED) == 0.8
-	print("DOTCOUNTER matrix: armored=1.5 fast=0.7 evasive=1.3 ranged=0.8 ok=%s" % str(m_ok))
+		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.DOT, EnemyTags.Behavior.RANGED) == 0.8 \
+		and WeaponTags.get_counter_effectiveness(WeaponTags.Effect.PIERCE, EnemyTags.Behavior.ARMORED) == 0.7
+	print("DOTCOUNTER matrix: dot_armored=1.8 fast=0.7 evasive=1.3 ranged=0.8 pierce_armored=0.7 ok=%s" % str(m_ok))
 
 	# --- 2. BuildAnalyzer sees the flamethrower's DOT tag ---
 	var player := MockPlayer.new()

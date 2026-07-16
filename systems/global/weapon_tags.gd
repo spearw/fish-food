@@ -60,6 +60,9 @@ const COUNTER_MATRIX = {
 	Effect.PIERCE: {
 		0: 1.4,   # SWARM - pierce hits multiple
 		4: 1.3,   # HORDE - pierce through lines
+		# Sweep-measured (Jul 2026): every pierce weapon zeroed into armor. Causal, not incidental --
+		# pierce multiplies TARGETS, not per-hit damage, and flat armor eats small per-hit numbers.
+		2: 0.7,   # ARMORED - many pierced targets, but each hit is small and armor eats it
 	},
 	Effect.HOMING: {
 		5: 1.8,   # EVASIVE - can't dodge homing
@@ -105,7 +108,9 @@ const COUNTER_MATRIX = {
 	# up) this sends fast+ranged pressure at a toxin/fire build instead of the armored enemies it
 	# laughs at -- the old row did the opposite.
 	Effect.DOT: {
-		2: 1.5,   # ARMORED - ticks ignore armor entirely (100% pen, by design)
+		# Sweep-measured (Jul 2026): the DoT fleet holds 6.7-17.6x the field-typical output into
+		# armor (n=5). Causal -- ticks carry 100% armor pen -- so this sits at the squash ceiling.
+		2: 1.8,   # ARMORED - ticks ignore armor entirely (100% pen, by design)
 		3: 0.7,   # FAST - closers outrace the ramp
 		5: 1.3,   # EVASIVE - one graze applies the full effect
 		1: 0.8,   # RANGED - standoff shooters kite the short-range delivery

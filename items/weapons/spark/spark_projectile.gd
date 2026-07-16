@@ -50,24 +50,41 @@ func _ready():
 		CollisionUtils.set_projectile_collision(area2d, allegiance)
 		area2d.body_entered.connect(_on_body_entered)
 
-	# Setup lifetime timer
-	if lifetime > 0:
-		lifetime_timer.wait_time = lifetime
-		lifetime_timer.one_shot = true
-		lifetime_timer.timeout.connect(_destroy)
-		lifetime_timer.start()
+	# Setup lifetime timer. Armed DEFERRED so the spawner's same-frame configuration (callers set
+	# lifetime/speed/damage AFTER get_spark returns) lands before the timer reads wait_time --
+	# arming here directly would run every first life on the scene default instead.
+	lifetime_timer.one_shot = true
+	lifetime_timer.timeout.connect(_destroy)
+	call_deferred("_apply_lifetime")
 
 	# If we have an initial target, aim at it
 	if is_instance_valid(target):
 		direction = (target.global_position - global_position).normalized()
 		rotation = direction.angle()
 
+## (Re)arms the despawn clock from the CURRENT lifetime. Called deferred from both _ready and
+## reset(): the lifetime timer is the spark's only exit when it never exhausts its bounces, and the
+## leak that motivated this was exactly that -- _destroy() stops the timer, reset() never restarted
+## it, so every REUSED spark was immortal. Wanderers accumulated until the pool cap, at which point
+## get_spark() returned null and sparks stopped spawning entirely.
+func _apply_lifetime() -> void:
+	if _is_destroying:
+		return  # destroyed in its spawn frame; don't arm a clock on a parked spark
+	if lifetime > 0 and lifetime_timer:
+		lifetime_timer.wait_time = lifetime
+		lifetime_timer.start()
+
 func _process(delta: float):
+	if _is_destroying:
+		return
+
 	# Home toward target if we have one
 	if is_instance_valid(target):
 		var direction_to_target = (target.global_position - global_position).normalized()
-		# Strong homing for sparks
-		direction = direction.lerp(direction_to_target, 15.0 * delta)
+		# Strong homing. SLERP, not lerp: lerp between unit vectors shrinks the magnitude (near zero
+		# for opposite directions), and position moves by direction * speed -- so a hard turn made
+		# sparks crawl at a fraction of their speed. That was the "sparks float around slowly" bug.
+		direction = direction.slerp(direction_to_target, minf(15.0 * delta, 1.0))
 		rotation = direction.angle()
 
 	global_position += direction * speed * delta
@@ -190,6 +207,11 @@ func reset():
 	user = null
 	weapon = null
 	bounces_remaining = bounce_count
+
+	# Re-arm the despawn clock (deferred: the spawner configures lifetime AFTER get_spark returns).
+	# _destroy() stopped the timer on the previous life; without this, a reused spark is IMMORTAL
+	# unless it exhausts its bounces -- the pool-leak that froze spark spawning at the cap.
+	call_deferred("_apply_lifetime")
 
 	# Re-enable collision (only in the Area2D path; spatial-hit sparks stay off the broadphase).
 	if area2d and not use_spatial_hits:

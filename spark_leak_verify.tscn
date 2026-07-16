@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://sparkleak0verify"]
+
+[ext_resource type="Script" path="res://spark_leak_verify.gd" id="1_sl"]
+
+[node name="SparkLeakVerify" type="Node"]
+script = ExtResource("1_sl")

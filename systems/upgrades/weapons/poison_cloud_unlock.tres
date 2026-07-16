@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://poisonunlock0001"]
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://jwmanhushhyu"]
 
-[ext_resource type="PackedScene" path="res://items/weapons/poison_cloud/poison_cloud_weapon.tscn" id="1_scene"]
-[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+[ext_resource type="PackedScene" uid="uid://b75nkt3siabrx" path="res://items/weapons/poison_cloud/poison_cloud_weapon.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
 
 [resource]
 script = ExtResource("2_upg")
@@ -12,6 +12,8 @@ type = 0
 target_class_name = "PoisonCloudWeapon"
 scene_to_unlock = ExtResource("1_scene")
 rarity = 0
-property_to_modify = ""
+key = ""
+modifier_type = 1
 rarity_values = Array[float]([])
+effects = Array[int]([])
 metadata/_custom_type_script = "uid://d0ibxieicws6j"

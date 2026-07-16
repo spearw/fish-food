@@ -7,7 +7,7 @@
 
 [resource]
 script = ExtResource("1_lqmeo")
-character_description = "Emberheart: burns he applies can escalate into a true ignite. Pick any decks -- his fire follows."
+character_description = "Emberheart: his kills spread fire, and burns he applies can escalate into true ignites. Pick any decks -- his fire follows."
 unlock_cost = 100
 pickup_radius = 150.0
 luck = 1.0

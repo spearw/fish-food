@@ -8,7 +8,7 @@
 [ext_resource type="Resource" uid="uid://bc8pfntixt6we" path="res://systems/upgrades/packs/test_pack.tres" id="4_wqteb"]
 [ext_resource type="Resource" uid="uid://bocg4md8mrsy6" path="res://systems/upgrades/packs/lightning_pack.tres" id="5_lightning"]
 [ext_resource type="Resource" uid="uid://ds2uq4c8iwsfq" path="res://systems/upgrades/packs/projectile_pack.tres" id="6_proj"]
-[ext_resource type="Resource" uid="uid://toxinpack0000001" path="res://systems/upgrades/packs/toxin_pack.tres" id="7_toxin"]
+[ext_resource type="Resource" uid="uid://dr5woa1b6yvsa" path="res://systems/upgrades/packs/toxin_pack.tres" id="7_toxin"]
 
 [resource]
 script = ExtResource("2_pjtqk")

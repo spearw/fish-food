@@ -405,6 +405,14 @@ DeckCombo (Resource)
 - **Gate value `N`** (cards drafted) — tune. Currently **4** for Fire+Lightning.
 - **Synergy effect numbers** — Fire+Lightning's three options are built but **unplaytested**; tune.
 - **Content:** authored pairs beyond Fire+Lightning — incremental, added over time.
+- **Identity artifacts must be self-sufficient verbs** (decided Jul 2026): they may *love* a deck,
+  but must never *require* one — the same reward-not-requirement shape as the combo gate and the
+  walled cap. Found the hard way: Emberheart v1 only listened for burns, and with free deck choice a
+  fire-less Magic Man carried a literally dead artifact all run (while his card text promised "his
+  fire follows"). v2 = kills spread fire (universal — the fire mirror of Static Discharge) + burns
+  escalate to ignites (amplified by fire investment). **Flagged, accepted for now: Extra Barrels is
+  partially dead on a pure-melee Shotgunner** (swings don't consume projectile count) — most decks
+  carry projectiles, but it's the same class of issue if a melee-only meta emerges.
 - **DoT's counter axis** (direction noted Jul 2026): armor hard-counters direct damage; nothing
   hard-counters DoT. The matrix now soft-counters it (FAST closers outrace the ramp, RANGED kites the
   short delivery — and armored/evasive are down-weighted, since ticks ignore armor and one graze

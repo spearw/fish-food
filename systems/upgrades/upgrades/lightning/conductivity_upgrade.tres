@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://bgh2jppjw1r77"]
 
-[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="1_upgrade"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
 
 [resource]
 script = ExtResource("1_upgrade")
@@ -13,4 +13,5 @@ rarity = 1
 key = "spark_bounce_bonus"
 modifier_type = 1
 rarity_values = Array[float]([1.0, 1.0, 2.0, 2.0])
+effects = Array[int]([])
 metadata/_custom_type_script = "uid://d0ibxieicws6j"

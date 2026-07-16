@@ -13,6 +13,12 @@ const LIGHTNING := "res://systems/upgrades/packs/lightning_pack.tres"
 const MELEE := "res://systems/upgrades/packs/melee_pack.tres"
 const PROJECTILE := "res://systems/upgrades/packs/projectile_pack.tres"
 
+class BurnVictim:
+	extends Node2D
+	var is_dying := false
+	func take_damage(_amount, _pen = 0, _crit = false, _src = null) -> void:
+		pass
+
 class MockPlayer:
 	extends Node2D
 	func _init() -> void:
@@ -82,6 +88,27 @@ func _ready() -> void:
 	print("DECKLINK identity: all_artifact_starts=%s granted_slot_free=%s (used=%d)" % [
 		str(identity_ok), str(granted_ok), um.get_used_slots()])
 
+	# --- 3b. Emberheart must be ALIVE in any build: its escalation chain works off any burn source,
+	#         and its kill-spread half never depends on the fire deck. (v1 was a dead artifact in
+	#         fire-less runs -- it only listened for burns nothing in the build could apply.)
+	ember_node.escalate_chance = 1.0
+	ember_node.spread_chance = 1.0
+	var victim := BurnVictim.new()
+	add_child(victim)
+	var mgr := StatusEffectManager.new()
+	mgr.name = "StatusEffectManager"
+	victim.add_child(mgr)
+	var seen: Array = []
+	var listener := func(e: Node, id: String):
+		if e == victim:
+			seen.append(id)
+	Events.status_applied_to_enemy.connect(listener)
+	mgr.apply_status(load("res://systems/status_effects/fire/burning.tres"), null)
+	ember_node._on_kill(victim)  # spread smoke: empty registry -> no targets, must not crash
+	Events.status_applied_to_enemy.disconnect(listener)
+	var ember_alive_ok: bool = "burning" in seen and "ignited" in seen
+	print("DECKLINK emberheart: statuses_seen=%s escalation_ok=%s" % [str(seen), str(ember_alive_ok)])
+
 	# --- 4. Content: weapons re-homed ---
 	var content_ok: bool = _deck_has(FIRE, "unlock_cinder_volley") or _deck_has(FIRE, "cinder_volley_unlock")
 	# ids vary by author; fall back to counting weapons per deck instead of exact ids.
@@ -95,6 +122,6 @@ func _ready() -> void:
 		fire_weapons, melee_weapons, proj_weapons, str(content_ok)])
 
 	var pass_all: bool = comp_ok and starter_ok and starter_none_ok and identity_ok \
-		and granted_ok and content_ok
+		and granted_ok and ember_alive_ok and content_ok
 	print("DECKLINK RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

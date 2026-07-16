@@ -14,6 +14,8 @@ var _manipulation_allowed: bool = false
 var _manip_bar: HBoxContainer
 var _banish_buttons: Array[Button] = []
 var _reroll_button: Button
+# Owned-pair merge row (rebuilt each refresh -- pairs change as the loadout does).
+var _merge_bar: HBoxContainer
 
 # signal to announce when choice has been made
 signal upgrade_chosen
@@ -49,6 +51,10 @@ func _ready() -> void:
 ## 3-button structure and the bar can grow without scene surgery.
 func _build_manipulation_bar() -> void:
 	var vbox := upgrade_buttons[0].get_parent()
+	_merge_bar = HBoxContainer.new()
+	_merge_bar.alignment = BoxContainer.ALIGNMENT_CENTER
+	_merge_bar.add_theme_constant_override("separation", 16)
+	vbox.add_child(_merge_bar)
 	_manip_bar = HBoxContainer.new()
 	_manip_bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	_manip_bar.add_theme_constant_override("separation", 16)
@@ -74,6 +80,38 @@ func _refresh_manipulation_bar() -> void:
 		_banish_buttons[i].visible = i < current_upgrades.size()
 		_banish_buttons[i].text = "Banish #%d (%d)" % [i + 1, CurrentRun.banishes_remaining]
 		_banish_buttons[i].disabled = CurrentRun.banishes_remaining <= 0
+
+## Rebuilds the owned-pair merge row: one button per same-type same-tier pair. Same surface as
+## reroll/banish (normal drafts only), so build management happens in one place.
+func _refresh_merge_bar() -> void:
+	if not _merge_bar:
+		return
+	for c in _merge_bar.get_children():
+		c.queue_free()
+	if not _manipulation_allowed:
+		_merge_bar.visible = false
+		return
+	var pairs: Array[Dictionary] = upgrade_manager.get_mergeable_pairs()
+	_merge_bar.visible = not pairs.is_empty()
+	for pair in pairs:
+		var b := Button.new()
+		b.text = "Merge 2x %s %s > %s (frees a slot)" % [
+			Upgrade.Rarity.keys()[pair["rarity"]].capitalize(),
+			pair["weapon_type"],
+			Upgrade.Rarity.keys()[pair["rarity"] + 1].capitalize()]
+		b.pressed.connect(_on_merge_pair_pressed.bind(pair["weapon_type"], pair["rarity"]))
+		_merge_bar.add_child(b)
+
+## Consolidates a pair, then REDRAWS the choices: the freed slot changes what is legal to offer
+## (weapons and artifacts hidden at a full loadout come back), so keeping the stale draw would
+## undersell the merge. Not a free reroll -- it costs a pair, and two copies out-damage the merge.
+func _on_merge_pair_pressed(weapon_type: String, rarity: int) -> void:
+	if not upgrade_manager.merge_owned_pair(weapon_type, rarity):
+		return
+	var fresh: Array[Dictionary] = upgrade_manager.get_upgrade_choices(3)
+	if not fresh.is_empty():
+		current_upgrades = fresh
+	_present()
 
 ## Redraws all current choices for a charge. Refunds if the pool comes back empty -- an empty paused
 ## screen would be a softlock, and a refunded charge beats one.
@@ -178,6 +216,7 @@ func _present():
 	get_tree().paused = true
 	self.show()
 	_refresh_manipulation_bar()
+	_refresh_merge_bar()
 	for i in range(upgrade_buttons.size()):
 		var button = upgrade_buttons[i]
 		if i < current_upgrades.size():

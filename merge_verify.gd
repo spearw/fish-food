@@ -130,7 +130,41 @@ func _ready() -> void:
 	print("MERGE nested_set_rarity: boom %d->%d ok=%s | dev_unlocks: chars=%d decks=%d ok=%s" % [
 		boom_c, boom_r, str(nested_ok), chars, decks, str(unlock_ok)])
 
+	# --- 6. Owned-pair consolidation (the merge UI's backend): 2 owned -> 1 next tier, slot freed ---
+	var dtype: String = load(DAGGER).target_class_name
+	for w in _copies(DAGGER):
+		w.set_rarity(Upgrade.Rarity.COMMON)
+	var slots_before: int = _um.get_used_slots()
+	var pairs: Array = _um.get_mergeable_pairs()
+	var pairs_ok: bool = pairs.size() == 1 and pairs[0]["weapon_type"] == dtype \
+		and pairs[0]["rarity"] == Upgrade.Rarity.COMMON
+	var did: bool = _um.merge_owned_pair(dtype, Upgrade.Rarity.COMMON)
+	var after: Array = _copies(DAGGER)
+	var consol_ok: bool = did and after.size() == 1 \
+		and after[0].rarity == Upgrade.Rarity.RARE and after[0].projectile_stats.damage == rare_dmg \
+		and _um.get_used_slots() == slots_before - 1 \
+		and _um.get_mergeable_pairs().is_empty() \
+		and not _um.merge_owned_pair(dtype, Upgrade.Rarity.COMMON)
+	print("MERGE consolidate: pairs=%s freed_slot=%s (slots %d->%d)" % [
+		str(pairs_ok), str(consol_ok), slots_before, _um.get_used_slots()])
+
+	# The transformed copy survives a consolidation -- evolution investment is the state worth keeping.
+	_take(DAGGER, Upgrade.Rarity.RARE)
+	var rare_copies: Array = _copies(DAGGER)
+	rare_copies[1].is_transformed = true
+	_um.merge_owned_pair(dtype, Upgrade.Rarity.RARE)
+	var kept: Array = _copies(DAGGER)
+	var surv_ok: bool = kept.size() == 1 and kept[0].rarity == Upgrade.Rarity.EPIC \
+		and kept[0].is_transformed
+	# Top-tier pairs can't consolidate (nothing above Mythic).
+	kept[0].set_rarity(Upgrade.Rarity.MYTHIC)
+	_take(DAGGER, Upgrade.Rarity.MYTHIC)
+	var top_pairs_ok: bool = _um.get_mergeable_pairs().is_empty()
+	print("MERGE consolidate_survivor: transformed_kept=%s mythic_pair_excluded=%s" % [
+		str(surv_ok), str(top_pairs_ok)])
+
 	var pass_all: bool = copies_ok and full_ok and offer_ok and hint_ok and merge_ok \
-		and replace_ok and dead_low_ok and dead_top_ok and nested_ok and unlock_ok
+		and replace_ok and dead_low_ok and dead_top_ok and nested_ok and unlock_ok \
+		and pairs_ok and consol_ok and surv_ok and top_pairs_ok
 	print("MERGE RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

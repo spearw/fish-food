@@ -393,6 +393,49 @@ func _get_random_rarity_tier() -> Upgrade.Rarity:
 	# Fallback
 	return Upgrade.Rarity.COMMON
 
+## Owned same-type same-tier pairs that could consolidate (2 owned -> 1 next tier, freeing a slot).
+## The slot-freeing half of the merge economy: the drafted-duplicate merge conserves slots, this one
+## returns a slot -- the "draft copies -> merge up -> free slots -> draft rules" churn loop.
+func get_mergeable_pairs() -> Array[Dictionary]:
+	var pairs: Array[Dictionary] = []
+	if not is_instance_valid(player_equipment):
+		return pairs
+	var by_group: Dictionary = {}
+	for w in player_equipment.get_children():
+		if not ("rarity" in w):
+			continue
+		var key := "%s|%d" % [String(w.get_meta("weapon_type", w.name)), w.rarity]
+		by_group[key] = by_group.get(key, 0) + 1
+	var top := Upgrade.Rarity.size() - 1
+	for key in by_group:
+		if by_group[key] < 2:
+			continue
+		var parts: PackedStringArray = key.split("|")
+		if int(parts[1]) >= top:
+			continue  # nothing above the top tier to merge into
+		pairs.append({"weapon_type": parts[0], "rarity": int(parts[1]), "count": by_group[key]})
+	return pairs
+
+## Consolidates an owned pair: one copy goes up a tier IN PLACE (transformations survive), the other
+## is freed, returning its slot. The trade is deliberate: two copies out-damage the merged one (2x vs
+## the ~1.8x tier ratio), so this buys a slot at ~10% damage.
+func merge_owned_pair(weapon_type: String, rarity: int) -> bool:
+	if rarity >= Upgrade.Rarity.size() - 1:
+		return false
+	var copies: Array = _owned_copies(weapon_type).filter(func(w): return w.rarity == rarity)
+	if copies.size() < 2:
+		return false
+	# The transformed copy survives -- evolution investment is the state worth keeping.
+	copies.sort_custom(func(a, b): return a.is_transformed and not b.is_transformed)
+	var survivor = copies[0]
+	var freed = copies[1]
+	survivor.set_rarity(rarity + 1)
+	player_equipment.remove_child(freed)
+	freed.queue_free()
+	if is_instance_valid(player):
+		player.notify_stats_changed()
+	return true
+
 # --- Card manipulation (pre-commitment: acts on the OFFER, never on owned slots) ---
 
 ## Spends a reroll charge. The UI redraws all choices on true.

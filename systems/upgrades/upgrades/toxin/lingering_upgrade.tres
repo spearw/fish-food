@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://toxlinger0000001"]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = "lingering_upgrade"
+display_name = "Lingering Fumes"
+description = "Your statuses last longer"
+type = 2
+target_class_name = "Player"
+rarity = 0
+key = "status_duration"
+modifier_type = 0
+rarity_values = Array[float]([0.1, 0.15, 0.2, 0.25])
+effects = Array[int]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

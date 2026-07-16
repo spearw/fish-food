@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://swiftbrunlock001"]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/swift_bracer/swift_bracer.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "swift_bracer_unlock"
+display_name = "Swift Bracer"
+description = "An artifact of speed."
+type = 1
+target_class_name = "SwiftBracer"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 1
+property_to_modify = ""
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

@@ -1,14 +1,21 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=5 format=3 uid="uid://ds2uq4c8iwsfq"]
+[gd_resource type="Resource" script_class="Deck" load_steps=12 format=3 uid="uid://ds2uq4c8iwsfq"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_1vjku"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_s72px"]
 [ext_resource type="Resource" uid="uid://deynodmipwbdh" path="res://systems/upgrades/weapons/daggers_unlock.tres" id="3_dag"]
 [ext_resource type="Resource" uid="uid://btc5l6uhsaoqk" path="res://systems/upgrades/weapons/shotgun_unlock.tres" id="4_shot"]
+[ext_resource type="Resource" uid="uid://c64jci32lqc3" path="res://systems/upgrades/weapons/spike_ring_unlock.tres" id="5_spike"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/bubble_bullet_unlock.tres" id="6_bub"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/meteor_unlock.tres" id="7_met"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/tome_of_duplication_unlock.tres" id="8_tome"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/swift_bracer_unlock.tres" id="9_swift"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/projectile/slipstream_upgrade.tres" id="10_slip"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/projectile/split_fire_upgrade.tres" id="11_split"]
 
 [resource]
 script = ExtResource("1_1vjku")
 id = "projectile"
 deck_name = "Projectiles"
-deck_description = "You are the bullet hell."
-upgrades = Array[ExtResource("2_s72px")]([ExtResource("3_dag"), ExtResource("4_shot")])
+deck_description = "You are the bullet hell. Volume of fire over everything."
+upgrades = Array[ExtResource("2_s72px")]([ExtResource("3_dag"), ExtResource("4_shot"), ExtResource("5_spike"), ExtResource("6_bub"), ExtResource("7_met"), ExtResource("8_tome"), ExtResource("9_swift"), ExtResource("10_slip"), ExtResource("11_split")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

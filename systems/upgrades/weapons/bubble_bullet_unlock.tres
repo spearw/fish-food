@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://bubbleunlock0001"]
+
+[ext_resource type="PackedScene" path="res://items/weapons/bubble_bullet/bubble_bullet.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "bubble_bullet_unlock"
+display_name = "Bubble Bullet"
+description = "Fires bouncy bubbles at the nearest enemy."
+type = 0
+target_class_name = "BubbleBulletWeapon"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 0
+property_to_modify = ""
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

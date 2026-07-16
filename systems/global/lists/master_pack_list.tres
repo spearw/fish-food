@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DeckList" load_steps=9 format=3 uid="uid://d5bu6epgfgbw"]
+[gd_resource type="Resource" script_class="DeckList" load_steps=10 format=3 uid="uid://d5bu6epgfgbw"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_21fx0"]
 [ext_resource type="Resource" uid="uid://cslvyly2f8qn1" path="res://systems/upgrades/packs/core_pack.tres" id="2_3xg5p"]
@@ -8,8 +8,9 @@
 [ext_resource type="Resource" uid="uid://bc8pfntixt6we" path="res://systems/upgrades/packs/test_pack.tres" id="4_wqteb"]
 [ext_resource type="Resource" uid="uid://bocg4md8mrsy6" path="res://systems/upgrades/packs/lightning_pack.tres" id="5_lightning"]
 [ext_resource type="Resource" uid="uid://ds2uq4c8iwsfq" path="res://systems/upgrades/packs/projectile_pack.tres" id="6_proj"]
+[ext_resource type="Resource" uid="uid://toxinpack0000001" path="res://systems/upgrades/packs/toxin_pack.tres" id="7_toxin"]
 
 [resource]
 script = ExtResource("2_pjtqk")
-decks = Array[ExtResource("1_21fx0")]([ExtResource("2_3xg5p"), ExtResource("3_6gl76"), ExtResource("4_6gl76"), ExtResource("4_wqteb"), ExtResource("5_lightning"), ExtResource("6_proj")])
+decks = Array[ExtResource("1_21fx0")]([ExtResource("2_3xg5p"), ExtResource("3_6gl76"), ExtResource("4_6gl76"), ExtResource("4_wqteb"), ExtResource("5_lightning"), ExtResource("6_proj"), ExtResource("7_toxin")])
 metadata/_custom_type_script = "uid://dsippqwnljpr2"

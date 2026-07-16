@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Deck" load_steps=7 format=3 uid="uid://toxinpack0000001"]
+
+[ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_pk"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/poison_cloud_unlock.tres" id="3_poison"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/toxin/virulence_upgrade.tres" id="4_vir"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/toxin/contagion_upgrade.tres" id="5_con"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/toxin/lingering_upgrade.tres" id="6_lin"]
+
+[resource]
+script = ExtResource("1_pk")
+id = "toxin"
+deck_name = "Toxin"
+deck_description = "Poison everything and let time do the killing. Damage-over-time ignores armor."
+upgrades = Array[ExtResource("2_upg")]([ExtResource("3_poison"), ExtResource("4_vir"), ExtResource("5_con"), ExtResource("6_lin")])
+metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

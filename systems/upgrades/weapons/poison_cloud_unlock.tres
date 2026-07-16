@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3 uid="uid://poisonunlock0001"]
+
+[ext_resource type="PackedScene" path="res://items/weapons/poison_cloud/poison_cloud_weapon.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "poison_cloud_unlock"
+display_name = "Poison Cloud"
+description = "Lobs a lingering toxic mist that poisons everything inside."
+type = 0
+target_class_name = "PoisonCloudWeapon"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 0
+property_to_modify = ""
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

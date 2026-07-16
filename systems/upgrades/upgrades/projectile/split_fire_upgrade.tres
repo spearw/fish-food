@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://projsplit0000001"]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = "split_fire_upgrade"
+display_name = "Split Fire"
+description = "More projectiles per volley"
+type = 2
+target_class_name = "Player"
+rarity = 0
+key = "projectile_count_multiplier"
+modifier_type = 1
+rarity_values = Array[float]([0.15, 0.2, 0.25, 0.3])
+effects = Array[int]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

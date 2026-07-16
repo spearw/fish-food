@@ -521,8 +521,12 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 					Upgrade.ModifierType.POWERS:
 						# It's a Power Upgrade. Call the player's powers function.
 						player.add_power_level(upgrade.key, int(value_from_rarity))
-					Upgrade.ModifierType.MULTIPLICATIVE, Upgrade.ModifierType.ADDITIVE:
-						# It's a standard stat bonus. Call the player's bonus function.
+					Upgrade.ModifierType.MULTIPLICATIVE:
+						# The "more" layer: each copy multiplies. For percentage cards only --
+						# a flat-count card marked multiplicative would turn "+1" into "x2".
+						player.add_more_multiplier(upgrade.key, value_from_rarity)
+					Upgrade.ModifierType.ADDITIVE:
+						# The "increased" layer: copies sum (and diminish relative to the total).
 						player.add_bonus(upgrade.key, value_from_rarity)
 			else:
 				printerr("Upgrade failed: Could not find target '%s'" % upgrade.target_class_name)

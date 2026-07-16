@@ -25,7 +25,8 @@ var experience_to_next_level: int = 10
 var last_move_direction: Vector2 = Vector2.RIGHT
 
 # Dictionaries for tracking stat bonuses.
-var in_run_bonuses: Dictionary = {}
+var in_run_bonuses: Dictionary = {}      # ADDITIVE layer: key -> summed bonus
+var in_run_multipliers: Dictionary = {}  # MULTIPLICATIVE layer: key -> product of (1 + value)
 var timed_bonuses: Dictionary = {}
 
 # --- Cached Values (for performance) ---
@@ -160,19 +161,33 @@ func die() -> void:
 # --- Player-Specific Stat and Ability Methods ---
 
 ## Adds a percentage-based bonus to the player's stat tracker for the current run.
+## The ADDITIVE ("increased") layer: values SUM. Deep stacking of same-stat cards diminishes
+## relative to what's already there -- three +10% = +30%.
 func add_bonus(key: String, value: float, is_additive: bool=false):
 	var current_bonus = in_run_bonuses.get(key, 0.0)
 	in_run_bonuses[key] = current_bonus + value
 	notify_stats_changed()
 
-## Calculates the final multiplier for a given stat.
+## The MULTIPLICATIVE ("more") layer: each application MULTIPLIES -- three +10% = x1.331. Kept as a
+## separate bucket from add_bonus on purpose; the two-layer shape is the one Halls of Torment,
+## Vampire Survivors and Path of Exile all converge on (see .claude/balance/methods.md section 4):
+##   stat = base * (1 + sum of increased) * product of (1 + more).
+func add_more_multiplier(key: String, value: float) -> void:
+	in_run_multipliers[key] = in_run_multipliers.get(key, 1.0) * (1.0 + value)
+	notify_stats_changed()
+
+## Calculates the final multiplier for a given stat: additive within a layer, multiplicative across
+## layers. Permanent (meta) bonuses live in the additive layer.
 func get_stat_multiplier(key: String) -> float:
-	var permanent_bonus = GameData.data["permanent_stats"].get(key, 0.0)
-	# For stats where a lower number is better (e.g., cooldowns), we subtract from 1.
+	var increased: float = GameData.data["permanent_stats"].get(key, 0.0) \
+		+ in_run_bonuses.get(key, 0.0)
+	var more: float = in_run_multipliers.get(key, 1.0)
+	# For stats where a lower number is better (e.g., cooldowns), increased subtracts and a "more"
+	# factor divides -- +10% attack speed cuts the wait to 1/1.1, it doesn't subtract a flat tenth.
 	if (key in ["firerate", "dot_damage_tick_rate"]):
-		return max(0.1, 1.0 - (permanent_bonus + in_run_bonuses.get(key, 0.0)))
+		return max(0.1, (1.0 - increased) / more)
 	else:
-		return 1.0 + permanent_bonus + in_run_bonuses.get(key, 0.0)
+		return (1.0 + increased) * more
 
 ## Internal helper to calculate move speed (uses cached values).
 const ARMOR_SPEED_PENALTY: float = 0.01  # 1% speed reduction per armor point

@@ -11,6 +11,6 @@ type = 2
 target_class_name = "Player"
 rarity = 1
 key = "spark_count_bonus"
-modifier_type = 0
+modifier_type = 1
 rarity_values = Array[float]([1.0, 1.0, 2.0, 2.0])
 metadata/_custom_type_script = "uid://d0ibxieicws6j"

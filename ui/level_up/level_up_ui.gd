@@ -9,6 +9,8 @@ var _choosing_combo: bool = false
 # True when reroll/banish apply to this screen: normal level-up drafts only. The combo choice and
 # the starting-weapon roll are one-shot offers, not drafts -- no manipulation there.
 var _manipulation_allowed: bool = false
+# True while showing the 20-minute victory screen (Go Infinite / Main Menu).
+var _win_screen: bool = false
 
 # Card-manipulation bar (built in code -- see _build_manipulation_bar).
 var _manip_bar: HBoxContainer
@@ -229,6 +231,28 @@ func show_combo_screen():
 	_manipulation_allowed = false
 	_present()
 
+## The 20-minute victory screen, riding this screen's modal machinery: pause, the final build as
+## the summary, and two choices -- keep going (infinite: the director's exponential takes over) or
+## back to the menu. Survival deserved more than a frozen timer and a comment saying "later".
+func show_win_screen() -> void:
+	_win_screen = true
+	_manipulation_allowed = false
+	_summary_tab = -1
+	current_upgrades = []
+	get_tree().paused = true
+	self.show()
+	_refresh_summary()
+	_summary.text = "[center][b]YOU WIN! 20:00 SURVIVED[/b][/center]\n" + _summary.text
+	_refresh_manipulation_bar()
+	_refresh_merge_bar()
+	upgrade_buttons[0].text = "GO INFINITE\nThe depths keep rising -- how long can you last?"
+	upgrade_buttons[0].modulate = Color.ORANGE_RED
+	upgrade_buttons[0].visible = true
+	upgrade_buttons[1].text = "MAIN MENU\nSurface with your victory."
+	upgrade_buttons[1].modulate = Color.WHITE
+	upgrade_buttons[1].visible = true
+	upgrade_buttons[2].visible = false
+
 ## Pauses, shows the screen, and populates the buttons from current_upgrades.
 func _present():
 	get_tree().paused = true
@@ -329,6 +353,19 @@ func _refresh_summary() -> void:
 ## Called when any of the upgrade buttons are pressed.
 ## @param choice_index: int - The index of the button that was pressed.
 func _on_upgrade_button_pressed(choice_index: int) -> void:
+	# The win screen's two choices resolve here, before any upgrade logic.
+	if _win_screen:
+		_win_screen = false
+		self.hide()
+		get_tree().paused = false
+		if choice_index == 0:
+			var world = get_tree().current_scene
+			if world and world.has_method("go_infinite"):
+				world.go_infinite()
+		else:
+			get_tree().change_scene_to_file("res://ui/main_menu/main_menu.tscn")
+		return
+
 	var choice = current_upgrades[choice_index]
 	Logs.add_message(["Player chose upgrade:", choice.upgrade.id, "Rarity:", Upgrade.Rarity.keys()[choice.rarity]])
 	# Apply the selected upgrade.

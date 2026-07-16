@@ -3,9 +3,12 @@
 extends Node2D
 
 # The time in seconds the player must survive to win.
-@export var survival_goal_seconds: float = 1200.0 
+@export var survival_goal_seconds: float = 1200.0
 var game_time: float = 0.0
 var is_game_over: bool = false
+# Win fires exactly once; going infinite resumes the run past it.
+var _win_shown: bool = false
+var is_infinite: bool = false
 
 # Player references
 @export var player_scene: PackedScene
@@ -54,12 +57,13 @@ func _physics_process(delta: float):
 		return
 		
 	game_time += delta
-	
+
 	# Update the HUD with the new time.
 	hud.update_time(game_time)
-	
-	# Check for the win condition.
-	if game_time >= survival_goal_seconds:
+
+	# Check for the win condition (once -- going infinite keeps the clock and spawns running).
+	if game_time >= survival_goal_seconds and not _win_shown:
+		_win_shown = true
 		win_game()
 		
 func _on_player_died():
@@ -73,21 +77,17 @@ func _on_player_died():
 	get_tree().paused = true
 
 func win_game():
-	if is_game_over: return # Prevent this from running twice
-	
-	is_game_over = true
 	Logs.add_message("VICTORY - YOU SURVIVED!")
-	
-	# Stop enemies from spawning.
-	spawner.set_physics_process(false)
-		
-	# You could also kill all remaining enemies for a satisfying screen clear.
-	# for enemy in get_tree().get_nodes_in_group("enemies"):
-	# 	enemy.queue_free()
-		
-	# We can create a victory screen later.
-	# For now, just pause the tree.
-	#get_tree().paused = true
+	# The tree pause halts EVERYTHING -- including the spawner's pulse Timer, which the old
+	# set_physics_process(false) never touched (that was the "enemies keep spawning at 20:00" bug;
+	# physics-process off only froze the director's clock, not its spawn timer).
+	level_up_ui.show_win_screen()
+
+## The player chose to keep going: the clock and spawns resume, and the director's infinite
+## scaling (a mild exponential past win_time) takes over where the authored curve ends.
+func go_infinite():
+	is_infinite = true
+	Logs.add_message("GOING INFINITE - the depths keep rising")
 
 ## Applies visual changes based on the selected biome.
 func _apply_biome_visuals():

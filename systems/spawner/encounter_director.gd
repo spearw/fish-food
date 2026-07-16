@@ -76,6 +76,22 @@ func _current_min_active() -> int:
 ## run, without ever touching the measured grid values.
 @export var counter_strength: float = 1.0
 
+## --- INFINITE MODE (past the survival goal) ---
+## The authored difficulty curve ENDS at the win time -- Curve.sample clamps at its last point, so
+## past 20:00 the target froze and "nothing happened". Infinite mode compounds the target instead:
+## a mild exponential per minute past win_time. All the guards (per-enemy share, growing floor,
+## walled cap, hard perf caps) keep composing on top, so infinite pressure arrives as heavier MIXES
+## and fuller fields, never as an unbounded object count.
+## Keep win_time in sync with world.survival_goal_seconds.
+@export var win_time: float = 1200.0
+@export var infinite_growth_per_minute: float = 1.15
+
+## 1.0 until the win time; then infinite_growth_per_minute^(minutes past it).
+func _infinite_multiplier() -> float:
+	if run_timer <= win_time:
+		return 1.0
+	return pow(infinite_growth_per_minute, (run_timer - win_time) / 60.0)
+
 @onready var spawn_pulse_timer: Timer = $Timer
 
 # --- RUNTIME STATE ---
@@ -169,8 +185,9 @@ func _on_spawn_pulse_timer_timeout():
 	if available_enemies.is_empty(): return
 
 	# The curve defines the TARGET on-screen threat (a setpoint), scaled and modified by run intensity.
+	# Past win_time the curve has ended (sample clamps) -- the infinite multiplier compounds instead.
 	var target_cr: float = difficulty_curve.sample(run_timer) * threat_level \
-		* CurrentRun.get_intensity_multiplier() * target_threat_scale
+		* CurrentRun.get_intensity_multiplier() * target_threat_scale * _infinite_multiplier()
 
 	# The walled-share cap needs the build's damage profile and the field's current composition.
 	# Both are computed once per pulse and the counts tracked locally as we spawn.

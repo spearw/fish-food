@@ -106,8 +106,8 @@ func _ready():
 	encounter_sets.sort_custom(func(a, b): return a.time_start < b.time_start)
 	pending_encounter_sets = encounter_sets.duplicate()
 
-	# Initialize build analysis for counter-spawning (only if not NORMAL mode)
-	if CurrentRun.counter_mode != CurrentRun.CounterMode.NORMAL:
+	# Initialize build analysis for counter-spawning (only when a counter mode is active)
+	if CurrentRun.counter_mode != CurrentRun.CounterMode.NEUTRAL:
 		_update_build_analysis()
 		# Re-analyze when player's build changes (weapons/upgrades/artifacts)
 		if is_instance_valid(player_node) and player_node.has_signal("stats_changed"):
@@ -350,8 +350,8 @@ func _pick_weighted_enemy(pool: Array[EnemyStats]) -> EnemyStats:
 ## EASY: Spawn more enemies the player counters (effectiveness > 1 = higher weight)
 ## HARD: Spawn more enemies that counter the player (effectiveness < 1 = higher weight)
 func _apply_difficulty_weight(base_weight: float, enemy_stats: EnemyStats) -> float:
-	# Skip if no counter adjustment or no build analysis
-	if CurrentRun.counter_mode == CurrentRun.CounterMode.NORMAL:
+	# Skip when the ocean is indifferent ("Hard" tier: NEUTRAL = no counter adjustments)
+	if CurrentRun.counter_mode == CurrentRun.CounterMode.NEUTRAL:
 		return base_weight
 	if not build_analyzer:
 		return base_weight
@@ -369,11 +369,11 @@ func _apply_difficulty_weight(base_weight: float, enemy_stats: EnemyStats) -> fl
 	var avg_effectiveness = total_effectiveness / behavior_count
 
 	match CurrentRun.counter_mode:
-		CurrentRun.CounterMode.EASY:
+		CurrentRun.CounterMode.FAVORING:
 			# Higher effectiveness = spawn more (player is strong against this)
 			# Scale: effectiveness 1.5 -> weight * 1.5, effectiveness 0.5 -> weight * 0.5
 			return base_weight * avg_effectiveness
-		CurrentRun.CounterMode.HARD:
+		CurrentRun.CounterMode.ADVERSARIAL:
 			# Lower effectiveness = spawn more (player is weak against this)
 			# Invert: effectiveness 0.5 -> weight * 2.0, effectiveness 2.0 -> weight * 0.5
 			if avg_effectiveness > 0:

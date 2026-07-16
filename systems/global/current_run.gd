@@ -11,10 +11,13 @@ enum SpawnIntensity {
 }
 
 ## Counter mode - affects which enemies spawn based on player's build.
+## Enum names describe what the director DOES; the player-facing labels are the difficulty tiers:
+## FAVORING = "Normal" (the default experience -- the genre is built on feeling powerful),
+## NEUTRAL = "Hard" (the ocean is indifferent), ADVERSARIAL = "Abyssal" (the depths hunt your build).
 enum CounterMode {
-	EASY,    # Spawns more enemies player is strong against
-	NORMAL,  # No counter-spawning adjustments
-	HARD,    # Spawns more enemies that counter the player
+	FAVORING,     # "Normal" -- spawns more enemies the player is strong against
+	NEUTRAL,      # "Hard" -- no counter-spawning adjustments
+	ADVERSARIAL,  # "Abyssal" -- spawns more enemies that counter the player
 }
 
 ## Intensity multipliers for budget scaling.
@@ -60,7 +63,8 @@ var selected_encounter_config: EncounterConfig = null
 # Spawn intensity (Y-axis): How many enemies spawn.
 var spawn_intensity: SpawnIntensity = SpawnIntensity.NORMAL
 # Counter mode (X-axis): Which enemies spawn based on build.
-var counter_mode: CounterMode = CounterMode.NORMAL
+# FAVORING is the default: "Normal" difficulty IS the player-favoring experience.
+var counter_mode: CounterMode = CounterMode.FAVORING
 
 # True once upgrade 0 (the starting-weapon roll) has been offered this run -- it fires exactly once.
 var starting_weapon_chosen: bool = false

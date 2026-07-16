@@ -45,19 +45,39 @@ func _ready() -> void:
 	var sees_dot: bool = analyzer.effect_totals.has(WeaponTags.Effect.DOT)
 	print("DOTCOUNTER analyzer_sees_flamethrower_dot=%s" % str(sees_dot))
 
-	# --- 3. HARD mode: FAST outweighs ARMORED for this build ---
+	# --- 3. The three tiers, end to end, for a DoT build ---
 	var director = load("res://systems/spawner/encounter_director.gd").new()
 	director.build_analyzer = analyzer
-	CurrentRun.counter_mode = CurrentRun.CounterMode.HARD
-	var w_fast: float = director._apply_difficulty_weight(1.0, _fake_enemy([EnemyTags.Behavior.FAST]))
-	var w_armored: float = director._apply_difficulty_weight(1.0, _fake_enemy([EnemyTags.Behavior.ARMORED]))
-	var w_evasive: float = director._apply_difficulty_weight(1.0, _fake_enemy([EnemyTags.Behavior.EVASIVE]))
-	CurrentRun.counter_mode = CurrentRun.CounterMode.NORMAL
-	director.free()
+	var fast := _fake_enemy([EnemyTags.Behavior.FAST])
+	var armored := _fake_enemy([EnemyTags.Behavior.ARMORED])
+	var evasive := _fake_enemy([EnemyTags.Behavior.EVASIVE])
+
+	# ADVERSARIAL ("Abyssal"): the depths hunt the build -- FAST tops.
+	CurrentRun.counter_mode = CurrentRun.CounterMode.ADVERSARIAL
+	var w_fast: float = director._apply_difficulty_weight(1.0, fast)
+	var w_armored: float = director._apply_difficulty_weight(1.0, armored)
+	var w_evasive: float = director._apply_difficulty_weight(1.0, evasive)
 	var hard_ok: bool = w_fast > w_armored and w_fast > w_evasive
-	print("DOTCOUNTER hard_weights: fast=%.2f armored=%.2f evasive=%.2f (fast must top) ok=%s" % [
+	print("DOTCOUNTER abyssal: fast=%.2f armored=%.2f evasive=%.2f (fast must top) ok=%s" % [
 		w_fast, w_armored, w_evasive, str(hard_ok)])
 
-	var pass_all: bool = m_ok and sees_dot and hard_ok
+	# FAVORING ("Normal"): the exact inverse -- what you're strong against tops.
+	CurrentRun.counter_mode = CurrentRun.CounterMode.FAVORING
+	var f_fast: float = director._apply_difficulty_weight(1.0, fast)
+	var f_armored: float = director._apply_difficulty_weight(1.0, armored)
+	var favoring_ok: bool = f_armored > f_fast and f_armored > 1.0 and f_fast < 1.0
+	print("DOTCOUNTER normal(favoring): fast=%.2f armored=%.2f (armored must top) ok=%s" % [
+		f_fast, f_armored, str(favoring_ok)])
+
+	# NEUTRAL ("Hard"): the ocean is indifferent -- weights pass through untouched.
+	CurrentRun.counter_mode = CurrentRun.CounterMode.NEUTRAL
+	var neutral_ok: bool = director._apply_difficulty_weight(1.0, fast) == 1.0 \
+		and director._apply_difficulty_weight(1.0, armored) == 1.0
+	print("DOTCOUNTER hard(neutral): passthrough ok=%s" % str(neutral_ok))
+
+	CurrentRun.counter_mode = CurrentRun.CounterMode.FAVORING  # restore the game default
+	director.free()
+
+	var pass_all: bool = m_ok and sees_dot and hard_ok and favoring_ok and neutral_ok
 	print("DOTCOUNTER RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

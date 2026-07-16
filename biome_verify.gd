@@ -42,12 +42,12 @@ func _ready() -> void:
 
 	# NORMAL: no countering -> pure biome preference.
 	dir.build_analyzer = null
-	CurrentRun.counter_mode = CurrentRun.CounterMode.NORMAL
+	CurrentRun.counter_mode = CurrentRun.CounterMode.NEUTRAL
 	var normal_pct := _sample(dir, pool, native, 3000)
 
 	# HARD: countering composes on top of the biome preference.
 	dir.build_analyzer = MockAnalyzer.new()
-	CurrentRun.counter_mode = CurrentRun.CounterMode.HARD
+	CurrentRun.counter_mode = CurrentRun.CounterMode.ADVERSARIAL
 	var hard_pct := _sample(dir, pool, native, 3000)
 
 	var biome_ok := normal_pct > 70.0 and normal_pct < 90.0   # native favored, off-biome still appears

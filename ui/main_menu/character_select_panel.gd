@@ -17,8 +17,8 @@ const CONTENT_PATH = "CenterContainer/PanelContainer/MarginContainer/VBoxContain
 @onready var back_button: Button = get_node(CONTENT_PATH + "/CharactersContainer/VBoxContainer/HBoxContainer/BackButton")
 @onready var select_button: Button = get_node(CONTENT_PATH + "/CharactersContainer/VBoxContainer/HBoxContainer/SelectAndStartButton")
 
-# Decks. The core deck is always granted and the character's primary deck comes with the character,
-# so the grid only offers what's actually left to choose (see CurrentRun.get_secondary_deck_slots_for).
+# Decks. The core deck joins every run automatically, so the grid offers only the themed decks --
+# any character can pick any pair (identity lives in the granted artifact, not a deck link).
 @export var all_packs: DeckList
 @export var upgrade_pack_button_scene: PackedScene
 
@@ -47,7 +47,9 @@ var selected_biome_button: BiomeButton = null
 
 # Difficulty selection (row = intensity, col = counter mode)
 var selected_intensity: int = 1  # 0=Low, 1=Normal, 2=High
-var selected_counter: int = 1    # 0=Easy, 1=Normal, 2=Hard
+# Counter tiers: 0=Normal (favors your build -- the default experience), 1=Hard (indifferent),
+# 2=Abyssal (the depths hunt your build). Default is column 0 on purpose: "Normal" IS favoring.
+var selected_counter: int = 0
 var difficulty_buttons: Array = []
 
 func _ready():
@@ -258,7 +260,7 @@ func _setup_difficulty_grid():
 				btn.pressed.connect(_on_difficulty_button_pressed.bind(row, col))
 		difficulty_buttons.append(row_buttons)
 
-	# Update visuals for default selection (Normal/Normal = 1,1)
+	# Update visuals for default selection (Normal intensity, Normal counter = 1,0)
 	_update_difficulty_selection()
 
 func _on_difficulty_button_pressed(intensity: int, counter: int):
@@ -278,7 +280,13 @@ func _update_difficulty_selection():
 	if difficulty_description:
 		# Intensity is inverted: row 0 = High, row 1 = Normal, row 2 = Low
 		var intensity_names = ["High", "Normal", "Low"]
-		var counter_desc = ["Favors your build", "Standard counters", "Counters your build"]
+		# The counter tiers ARE the difficulty names. Normal favors the player on purpose -- the
+		# genre is built on feeling powerful -- and the top tier is themed to the ocean.
+		var counter_desc = [
+			"NORMAL -- the ocean favors your build",
+			"HARD -- the ocean is indifferent",
+			"ABYSSAL -- the depths hunt your build",
+		]
 
 		difficulty_description.text = "%s intensity\n%s" % [
 			intensity_names[selected_intensity],

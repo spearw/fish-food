@@ -265,6 +265,37 @@ windowed.)
 | **What's its real two-copy multiplier?** | **mortal** | `kills_per_sec` at `--copies=1` vs `2` |
 | Does its AoE thin its own cluster? | mortal vs immortal | the gap between them |
 
+## The counter-grid pipeline (agreed Jul 2026)
+
+**How COUNTER_MATRIX values get derived from measurement instead of guesses.** The key insight
+(William's): a weapon's raw archetype numbers mostly measure the *archetype* — everything does its
+best damage against many small soft targets. The signal is **which weapon is weakest against a
+category relative to the other weapons**. That takes a double normalization:
+
+1. **R = dps ÷ the weapon's own baseline** — removes *weapon power*. Transitive strength is a balance
+   question, not a counter question.
+2. **Z = R ÷ the column's cross-weapon median** — removes *category hardness*. After this, Z answers
+   "is this weapon weaker/stronger here than the typical weapon?"
+3. **Outliers (|Z−1| ≥ 0.3) become grid entries**, squashed to the working range (clamp to
+   [0.4, 1.8]). Everything near Z=1 stays OFF the grid — **sparse on purpose**: counters should be
+   the memorable relationships, which is also what makes them legible.
+4. **Z is the counter *strength***, and the director generalizes to `eff^k` when the dial is needed:
+   k=0 indifferent, 1 = measured, >1 cranked (a lever for tiers above Abyssal).
+
+```bash
+./balance_sweep.sh [secs_per_run] [weapon_filter_regex]   # sweeps + analyzes; ~12min for the fleet
+# analyzer alone: godot --headless --path . -s res://balance_sweep_analyze.gd -- --csv=bench_results/sweep.csv
+```
+
+**The harness proposes; it never writes the grid.** Hand-review every entry — feel is law.
+
+**Columns it can fill today:** baseline + the armor ladder (clean, frozen, ~3% noise). **Blocked:**
+swarm/tanky need mortal mode (immortal erases HP); fast/evasive/ranged need chase-and-recycle motion
+(the bench overrides AI, and orbit measured speed *backwards*) — those grid rows stay hand-authored
+until then. **Known limits:** melee weapons can't reach the fixed ring (reported UNMEASURED, not
+faked); tag attribution smears across co-occurring tags (~19 weapons makes it workable; the clean fix
+is per-weapon counter data, which BuildAnalyzer could consume directly).
+
 ## Step 3 — Set the rarity curve from the measured two-copy multiplier
 
 `Weapon.rarity_scaling` is `@export`ed **per weapon** for a reason (README law 5).

@@ -18,3 +18,4 @@ PrivacyInfo.xcprivacy
 
 # macOS
 .DS_Store
+bench_results/

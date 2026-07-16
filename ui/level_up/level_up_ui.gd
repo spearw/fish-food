@@ -16,6 +16,10 @@ var _banish_buttons: Array[Button] = []
 var _reroll_button: Button
 # Owned-pair merge row (rebuilt each refresh -- pairs change as the loadout does).
 var _merge_bar: HBoxContainer
+# Build summary block above the cards: slots, loadout with tiers, key stats, draft progress. The
+# draft decision needs this context -- without it the player can't tell what their build is doing.
+var _summary: RichTextLabel
+const BuildSummary := preload("res://systems/global/build_summary.gd")
 
 # signal to announce when choice has been made
 signal upgrade_chosen
@@ -51,6 +55,12 @@ func _ready() -> void:
 ## 3-button structure and the bar can grow without scene surgery.
 func _build_manipulation_bar() -> void:
 	var vbox := upgrade_buttons[0].get_parent()
+	_summary = RichTextLabel.new()
+	_summary.bbcode_enabled = true
+	_summary.fit_content = true
+	_summary.custom_minimum_size = Vector2(0, 0)
+	vbox.add_child(_summary)
+	vbox.move_child(_summary, 0)  # above the cards: read your build, then read the offer
 	_merge_bar = HBoxContainer.new()
 	_merge_bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	_merge_bar.add_theme_constant_override("separation", 16)
@@ -215,8 +225,28 @@ func show_combo_screen():
 func _present():
 	get_tree().paused = true
 	self.show()
+	_refresh_summary()
 	_refresh_manipulation_bar()
 	_refresh_merge_bar()
+
+## The build-at-a-glance block: what you own (with tiers), what it's doing (stats), what you've
+## invested where (draft counts feed the combo gate). Refreshed on every present, so merges,
+## replacements and picks show their effect immediately.
+func _refresh_summary() -> void:
+	if not _summary:
+		return
+	var player = upgrade_manager.player
+	if not is_instance_valid(player):
+		_summary.text = ""
+		return
+	var lines: Array = []
+	lines.append("[b]%s[/b]   %s" % [
+		BuildSummary.slot_line(upgrade_manager), BuildSummary.loadout_line(upgrade_manager)])
+	lines.append(BuildSummary.compact_stat_line(player))
+	var drafted: String = BuildSummary.draft_line()
+	if drafted != "":
+		lines.append(drafted)
+	_summary.text = "[center]%s[/center]" % "\n".join(lines)
 	for i in range(upgrade_buttons.size()):
 		var button = upgrade_buttons[i]
 		if i < current_upgrades.size():

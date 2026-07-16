@@ -32,7 +32,8 @@ func _unhandled_input(event: InputEvent):
 		# This panel only exists in the game world, so we can get the player.
 		player = get_tree().get_first_node_in_group("player")
 		# Connect to the player's signal to know when to refresh if we're already open.
-		if is_instance_valid(player):
+		# Guarded: re-connecting an already-connected signal is an error, and this ran on EVERY open.
+		if is_instance_valid(player) and not player.stats_changed.is_connected(refresh_all_stats):
 			player.stats_changed.connect(refresh_all_stats)
 		toggle_visibility()
 		get_viewport().set_input_as_handled()
@@ -52,20 +53,24 @@ func refresh_all_stats():
 	_refresh_weapon_icons()
 	_refresh_artifact_icons()
 
+## Every value comes from BuildSummary -- the ONE formatter both this panel and the level-up screen
+## consume, so the two can never disagree. (The old inline version had drifted: the projectile-speed
+## label was overwritten by a projectile-count line, pickup radius displayed area size, and firerate
+## showed a raw wait-multiplier as a percentage.)
+const BuildSummary := preload("res://systems/global/build_summary.gd")
+
 func _refresh_player_stats():
-	move_speed_label.text = "Move Speed: %.0f" % player.get_stat("move_speed")
-	luck_label.text = "Luck: %.2f" % player.get_stat("luck")
-	pickup_radius_label.text = "Pickup/AoE Size: %.0f%%" % (100 * player.get_stat("area_size"))
-	critical_chance_label.text = "Critical Hit Rate: %.0f%%" % (100 * player.get_stat("critical_hit_rate"))
-	critical_damage_label.text = "Critical Hit Damage: %.0f%%" % (100 * player.get_stat("critical_hit_damage"))
-	damage_increase_label.text = "Damage Increase: %.0f%%" % (100 * player.get_stat("damage_increase") - 100)
-	firerate_label.text = "Fire Rate Interval: %.0f%%" % (100 * player.get_stat("firerate"))
-	projectile_speed_label.text = "Projectile Speed Increase: %.0f%%" % (100 * player.get_stat("projectile_speed") - 100)
-	projectile_speed_label.text = "Projectile Count Increase: %.0f%%" % (100 * player.get_stat("projectile_count"))
-	area_size_label.text = "Area Increase: %.0f%%" % (100 * player.get_stat("area_size") - 100)
-	var armor = player.get_stat("armor")
-	var speed_penalty = armor * player.ARMOR_SPEED_PENALTY * 100
-	armor_label.text = "Armor: %d (-%0.f%% speed)" % [armor, speed_penalty]
+	var m: Dictionary = BuildSummary.stat_map(player)
+	move_speed_label.text = m["move_speed"]
+	luck_label.text = m["luck"]
+	pickup_radius_label.text = m["pickup"]
+	critical_chance_label.text = m["crit_chance"]
+	critical_damage_label.text = m["crit_damage"]
+	damage_increase_label.text = m["damage"]
+	firerate_label.text = m["attack_speed"]
+	projectile_speed_label.text = "%s   %s" % [m["projectile_speed"], m["projectile_count"]]
+	area_size_label.text = "%s   %s   %s" % [m["area"], m["dot"], m["status_chance"]]
+	armor_label.text = m["armor"]
 
 func _refresh_weapon_icons():
 	for child in weapons_grid.get_children(): child.queue_free()

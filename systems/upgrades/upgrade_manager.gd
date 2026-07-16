@@ -9,6 +9,8 @@ extends Node
 ## your slots are full would be a feel-bomb.
 const GRANTED_META := "granted_not_slotted"
 
+const BuildSummary := preload("res://systems/global/build_summary.gd")
+
 var active_upgrade_pool: Array[Upgrade] = []
 
 # Pre-computed rarity buckets for O(1) rarity lookup
@@ -180,14 +182,38 @@ func describe_weapon_take(upgrade: Upgrade, rolled_rarity: int) -> String:
 	var top := Upgrade.Rarity.size() - 1
 	for w in owned:
 		if w.rarity == rolled_rarity and rolled_rarity < top:
-			return " > merges into %s" % Upgrade.Rarity.keys()[rolled_rarity + 1].capitalize()
-	var lowest := -1
+			# Concrete numbers on the card: "what is the value of this upgrade" must be answerable
+			# from the button (playtest finding, Jul 2026).
+			return " > merges into %s%s" % [
+				Upgrade.Rarity.keys()[rolled_rarity + 1].capitalize(),
+				_tier_change_numbers(w, rolled_rarity + 1)]
+	var lowest = null
 	for w in owned:
-		if w.rarity < rolled_rarity and (lowest == -1 or w.rarity < lowest):
-			lowest = w.rarity
-	if lowest >= 0:
-		return " > upgrades your %s" % Upgrade.Rarity.keys()[lowest].capitalize()
+		if w.rarity < rolled_rarity and (lowest == null or w.rarity < lowest.rarity):
+			lowest = w
+	if lowest != null:
+		return " > upgrades your %s%s" % [
+			Upgrade.Rarity.keys()[lowest.rarity].capitalize(),
+			_tier_change_numbers(lowest, rolled_rarity)]
 	return ""
+
+## "(18>32 dmg, 2.0>4.5 tick)" -- the owned copy's CURRENT numbers against what set_rarity would
+## make them, using the weapon's own per-kind rarity weights: a gas cloud's merge grows its poison
+## harder than its slap, and the preview shows exactly that.
+func _tier_change_numbers(weapon, new_rarity: int) -> String:
+	var curve: Array = weapon.rarity_scaling
+	if curve.is_empty() or new_rarity >= curve.size():
+		return ""
+	var ratio: float = curve[new_rarity] / weapon.get_rarity_multiplier()
+	var now: Dictionary = BuildSummary.weapon_numbers(weapon)
+	var bits: Array = []
+	if now["dmg"] > 0:
+		bits.append("%d>%d dmg" % [roundi(now["dmg"]),
+			roundi(now["dmg"] * pow(ratio, weapon.direct_rarity_weight))])
+	if now["tick"] > 0:
+		bits.append("%.1f>%.1f tick" % [now["tick"],
+			now["tick"] * pow(ratio, weapon.status_rarity_weight)])
+	return (" (%s)" % ", ".join(bits)) if not bits.is_empty() else ""
 
 ## Resolves a taken weapon card.
 ## Free slot (or granted): a NEW COPY at the rolled tier -- never a merge, because two copies in two

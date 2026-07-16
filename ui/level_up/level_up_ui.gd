@@ -19,6 +19,10 @@ var _merge_bar: HBoxContainer
 # Build summary block above the cards: slots, loadout with tiers, key stats, draft progress. The
 # draft decision needs this context -- without it the player can't tell what their build is doing.
 var _summary: RichTextLabel
+# Summary tabs: [Build] plus one per owned weapon -- per-weapon damage/crit are otherwise invisible
+# behind the global multipliers. -1 = the build overview; >= 0 indexes into the equipment children.
+var _summary_tabs: HBoxContainer
+var _summary_tab: int = -1
 const BuildSummary := preload("res://systems/global/build_summary.gd")
 
 # signal to announce when choice has been made
@@ -55,12 +59,16 @@ func _ready() -> void:
 ## 3-button structure and the bar can grow without scene surgery.
 func _build_manipulation_bar() -> void:
 	var vbox := upgrade_buttons[0].get_parent()
+	_summary_tabs = HBoxContainer.new()
+	_summary_tabs.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(_summary_tabs)
+	vbox.move_child(_summary_tabs, 0)
 	_summary = RichTextLabel.new()
 	_summary.bbcode_enabled = true
 	_summary.fit_content = true
 	_summary.custom_minimum_size = Vector2(0, 0)
 	vbox.add_child(_summary)
-	vbox.move_child(_summary, 0)  # above the cards: read your build, then read the offer
+	vbox.move_child(_summary, 1)  # tabs, then summary, then the cards
 	_merge_bar = HBoxContainer.new()
 	_merge_bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	_merge_bar.add_theme_constant_override("separation", 16)
@@ -238,6 +246,33 @@ func _refresh_summary() -> void:
 	var player = upgrade_manager.player
 	if not is_instance_valid(player):
 		_summary.text = ""
+		return
+
+	# Tabs: [Build] + one per weapon. Rebuilt every present -- the loadout changes under merges.
+	for c in _summary_tabs.get_children():
+		c.queue_free()
+	var weapons: Array = []
+	if is_instance_valid(upgrade_manager.player_equipment):
+		for w in upgrade_manager.player_equipment.get_children():
+			if "rarity" in w:
+				weapons.append(w)
+	if _summary_tab >= weapons.size():
+		_summary_tab = -1
+	var build_btn := Button.new()
+	build_btn.text = "Build"
+	build_btn.disabled = _summary_tab == -1
+	build_btn.pressed.connect(func(): _summary_tab = -1; _refresh_summary())
+	_summary_tabs.add_child(build_btn)
+	for i in range(weapons.size()):
+		var b := Button.new()
+		b.text = BuildSummary._pretty_name(String(weapons[i].get_meta("weapon_type", weapons[i].name)))
+		b.disabled = _summary_tab == i
+		b.pressed.connect(func(): _summary_tab = i; _refresh_summary())
+		_summary_tabs.add_child(b)
+
+	# Content: the build overview, or one weapon's live numbers.
+	if _summary_tab >= 0:
+		_summary.text = "[center]%s[/center]" % BuildSummary.weapon_detail_line(weapons[_summary_tab], player)
 		return
 	var lines: Array = []
 	lines.append("[b]%s[/b]   %s" % [

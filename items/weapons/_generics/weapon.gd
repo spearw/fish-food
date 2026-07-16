@@ -29,6 +29,14 @@ extends Node2D
 ## some weapons and not on others. A uniform curve would flatten that texture away.
 @export var rarity_scaling: Array[float] = [1.0, 1.8, 3.2, 5.8, 10.5]
 
+## How the tier multiplier is DISTRIBUTED between damage kinds, as exponents on it: 1 = scales with
+## the tier, 0 = doesn't scale, >1 = scales harder than the tier. This is what lets a DoT weapon's
+## tiers grow the STATUS instead of the direct hit -- a mythic gas cloud's identity should be
+## deadlier poison, not a bigger slap (playtest finding, Jul 2026). pow() keeps merges exact:
+## pow(new/old, w) == pow(new, w) / pow(old, w), so in-place tier changes stay consistent.
+@export var direct_rarity_weight: float = 1.0
+@export var status_rarity_weight: float = 1.0
+
 ## This instance's rarity tier (an index into rarity_scaling). MUST be set before the weapon enters
 ## the tree -- _ready() bakes the scaling into this instance's stats. Merging raises it.
 var rarity: int = 0
@@ -118,6 +126,8 @@ func _collect_damage_sources(stats, out: Array, seen: Array) -> void:
 		"damage": float(stats.damage) if "damage" in stats else 0.0,
 		"armor_pen": float(stats.armor_penetration) if "armor_penetration" in stats else 0.0,
 		"dot": status is DotStatusEffect,
+		# The tick value, for UI detail lines and upgrade previews (the director ignores it).
+		"dot_tick": status.damage_per_tick if status is DotStatusEffect else 0.0,
 	})
 	for prop in stats.get_property_list():
 		if prop["type"] != TYPE_OBJECT:
@@ -151,14 +161,15 @@ func _scale_stats_tree(stats, mult: float, seen: Array) -> void:
 	seen.append(stats)
 
 	if "damage" in stats:
-		stats.damage = int(round(stats.damage * mult))
+		stats.damage = int(round(stats.damage * pow(mult, direct_rarity_weight)))
 
 	# DoT keeps its damage in the status it applies, not in .damage -- a fire weapon's direct hit is
-	# the small half, and it's the DoT that ignores armor.
+	# the small half, and it's the DoT that ignores armor. Scaled by its own weight, so a weapon's
+	# tiers can grow the status faster (or slower) than the direct hit.
 	var status = stats.status_to_apply if "status_to_apply" in stats else null
 	if status is DotStatusEffect and not status in seen:
 		seen.append(status)
-		status.damage_per_tick *= mult
+		status.damage_per_tick *= pow(mult, status_rarity_weight)
 
 	# Nested stats carry their own damage: on-death explosions, trails, shockwaves.
 	for prop in stats.get_property_list():

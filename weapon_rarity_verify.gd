@@ -122,6 +122,27 @@ func _ready() -> void:
 		str(boom_c.damage) if has_nested else "?", str(boom_e.damage) if has_nested else "?",
 		nested_ratio, expected_nested, str(nested_ok), str(nested_disk_ok)])
 
+	# --- 6. WEIGHTED rarity scaling: the gas cloud's tiers grow its POISON harder than its slap.
+	#        direct_rarity_weight 0.5 / status_rarity_weight 1.3 (authored on the weapon): at EPIC
+	#        (x3.2) the zone's direct damage scales by 3.2^0.5 while the poison tick scales 3.2^1.3.
+	var poison_c = _spawn("res://systems/upgrades/weapons/poison_cloud_unlock.tres", Upgrade.Rarity.COMMON)
+	var poison_e = _spawn("res://systems/upgrades/weapons/poison_cloud_unlock.tres", Upgrade.Rarity.EPIC)
+	var zone_c = poison_c.projectile_stats.get("on_death_effect_stats")
+	var zone_e = poison_e.projectile_stats.get("on_death_effect_stats")
+	var mult: float = poison_e.get_rarity_multiplier() / poison_c.get_rarity_multiplier()
+	var want_dmg: int = int(round(zone_c.damage * pow(mult, poison_c.direct_rarity_weight)))
+	var want_tick: float = zone_c.status_to_apply.damage_per_tick * pow(mult, poison_c.status_rarity_weight)
+	# The claim is about GROWTH RATES, not absolute values (tick and zone hit run on different
+	# timescales): the poison must have scaled by a larger factor than the direct hit.
+	var tick_growth: float = zone_e.status_to_apply.damage_per_tick / zone_c.status_to_apply.damage_per_tick
+	var dmg_growth: float = float(zone_e.damage) / float(zone_c.damage)
+	var weighted_ok: bool = zone_e.damage == want_dmg \
+		and absf(zone_e.status_to_apply.damage_per_tick - want_tick) < 0.01 \
+		and tick_growth > dmg_growth
+	print("WPNRARITY weighted: zone dmg %d->%d (want %d) tick %.1f->%.2f (want %.2f) ok=%s" % [
+		zone_c.damage, zone_e.damage, want_dmg, zone_c.status_to_apply.damage_per_tick,
+		zone_e.status_to_apply.damage_per_tick, want_tick, str(weighted_ok)])
+
 	# --- 4. Weapons draw at every rarity; artifacts stay at their own ---
 	var weapon_tiers := _rarities_offering(_um, "FireballStaffWeapon")
 	var artifact_tiers := _rarities_offering(_um, "PyrophobiaArtifact")
@@ -130,6 +151,6 @@ func _ready() -> void:
 		weapon_tiers, Upgrade.Rarity.size(), artifact_tiers, str(buckets_ok)])
 
 	var pass_all: bool = scales_ok and no_leak and disk_clean and dot_ok and dot_no_leak \
-		and nested_ok and nested_disk_ok and buckets_ok
+		and nested_ok and nested_disk_ok and buckets_ok and weighted_ok
 	print("WPNRARITY RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

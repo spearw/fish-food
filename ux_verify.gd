@@ -76,6 +76,36 @@ func _ready() -> void:
 	var pretty_ok: bool = BuildSummary._pretty_name("FireballStaffWeapon") == "Fireball Staff"
 	print("UX draft: '%s' pretty='%s' ok=%s" % [draft, BuildSummary._pretty_name("FireballStaffWeapon"), str(draft_ok and pretty_ok)])
 
-	var pass_all: bool = stats_ok and compact_ok and loadout_ok and evolved_ok and draft_ok and pretty_ok
+	# --- 4. Per-weapon detail: the ACTUAL numbers with player multipliers applied ---
+	var dagger_node = um._owned_copies(load(DAGGER).target_class_name)[0]
+	var detail: String = BuildSummary.weapon_detail_line(dagger_node, player)
+	# Rare dagger 18 dmg x player 1.331 = 24; base 0.5s wait x firerate 0.909 = 2.2 atk/s.
+	var detail_ok: bool = "24 dmg" in detail and "2.20 atk/s" in detail and "(Rare*" in detail
+	print("UX weapon_detail: '%s' ok=%s" % [detail, str(detail_ok)])
+
+	# --- 5. Concrete numbers on the merge preview: fill the loadout, offer the same tier ---
+	for i in range(4):
+		var filler := Node2D.new()
+		filler.name = "Filler%d" % i
+		um.player_artifacts.add_child(filler)
+	var hint: String = um.describe_weapon_take(load(DAGGER), Upgrade.Rarity.RARE)
+	# Rare 18 dmg -> Epic at ratio 3.2/1.8: 32. The card must SAY it.
+	var hint_ok: bool = "merges into Epic" in hint and "18>32 dmg" in hint
+	print("UX merge_preview: '%s' ok=%s" % [hint, str(hint_ok)])
+
+	# --- 6. Persistent zones scale their duration with the owner's status_duration stat ---
+	var cloud = load("res://items/effects/persistent_damage_effect.tscn").instantiate()
+	cloud.stats = load("res://items/weapons/poison_cloud/poison_cloud_ground_stats.tres")
+	cloud.allegiance = Projectile.Allegiance.PLAYER
+	player.stat_values["status_duration"] = 2.0
+	cloud.user = player
+	add_child(cloud)
+	var duration_ok: bool = absf(cloud.lifetime_timer.wait_time - cloud.stats.duration * 2.0) < 0.01
+	print("UX cloud_duration: base=%.0f scaled=%.0f ok=%s" % [
+		cloud.stats.duration, cloud.lifetime_timer.wait_time, str(duration_ok)])
+	cloud.queue_free()
+
+	var pass_all: bool = stats_ok and compact_ok and loadout_ok and evolved_ok and draft_ok \
+		and pretty_ok and detail_ok and hint_ok and duration_ok
 	print("UX RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

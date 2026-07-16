@@ -86,6 +86,49 @@ static func draft_line() -> String:
 		parts.append("%s %d" % [deck_id, CurrentRun.deck_draft_counts[deck_id]])
 	return "Drafted: " + ", ".join(parts) if not parts.is_empty() else ""
 
+## Live numbers for ONE weapon: what it actually does with the player's multipliers applied.
+## The global screen shows multipliers ("Damage +33%"); this shows the result ("24 dmg/hit") --
+## per-weapon damage is otherwise invisible (playtest finding, Jul 2026).
+static func weapon_detail_line(weapon, player) -> String:
+	var bits: Array = []
+	var dmg_mult: float = player.get_stat("damage_increase")
+	var dot_mult: float = player.get_stat("dot_damage_bonus")
+
+	if "base_fire_rate" in weapon and weapon.base_fire_rate > 0:
+		var wait: float = weapon.base_fire_rate * maxf(player.get_stat("firerate"), 0.01)
+		bits.append("%.2f atk/s" % (1.0 / wait))
+	var stats_comp = weapon.get_node_or_null("WeaponStatsComponent")
+	if stats_comp and stats_comp.has_method("get_final_projectile_count"):
+		var count: int = stats_comp.get_final_projectile_count()
+		if count > 1:
+			bits.append("x%d proj" % count)
+
+	if weapon.has_method("get_damage_sources"):
+		for s in weapon.get_damage_sources():
+			if s["damage"] > 0:
+				var hit := "%d dmg" % roundi(s["damage"] * dmg_mult)
+				if s["armor_pen"] > 0:
+					hit += " (%d%% pen)" % roundi(s["armor_pen"] * 100)
+				bits.append(hit)
+			if s.get("dot_tick", 0.0) > 0:
+				bits.append("%.1f/tick dot" % (s["dot_tick"] * dot_mult))
+
+	var tier: String = Upgrade.Rarity.keys()[weapon.rarity].capitalize() if "rarity" in weapon else "?"
+	return "%s (%s%s): %s" % [
+		_pretty_name(String(weapon.get_meta("weapon_type", weapon.name))), tier,
+		"*" if ("is_transformed" in weapon and weapon.is_transformed) else "",
+		" | ".join(bits) if not bits.is_empty() else "no damage sources"]
+
+## The weapon's headline numbers for upgrade previews: its biggest direct hit and biggest DoT tick.
+static func weapon_numbers(weapon) -> Dictionary:
+	var best_dmg := 0.0
+	var best_tick := 0.0
+	if weapon.has_method("get_damage_sources"):
+		for s in weapon.get_damage_sources():
+			best_dmg = maxf(best_dmg, s["damage"])
+			best_tick = maxf(best_tick, s.get("dot_tick", 0.0))
+	return {"dmg": best_dmg, "tick": best_tick}
+
 ## "FireballStaffWeapon" -> "Fireball Staff"; "EmberheartArtifact" -> "Emberheart".
 static func _pretty_name(raw: String) -> String:
 	var s := raw.trim_suffix("Weapon").trim_suffix("Artifact")

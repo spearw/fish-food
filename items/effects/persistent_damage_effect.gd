@@ -62,8 +62,14 @@ func _ready():
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 
-	# Despawn after set time
-	lifetime_timer.wait_time = stats.duration
+	# Despawn after set time, scaled by the owner's status-duration stat: a persistent zone IS a
+	# status writ large, so Lingering Fumes (and fire_fuel) extend clouds, ground fire and firewalls.
+	# This is the persistence-build lever -- cloud count has NO cap; how many are alive is just
+	# duration / spawn-rate, and this multiplies the numerator (playtest finding, Jul 2026).
+	var duration: float = stats.duration
+	if is_instance_valid(user) and user.has_method("get_stat"):
+		duration *= maxf(user.get_stat("status_duration"), 0.1)
+	lifetime_timer.wait_time = duration
 	lifetime_timer.timeout.connect(queue_free)
 	lifetime_timer.start()
 

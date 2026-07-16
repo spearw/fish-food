@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dotcounter0verif"]
+
+[ext_resource type="Script" path="res://dot_counter_verify.gd" id="1_dc"]
+
+[node name="DotCounterVerify" type="Node"]
+script = ExtResource("1_dc")

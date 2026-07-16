@@ -405,6 +405,13 @@ DeckCombo (Resource)
 - **Gate value `N`** (cards drafted) — tune. Currently **4** for Fire+Lightning.
 - **Synergy effect numbers** — Fire+Lightning's three options are built but **unplaytested**; tune.
 - **Content:** authored pairs beyond Fire+Lightning — incremental, added over time.
+- **DoT's counter axis** (direction noted Jul 2026): armor hard-counters direct damage; nothing
+  hard-counters DoT. The matrix now soft-counters it (FAST closers outrace the ramp, RANGED kites the
+  short delivery — and armored/evasive are down-weighted, since ticks ignore armor and one graze
+  applies a full burn). Candidates for the *hard* version later: a **status-RESISTANT/immune**
+  behavior tag (armor's twin) and/or a **REGENERATOR** enemy (out-heals slow ticks). A status-immune
+  enemy would also need the walled-share cap generalized — immunity is a wall for a pure-DoT build,
+  and the wall test currently only models armor.
 - **Armor-interaction artifacts** (content, decided Jul 2026): an **armor-BREAK** artifact (hits shred
   armor — turns fast weapons into can-openers) and a **CHIP-floor** artifact (hits always deal ≥X% of
   raw through armor — makes a million-hits lightning build work into heavy armor). Player-side verbs

@@ -9,6 +9,7 @@
 
 [node name="FlamethrowerWeapon" type="Node2D"]
 script = ExtResource("1_u0qg7")
+effects = Array[int]([0, 15])
 ring_of_fire_stats = ExtResource("2_2ogeb")
 projectile_stats = ExtResource("2_y4myj")
 base_projectile_count = 8

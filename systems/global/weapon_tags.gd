@@ -96,9 +96,19 @@ const COUNTER_MATRIX = {
 		0: 1.6,   # SWARM - chains between targets
 		4: 1.5,   # HORDE - chains through groups
 	},
+	# DoT's real matchups (measured + structural -- see .claude/balance/workflow.md, armor section):
+	# ticks carry 100% armor pen, so armor does NOTHING to a DoT build (measured: flamethrower flat
+	# across 15 and 37.5 armor). Its structural weakness is the RAMP -- damage-over-TIME loses to
+	# whatever makes the time unavailable: fast closers reach you before the ticks finish, and
+	# standoff shooters kite its short-range delivery (cones, lobbed clouds). One graze applies the
+	# full burn, so evasive enemies are WEAK against it. In HARD mode (low effectiveness = weighted
+	# up) this sends fast+ranged pressure at a toxin/fire build instead of the armored enemies it
+	# laughs at -- the old row did the opposite.
 	Effect.DOT: {
-		2: 0.6,   # ARMORED - ticks may be reduced by armor
-		3: 1.2,   # FAST - DOT keeps damaging
+		2: 1.5,   # ARMORED - ticks ignore armor entirely (100% pen, by design)
+		3: 0.7,   # FAST - closers outrace the ramp
+		5: 1.3,   # EVASIVE - one graze applies the full effect
+		1: 0.8,   # RANGED - standoff shooters kite the short-range delivery
 	},
 	Effect.KNOCKBACK: {
 		0: 1.2,   # SWARM - crowd control

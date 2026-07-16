@@ -37,6 +37,21 @@ extends Node
 ## setpoint didn't take. Without it, a player kiting one tough-but-slow enemy freezes the game quiet:
 ## no kills, no budget freed, no spawns, no pace. Count-based on purpose.
 @export var min_active_enemies: int = 6
+## The floor GROWS across the run (VS's own minimums are per-wave and increase; our first import of
+## the idea was static). Late-game the mix legitimately skews heavy -- time-gated sets author bigger
+## enemies and the 15% per-enemy share re-admits them -- so bodies-per-CR falls and the game feels
+## empty even at a full threat budget. Pace is felt in BODIES, not CR: the growing floor back-fills
+## with the cheapest tier, adding count at trivial CR cost (bounded overshoot; perf caps absolute).
+@export var min_active_enemies_late: int = 48
+## Seconds over which the floor ramps from min_active_enemies to min_active_enemies_late.
+@export var min_floor_ramp_time: float = 1200.0
+
+## The count floor for the current run time: lerped between the start and late values.
+func _current_min_active() -> int:
+	if min_floor_ramp_time <= 0.0:
+		return min_active_enemies
+	var t: float = clampf(run_timer / min_floor_ramp_time, 0.0, 1.0)
+	return roundi(lerpf(float(min_active_enemies), float(min_active_enemies_late), t))
 ## Enemies farther than this from the player are recycled onto the spawn ring, keeping the fight
 ## local and bounding cost (VS-style off-screen recycling). Must exceed spawn_radius. 0 disables it.
 @export var despawn_radius: float = 1800.0
@@ -174,7 +189,7 @@ func _on_spawn_pulse_timer_timeout():
 	while spawns < max_spawns_per_pulse \
 			and EntityRegistry.get_alive_enemy_count() < max_active_enemies \
 			and (_active_threat_cr < target_cr \
-				or EntityRegistry.get_alive_enemy_count() < min_active_enemies):
+				or EntityRegistry.get_alive_enemy_count() < _current_min_active()):
 		var enemy_stats = _pick_theme_enemy(available_enemies, per_enemy_budget)
 		# 15% of an early-game target can price out the entire pool; the cheapest tier is the honest
 		# fallback (the cap exists to force many-and-small, and cheapest IS smallest).

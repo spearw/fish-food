@@ -21,14 +21,18 @@ Each pulse (every `spawn_pulse_interval`, 0.25 s) it tops up toward the target, 
   early budget, overshoot it, and freeze the stream (measured: run-start population of 2). The
   allowance grows with the target, so heavies re-enter the stream naturally late-game. If the share
   prices out the entire pool (tiny early targets), the cheapest tier is the fallback.
-- `min_active_enemies` (6) — a count FLOOR: when the budget is spent but fewer than 6 enemies are
-  alive, the pulse tops up with the cheapest tier anyway (slight CR overshoot; perf caps still
-  absolute). This is the half of Vampire Survivors' model the setpoint didn't take — minimum wave
-  counts. Without it, a player kiting one tough-but-slow enemy freezes the game quiet: no kills, no
-  freed budget, no spawns, no pace. Also the guard against **walled-budget sequestration** (an
-  armor-walled enemy the build can't kill parks its CR forever — see the walled-share cap below);
-  if that ever bites harder, the escalation lever is aging an enemy's CR contribution down over
-  time, which is designed but deliberately not built.
+- `min_active_enemies` (6) → `min_active_enemies_late` (48) over `min_floor_ramp_time` (1200 s) — a
+  count FLOOR that **grows across the run** (VS's own wave minimums grow; our first import of the
+  idea was static). When the budget is spent but the count is under the current floor, the pulse
+  tops up with the cheapest tier anyway (slight CR overshoot; perf caps still absolute). This is the
+  half of Vampire Survivors' model the setpoint didn't take — minimum wave counts. It covers two
+  failure modes: **early**, a player kiting one tough-but-slow enemy freezes the game quiet (no
+  kills, no freed budget, no spawns); **late**, the mix legitimately skews heavy (time-gated sets +
+  the growing per-enemy share), so bodies-per-CR falls and a full threat budget still FEELS empty —
+  the growing floor back-fills bodies at trivial CR cost. Also the guard against **walled-budget
+  sequestration** (an armor-walled enemy the build can't kill parks its CR forever — see the
+  walled-share cap below); if that ever bites harder, the escalation lever is aging an enemy's CR
+  contribution down over time, which is designed but deliberately not built.
 
 Plus **off-screen recycling**: enemies past `despawn_radius` (1800) are repositioned onto the spawn
 ring (same node — no instantiate/free), keeping the fight local and bounded. **Burst/boss events

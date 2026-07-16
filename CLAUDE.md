@@ -33,9 +33,11 @@ benchmark numbers behind them so they don't get silently reverted.
   Two pace guards sit on top (Jul 2026, playtest-driven): **`max_enemy_budget_share` (0.15)** — no
   single top-up enemy may cost more than 15% of the target, so the field is a horde, not a duel
   (before: two fatties could eat the whole early budget, overshoot it, and freeze the stream at 2
-  enemies); and **`min_active_enemies` (6)** — the count floor that keeps spawning when nothing dies
-  (VS's "minimum wave count"; without it, kiting one tough enemy froze the game quiet). Authored
-  events/bosses bypass both. Measured: run-start pop 2 → 10-11 at identical CR; late-game unchanged.
+  enemies); and **`min_active_enemies` (6) ramping to `min_active_enemies_late` (48) over 1200 s** —
+  the count floor that keeps spawning when nothing dies AND keeps the late game full of bodies (VS's
+  wave minimums GROW across the run; our static floor stopped mattering after minute one — late-game
+  the mix skews heavy, so bodies-per-CR falls and a met threat budget still feels empty). Authored
+  events/bosses bypass both. Measured: run-start pop 2 → 10-11 at identical CR; late-game healthy.
 - **Object pools are sized `MAX_POOL_SIZE = 2000`** with **concurrent caps** that stop the pool-churn
   runaway (`MAX_ACTIVE_GENERIC = 300` projectiles, damage-number `MAX_ACTIVE = 150`). Callers handle
   `null` from a capped pool — keep that.

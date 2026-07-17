@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = "pillar_eternal_light_transform"
+display_name = "Eternal Light"
+description = "The pillar stands nearly twice as long (x1.8 duration)."
+type = 3
+target_class_name = "StarlightPillarWeapon"
+rarity = 2
+key = "eternal_light"
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

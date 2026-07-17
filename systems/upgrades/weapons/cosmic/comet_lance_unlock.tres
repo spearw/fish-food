@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bcometwpn0000001" path="res://items/weapons/comet_lance/comet_lance.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "comet_lance_unlock"
+display_name = "Comet Lance"
+description = "A single fast comet strikes the nearest enemy (28 dmg, small blast, 0.7s warning)."
+type = 0
+target_class_name = "CometLanceWeapon"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 0
+key = ""
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

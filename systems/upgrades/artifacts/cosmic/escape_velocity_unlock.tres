@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/cosmic/escape_velocity.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "escape_velocity_unlock"
+display_name = "Escape Velocity"
+description = "You fall forever, sideways: +15% move speed."
+type = 1
+target_class_name = "escape_velocity"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 1
+key = ""
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

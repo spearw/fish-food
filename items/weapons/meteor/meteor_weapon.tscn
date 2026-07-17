@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://ncj0fb7g32mn"]
 
-[ext_resource type="Script" uid="uid://b0g8wtar8xbcn" path="res://items/weapons/_generics/weapon.gd" id="1_7qe2d"]
+[ext_resource type="Script" path="res://items/weapons/meteor/meteor_weapon.gd" id="1_7qe2d"]
 [ext_resource type="Resource" uid="uid://cv01kpc2dum5p" path="res://items/weapons/meteor/meteor_projectile_stats.tres" id="2_ly2pg"]
 [ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="3_4jrkr"]
 [ext_resource type="PackedScene" uid="uid://bi2e3pkfcknbt" path="res://systems/components/weapon_stats_component.tscn" id="4_bj4c7"]
@@ -12,7 +12,7 @@ script = ExtResource("1_7qe2d")
 projectile_stats = ExtResource("2_ly2pg")
 base_projectile_count = 3
 base_fire_rate = 10.0
-themes = Array[int]([0])
+themes = Array[int]([5])
 effects = Array[int]([4, 8])
 
 [node name="FireRateTimer" type="Timer" parent="."]

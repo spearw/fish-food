@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MultiStageProjectileStats" load_steps=5 format=3 uid="uid://bpillarmst000001"]
+
+[ext_resource type="PackedScene" uid="uid://dixeudgqhntlc" path="res://items/effects/persistent_damage_effect.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://0gxb71relmj2" path="res://systems/projectiles/multi_stage_projectile/multi_stage_projectile.gd" id="2_script"]
+[ext_resource type="Resource" uid="uid://bpillarzonest001" path="res://items/weapons/starlight_pillar/pillar_zone_stats.tres" id="3_zone"]
+[ext_resource type="Texture2D" uid="uid://bg7j501dilws7" path="res://items/weapons/meteor/explosion.png" id="4_tex"]
+
+[resource]
+script = ExtResource("2_script")
+on_death_effect_stats = ExtResource("3_zone")
+on_death_effect_scene = ExtResource("1_scene")
+damage = 8
+speed = -1.0
+lifetime = 0.1
+pierce = 0
+knockback_force = 20.0
+armor_penetration = 0.0
+critical_hit_rate = 0.05
+critical_hit_damage = 0.5
+homing_strength = 0.0
+is_scaling = true
+status_chance = 1.0
+effects = Array[int]([4])
+effect_overrides = {}
+texture = ExtResource("4_tex")
+scale = Vector2(0.8, 0.8)
+modulation = Color(1, 0.95, 0.7, 1)
+metadata/_custom_type_script = "uid://0gxb71relmj2"

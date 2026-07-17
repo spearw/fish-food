@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bcosmicverify001"]
+
+[ext_resource type="Script" path="res://cosmic_verify.gd" id="1_cosmic"]
+
+[node name="CosmicVerify" type="Node"]
+script = ExtResource("1_cosmic")

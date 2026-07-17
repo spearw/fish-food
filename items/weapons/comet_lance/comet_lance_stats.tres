@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="ProjectileStats" load_steps=3 format=3 uid="uid://bcometst00000001"]
+
+[ext_resource type="Script" uid="uid://dm4u2phuyptno" path="res://systems/projectiles/projectile_stats.gd" id="1_stats"]
+[ext_resource type="Texture2D" uid="uid://bg7j501dilws7" path="res://items/weapons/meteor/explosion.png" id="2_tex"]
+
+[resource]
+script = ExtResource("1_stats")
+damage = 28
+speed = -1.0
+lifetime = 0.1
+pierce = 0
+knockback_force = 60.0
+armor_penetration = 0.0
+critical_hit_rate = 0.1
+critical_hit_damage = 0.75
+homing_strength = 0.0
+is_scaling = true
+status_chance = 1.0
+effects = Array[int]([4, 8])
+effect_overrides = {
+4: {
+"radius": 45.0
+}
+}
+texture = ExtResource("2_tex")
+scale = Vector2(0.7, 0.7)
+modulation = Color(0.8, 0.9, 1, 1)
+is_aoe = true
+aoe_effect_sprite = ExtResource("2_tex")
+aoe_effect_scale = Vector2(1.0, 1.0)
+aoe_effect_duration = 0.3
+metadata/_custom_type_script = "uid://dm4u2phuyptno"

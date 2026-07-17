@@ -1,0 +1,34 @@
+[gd_scene load_steps=8 format=3 uid="uid://bpillarwpn000001"]
+
+[ext_resource type="Script" path="res://items/weapons/starlight_pillar/starlight_pillar_weapon.gd" id="1_weapon"]
+[ext_resource type="Resource" uid="uid://bpillarmst000001" path="res://items/weapons/starlight_pillar/starlight_pillar_stats.tres" id="2_stats"]
+[ext_resource type="PackedScene" uid="uid://bstdvb8jo38ni" path="res://systems/projectiles/exploding_projectile/exploding_projectile.tscn" id="3_proj"]
+[ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="4_targeting"]
+[ext_resource type="PackedScene" uid="uid://bi2e3pkfcknbt" path="res://systems/components/weapon_stats_component.tscn" id="5_weaponstats"]
+[ext_resource type="PackedScene" uid="uid://c5vl748oixb2p" path="res://systems/components/fire_behavior_component.tscn" id="6_firebehavior"]
+[ext_resource type="PackedScene" uid="uid://ch2xenva56c83" path="res://items/effects/warning_indicator/warning_indicator.tscn" id="7_warning"]
+
+[node name="StarlightPillarWeapon" type="Node2D"]
+script = ExtResource("1_weapon")
+projectile_stats = ExtResource("2_stats")
+custom_projectile_scene = ExtResource("3_proj")
+base_fire_rate = 5.0
+themes = Array[int]([5])
+effects = Array[int]([4])
+
+[node name="FireRateTimer" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[node name="TargetingComponent" type="Node" parent="."]
+script = ExtResource("4_targeting")
+metadata/_custom_type_script = "uid://5nf8qiekyyrw"
+
+[node name="WeaponStatsComponent" parent="." instance=ExtResource("5_weaponstats")]
+
+[node name="FireBehaviorComponent" parent="." instance=ExtResource("6_firebehavior")]
+base_pattern = 2
+aoe_warning_scene = ExtResource("7_warning")
+aoe_delay = 1.0
+
+[connection signal="timeout" from="FireRateTimer" to="." method="_on_fire_rate_timer_timeout"]

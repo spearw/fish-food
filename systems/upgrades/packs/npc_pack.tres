@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Deck" load_steps=4 format=3 uid="uid://bnpcpack00000001"]
+
+[ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_pk"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+[ext_resource type="Resource" uid="uid://b5wxxftjvab7e" path="res://systems/upgrades/weapons/bubble_bullet_unlock.tres" id="3_bub"]
+
+[resource]
+script = ExtResource("1_pk")
+id = "npc"
+deck_name = "NPC"
+deck_description = "NOT PLAYER-FACING (and not in the master list): the assigned home for enemy-wielded weapons. Bubble Bullet is the eels' attack -- enemies reference weapon scenes directly, so this deck is organizational, not functional."
+unlock_cost = 999999
+upgrades = Array[ExtResource("2_upg")]([ExtResource("3_bub")])
+metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

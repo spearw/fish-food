@@ -1,12 +1,10 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=17 format=3 uid="uid://ds2uq4c8iwsfq"]
+[gd_resource type="Resource" script_class="Deck" load_steps=15 format=3 uid="uid://ds2uq4c8iwsfq"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_1vjku"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_s72px"]
 [ext_resource type="Resource" uid="uid://deynodmipwbdh" path="res://systems/upgrades/weapons/daggers_unlock.tres" id="3_dag"]
 [ext_resource type="Resource" uid="uid://btc5l6uhsaoqk" path="res://systems/upgrades/weapons/shotgun_unlock.tres" id="4_shot"]
 [ext_resource type="Resource" uid="uid://c64jci32lqc3" path="res://systems/upgrades/weapons/spike_ring_unlock.tres" id="5_spike"]
-[ext_resource type="Resource" uid="uid://b5wxxftjvab7e" path="res://systems/upgrades/weapons/bubble_bullet_unlock.tres" id="6_bub"]
-[ext_resource type="Resource" uid="uid://ol07gqdxxoj7" path="res://systems/upgrades/weapons/meteor_unlock.tres" id="7_met"]
 [ext_resource type="Resource" uid="uid://bvqb5l5r7b4iy" path="res://systems/upgrades/artifacts/tome_of_duplication_unlock.tres" id="8_tome"]
 [ext_resource type="Resource" uid="uid://cq8kosdbat24c" path="res://systems/upgrades/artifacts/swift_bracer_unlock.tres" id="9_swift"]
 [ext_resource type="Resource" uid="uid://dki3pmd0eyndo" path="res://systems/upgrades/upgrades/projectile/slipstream_upgrade.tres" id="10_slip"]
@@ -23,5 +21,5 @@ id = "projectile"
 deck_name = "Projectiles"
 deck_description = "You are the bullet hell. Volume of fire over everything."
 unlock_cost = 100
-upgrades = Array[ExtResource("2_s72px")]([ExtResource("3_dag"), ExtResource("4_shot"), ExtResource("5_spike"), ExtResource("6_bub"), ExtResource("7_met"), ExtResource("8_tome"), ExtResource("9_swift"), ExtResource("10_slip"), ExtResource("11_split"), ExtResource("90_statfirerate"), ExtResource("91_statcount"), ExtResource("92_statpspeed"), ExtResource("93_statspeed"), ExtResource("94_statmaxhp")])
+upgrades = Array[ExtResource("2_s72px")]([ExtResource("3_dag"), ExtResource("4_shot"), ExtResource("5_spike"), ExtResource("8_tome"), ExtResource("9_swift"), ExtResource("10_slip"), ExtResource("11_split"), ExtResource("90_statfirerate"), ExtResource("91_statcount"), ExtResource("92_statpspeed"), ExtResource("93_statspeed"), ExtResource("94_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

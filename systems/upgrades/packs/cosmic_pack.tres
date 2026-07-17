@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Deck" load_steps=4 format=3 uid="uid://bcosmicpack00001"]
+
+[ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_pk"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+[ext_resource type="Resource" uid="uid://ol07gqdxxoj7" path="res://systems/upgrades/weapons/meteor_unlock.tres" id="3_met"]
+
+[resource]
+script = ExtResource("1_pk")
+id = "cosmic"
+deck_name = "Cosmic"
+deck_description = "FUTURE DECK (not in the master list yet): death from above -- delayed AoE raining from the sky. Meteor is the seed; the deck needs its own weapons, mechanics, and artifacts before it joins the roster."
+unlock_cost = 999999
+upgrades = Array[ExtResource("2_upg")]([ExtResource("3_met")])
+metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

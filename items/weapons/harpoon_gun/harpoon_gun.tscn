@@ -11,7 +11,7 @@ script = ExtResource("1_weapon")
 projectile_stats = ExtResource("2_stats")
 base_fire_rate = 3.5
 themes = Array[int]([6])
-effects = Array[int]([3, 16])
+effects = Array[int]([3, 10, 16])
 
 [node name="FireRateTimer" type="Timer" parent="."]
 wait_time = 3.5

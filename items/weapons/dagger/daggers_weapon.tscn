@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://divtus20vmop4"]
 
-[ext_resource type="Script" uid="uid://b0g8wtar8xbcn" path="res://items/weapons/_generics/weapon.gd" id="1_umv4o"]
+[ext_resource type="Script" path="res://items/weapons/dagger/daggers_weapon.gd" id="1_umv4o"]
 [ext_resource type="Resource" uid="uid://cvxkoyv5e4l6j" path="res://items/weapons/dagger/dagger_projectile_stats.tres" id="2_umv4o"]
 [ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="3_kyt7k"]
 [ext_resource type="PackedScene" uid="uid://c5vl748oixb2p" path="res://systems/components/fire_behavior_component.tscn" id="4_kyt7k"]

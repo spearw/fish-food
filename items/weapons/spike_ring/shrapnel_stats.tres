@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MultiStageProjectileStats" load_steps=5 format=3 uid="uid://bshrapnelmst0001"]
+
+[ext_resource type="PackedScene" uid="uid://c3phuxy3akc15" path="res://systems/projectiles/explosion/explosion_effect.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://0gxb71relmj2" path="res://systems/projectiles/multi_stage_projectile/multi_stage_projectile.gd" id="2_script"]
+[ext_resource type="Resource" uid="uid://bshrapburst00001" path="res://items/weapons/spike_ring/shrapnel_burst_stats.tres" id="3_burst"]
+[ext_resource type="Texture2D" uid="uid://d1r8kbqc0b88w" path="res://items/weapons/spike_ring/spike.png" id="4_tex"]
+
+[resource]
+script = ExtResource("2_script")
+on_death_effect_stats = ExtResource("3_burst")
+on_death_effect_scene = ExtResource("1_scene")
+damage = 15
+speed = 250.0
+lifetime = 4.0
+pierce = 0
+knockback_force = 30.0
+armor_penetration = 0.0
+critical_hit_rate = 0.05
+critical_hit_damage = 0.5
+homing_strength = 0.0
+is_scaling = true
+status_chance = 1.0
+effects = Array[int]([])
+effect_overrides = {}
+texture = ExtResource("4_tex")
+scale = Vector2(1, 1)
+modulation = Color(1, 1, 1, 1)
+metadata/_custom_type_script = "uid://0gxb71relmj2"

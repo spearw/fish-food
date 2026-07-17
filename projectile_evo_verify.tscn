@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bprojevoverify01"]
+
+[ext_resource type="Script" path="res://projectile_evo_verify.gd" id="1_projevo"]
+
+[node name="ProjectileEvoVerify" type="Node"]
+script = ExtResource("1_projevo")

@@ -82,6 +82,11 @@ func _initialize():
 
 	_calculate_stats()
 	pierce_count = stats.pierce + 1 if stats.pierce != -1 else -1
+	# Overpressure (projectile-deck artifact): +pierce on every finite-pierce player projectile.
+	# Infinite (-1) stays infinite.
+	if pierce_count != -1 and allegiance == Allegiance.PLAYER \
+			and is_instance_valid(user) and user.has_method("get_stat"):
+		pierce_count += int(user.get_stat("pierce_bonus"))
 
 	# Configure visuals from stats.
 	sprite.texture = stats.texture

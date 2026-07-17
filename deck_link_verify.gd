@@ -119,8 +119,9 @@ func _ready() -> void:
 	var proj_weapons: int = load(PROJECTILE).get_composition().get("weapons", 0)
 	# fire: flamethrower + cinder volley (returned) + fireball staff + molotov = 4.
 	# melee: axe (returned) + hammer + shield + spear = 4.
-	# projectile: daggers + shotgun + spike ring = 3 (meteor -> cosmic stub, bubble -> npc stub).
-	content_ok = fire_weapons == 4 and melee_weapons == 4 and proj_weapons == 3
+	# projectile: daggers + shotgun + spike ring + harpoon + boomerang = 5
+	# (meteor -> cosmic stub, bubble -> npc stub).
+	content_ok = fire_weapons == 4 and melee_weapons == 4 and proj_weapons == 5
 	print("DECKLINK content: fire_weapons=%d melee_weapons=%d projectile_weapons=%d ok=%s" % [
 		fire_weapons, melee_weapons, proj_weapons, str(content_ok)])
 

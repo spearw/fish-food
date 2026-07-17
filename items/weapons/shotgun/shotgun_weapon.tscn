@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://cmsiho67xk03p"]
 
-[ext_resource type="Script" uid="uid://b0g8wtar8xbcn" path="res://items/weapons/_generics/weapon.gd" id="1_16ic1"]
+[ext_resource type="Script" path="res://items/weapons/shotgun/shotgun_weapon.gd" id="1_16ic1"]
 [ext_resource type="Resource" uid="uid://bm60l0uekjv1o" path="res://items/weapons/shotgun/pellet_stats.tres" id="2_18ouq"]
 [ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="3_giet8"]
 [ext_resource type="PackedScene" uid="uid://bi2e3pkfcknbt" path="res://systems/components/weapon_stats_component.tscn" id="4_r3vhe"]

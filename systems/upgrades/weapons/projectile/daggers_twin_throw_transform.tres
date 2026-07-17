@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = "daggers_twin_throw_transform"
+display_name = "Twin Throw"
+description = "A second dagger flies backward with every throw."
+type = 3
+target_class_name = "DaggersWeapon"
+rarity = 2
+key = "twin_throw"
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

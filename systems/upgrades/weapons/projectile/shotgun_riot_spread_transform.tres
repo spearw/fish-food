@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = "shotgun_riot_spread_transform"
+display_name = "Riot Spread"
+description = "16 pellets across 60 degrees with doubled knockback -- a wall of denial."
+type = 3
+target_class_name = "Shotgun"
+rarity = 2
+key = "riot_spread"
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

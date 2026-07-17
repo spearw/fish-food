@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=15 format=3 uid="uid://ds2uq4c8iwsfq"]
+[gd_resource type="Resource" script_class="Deck" load_steps=28 format=3 uid="uid://ds2uq4c8iwsfq"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_1vjku"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_s72px"]
@@ -14,6 +14,19 @@
 [ext_resource type="Resource" uid="uid://deobvx47porbo" path="res://systems/upgrades/upgrades/core/player_projectile_speed.tres" id="92_statpspeed"]
 [ext_resource type="Resource" uid="uid://b8y1u7wm4bi06" path="res://systems/upgrades/upgrades/core/player_speed.tres" id="93_statspeed"]
 [ext_resource type="Resource" uid="uid://c3w4ydbjmr47i" path="res://systems/upgrades/upgrades/core/player_max_health.tres" id="94_statmaxhp"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/harpoon_gun_unlock.tres" id="20_harpoon"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/boomerang_unlock.tres" id="21_boom"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/daggers_ricochet_transform.tres" id="22_ricochet"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/daggers_twin_throw_transform.tres" id="23_twinthrow"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/shotgun_choke_barrel_transform.tres" id="24_choke"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/shotgun_riot_spread_transform.tres" id="25_riot"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/spike_ring_bladed_transform.tres" id="26_bladed"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/spike_ring_shrapnel_transform.tres" id="27_shrapnel"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/harpoon_barbed_transform.tres" id="28_barbed"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/harpoon_twin_transform.tres" id="29_twinharp"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/boomerang_razor_return_transform.tres" id="30_razor"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/projectile/boomerang_wide_arc_transform.tres" id="31_widearc"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/overpressure_unlock.tres" id="32_overpressure"]
 
 [resource]
 script = ExtResource("1_1vjku")
@@ -21,5 +34,5 @@ id = "projectile"
 deck_name = "Projectiles"
 deck_description = "You are the bullet hell. Volume of fire over everything."
 unlock_cost = 100
-upgrades = Array[ExtResource("2_s72px")]([ExtResource("3_dag"), ExtResource("4_shot"), ExtResource("5_spike"), ExtResource("8_tome"), ExtResource("9_swift"), ExtResource("10_slip"), ExtResource("11_split"), ExtResource("90_statfirerate"), ExtResource("91_statcount"), ExtResource("92_statpspeed"), ExtResource("93_statspeed"), ExtResource("94_statmaxhp")])
+upgrades = Array[ExtResource("2_s72px")]([ExtResource("3_dag"), ExtResource("4_shot"), ExtResource("5_spike"), ExtResource("20_harpoon"), ExtResource("21_boom"), ExtResource("22_ricochet"), ExtResource("23_twinthrow"), ExtResource("24_choke"), ExtResource("25_riot"), ExtResource("26_bladed"), ExtResource("27_shrapnel"), ExtResource("28_barbed"), ExtResource("29_twinharp"), ExtResource("30_razor"), ExtResource("31_widearc"), ExtResource("8_tome"), ExtResource("9_swift"), ExtResource("32_overpressure"), ExtResource("10_slip"), ExtResource("11_split"), ExtResource("90_statfirerate"), ExtResource("91_statcount"), ExtResource("92_statpspeed"), ExtResource("93_statspeed"), ExtResource("94_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

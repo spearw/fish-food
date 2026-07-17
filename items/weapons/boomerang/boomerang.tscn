@@ -1,0 +1,30 @@
+[gd_scene load_steps=7 format=3 uid="uid://bboomerangwpn001"]
+
+[ext_resource type="Script" path="res://items/weapons/boomerang/boomerang_weapon.gd" id="1_weapon"]
+[ext_resource type="Resource" uid="uid://bboomerangst0001" path="res://items/weapons/boomerang/boomerang_stats.tres" id="2_stats"]
+[ext_resource type="PackedScene" uid="uid://bboomerangproj01" path="res://items/weapons/boomerang/boomerang_projectile.tscn" id="3_proj"]
+[ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="4_targeting"]
+[ext_resource type="PackedScene" uid="uid://bi2e3pkfcknbt" path="res://systems/components/weapon_stats_component.tscn" id="5_weaponstats"]
+[ext_resource type="PackedScene" uid="uid://c5vl748oixb2p" path="res://systems/components/fire_behavior_component.tscn" id="6_firebehavior"]
+
+[node name="BoomerangWeapon" type="Node2D"]
+script = ExtResource("1_weapon")
+projectile_stats = ExtResource("2_stats")
+custom_projectile_scene = ExtResource("3_proj")
+base_fire_rate = 1.4
+themes = Array[int]([6])
+effects = Array[int]([3])
+
+[node name="FireRateTimer" type="Timer" parent="."]
+wait_time = 1.4
+autostart = true
+
+[node name="TargetingComponent" type="Node" parent="."]
+script = ExtResource("4_targeting")
+metadata/_custom_type_script = "uid://5nf8qiekyyrw"
+
+[node name="WeaponStatsComponent" parent="." instance=ExtResource("5_weaponstats")]
+
+[node name="FireBehaviorComponent" parent="." instance=ExtResource("6_firebehavior")]
+
+[connection signal="timeout" from="FireRateTimer" to="." method="_on_fire_rate_timer_timeout"]

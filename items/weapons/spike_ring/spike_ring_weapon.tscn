@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://ct1o670bpbrau"]
+[gd_scene load_steps=7 format=3 uid="uid://ct1o670bpbrau"]
 
-[ext_resource type="Script" uid="uid://b0g8wtar8xbcn" path="res://items/weapons/_generics/weapon.gd" id="1_rw4yl"]
+[ext_resource type="Script" path="res://items/weapons/spike_ring/spike_ring_weapon.gd" id="1_rw4yl"]
+[ext_resource type="Resource" uid="uid://bshrapnelmst0001" path="res://items/weapons/spike_ring/shrapnel_stats.tres" id="7_shrap"]
 [ext_resource type="Resource" uid="uid://dpwqwjahbacgk" path="res://items/weapons/spike_ring/spike_stats.tres" id="2_iqph6"]
 [ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="3_03rdj"]
 [ext_resource type="PackedScene" uid="uid://bi2e3pkfcknbt" path="res://systems/components/weapon_stats_component.tscn" id="4_jfi2l"]
@@ -8,6 +9,7 @@
 
 [node name="SpikeRingWeapon" type="Node2D"]
 script = ExtResource("1_rw4yl")
+shrapnel_stats = ExtResource("7_shrap")
 projectile_stats = ExtResource("2_iqph6")
 base_projectile_count = 8
 base_fire_rate = 4.0

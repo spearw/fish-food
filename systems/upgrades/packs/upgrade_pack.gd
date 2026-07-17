@@ -22,6 +22,29 @@ extends Resource
 ## in COUNTED form -- no sizes are enforced (decks may differ); it's for design visibility / warnings.
 ## NOTE: "upgrades" here lumps stat cards and deck-mechanic cards together (both are UpgradeType.UPGRADE);
 ## split them later if mechanic cards get their own type/tag.
+## The deck's contents by NAME, for the select screen -- derived from the card data itself so it
+## can never go stale. Post core-deck dissolution (design doc section 1b) "which stats does this
+## deck carry" is a load-bearing read: generic stat cards are recognized by the "player_" id
+## convention every shared stat card follows; other UPGRADE-type cards are deck-mechanic cards.
+func get_manifest() -> Dictionary:
+	var m := {"weapons": [], "stats": [], "mechanics": [], "artifacts": [], "evolutions": 0}
+	for u in upgrades:
+		if u == null:
+			continue
+		match u.type:
+			Upgrade.UpgradeType.UNLOCK_WEAPON:
+				m.weapons.append(u.display_name)
+			Upgrade.UpgradeType.TRANSFORMATION:
+				m.evolutions += 1
+			Upgrade.UpgradeType.UNLOCK_ARTIFACT:
+				m.artifacts.append(u.display_name)
+			Upgrade.UpgradeType.UPGRADE:
+				if u.id.begins_with("player_"):
+					m.stats.append(u.display_name)
+				else:
+					m.mechanics.append(u.display_name)
+	return m
+
 func get_composition() -> Dictionary:
 	var counts := {"weapons": 0, "evolutions": 0, "artifacts": 0, "upgrades": 0}
 	for u in upgrades:

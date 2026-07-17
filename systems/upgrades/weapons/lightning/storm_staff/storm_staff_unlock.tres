@@ -7,7 +7,7 @@
 script = ExtResource("2_upgrade")
 id = "storm_staff_unlock"
 display_name = "Storm Staff"
-description = "Releases a burst of fast sparks that scatter across enemies."
+description = "Hurls a heavy homing bolt that bursts in an area."
 type = 0
 target_class_name = "Weapon"
 scene_to_unlock = ExtResource("1_scene")

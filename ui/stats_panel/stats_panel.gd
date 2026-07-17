@@ -59,7 +59,31 @@ func refresh_all_stats():
 ## showed a raw wait-multiplier as a percentage.)
 const BuildSummary := preload("res://systems/global/build_summary.gd")
 
+# Run context (slots, loadout, combo-gate progress) and the stats the fixed labels don't cover
+# (max health, status duration, sparks) -- both created in code, both fed by BuildSummary.
+var _run_context_label: Label
+var _extras_label: Label
+
 func _refresh_player_stats():
+	var stats_container: Node = move_speed_label.get_parent()
+	if not _run_context_label:
+		_run_context_label = Label.new()
+		_run_context_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		stats_container.add_child(_run_context_label)
+		stats_container.move_child(_run_context_label, 0)
+		_extras_label = Label.new()
+		_extras_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		stats_container.add_child(_extras_label)
+	var um: Node = player.upgrade_manager if "upgrade_manager" in player else null
+	var context_parts: Array = []
+	if is_instance_valid(um):
+		context_parts.append("%s   %s" % [BuildSummary.slot_line(um), BuildSummary.loadout_line(um)])
+	var drafted: String = BuildSummary.draft_line()
+	if drafted != "":
+		context_parts.append(drafted)
+	_run_context_label.text = "\n".join(context_parts)
+	_extras_label.text = BuildSummary.extras_line(player)
+
 	var m: Dictionary = BuildSummary.stat_map(player)
 	move_speed_label.text = m["move_speed"]
 	luck_label.text = m["luck"]
@@ -112,15 +136,16 @@ func _show_weapon_detail(weapon: Node) -> void:
 
 func _refresh_artifact_icons():
 	for child in artifacts_grid.get_children(): child.queue_free()
-	
+
+	# NAMES, not empty rectangles -- identity artifacts, combo synergies, and every drafted
+	# artifact were literally invisible here (the old loop added blank TextureRects; icons are
+	# still TODO). Node names are "EmberheartArtifact"-style.
 	var artifacts = player.get_node("Artifacts")
-	# This loop is ready for when we add true artifacts.
 	for artifact in artifacts.get_children():
-		var icon = TextureRect.new()
-		# We'll need a way to get an icon from our true artifacts later.
-		# if artifact.has_method("get_icon"): icon.texture = artifact.get_icon()
-		icon.custom_minimum_size = Vector2(48, 48)
-		artifacts_grid.add_child(icon)
+		var label := Label.new()
+		label.text = BuildSummary._pretty_name(String(artifact.name).replace("Artifact", ""))
+		label.custom_minimum_size = Vector2(150, 24)
+		artifacts_grid.add_child(label)
 		
 ## Called when any weapon button in the grid is clicked.
 func _on_weapon_button_pressed(weapon_node: Node):

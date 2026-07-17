@@ -47,6 +47,115 @@ static func compact_stat_line(player) -> String:
 		parts.append(m["area"])
 	return " | ".join(parts)
 
+## ---- Deck select (design doc section 1b: the pick IS the stat economy) ----
+
+## Every shared stat card's display_name, in a stable order. The pool preview paints each one
+## bright (carried), gold x2 (carried by both picks -- the doubling-down read), or dim (absent):
+## "no Armor in either pick" must be visible BEFORE commitment.
+const ALL_STAT_CARDS := ["Damage", "Critical Hit Chance", "Critical Hit Damage", "Area Size",
+	"Attack Speed", "Projectile Count", "Projectile Speed", "Armor", "Speed", "Luck", "Max Health"]
+
+## A deck's contents as BBCode lines, derived from card data -- never hand-written, never stale.
+static func deck_manifest_lines(deck) -> Array:
+	var man: Dictionary = deck.get_manifest()
+	var lines: Array = []
+	if not man.weapons.is_empty():
+		lines.append("[b]Weapons:[/b] %s" % ", ".join(man.weapons))
+	if not man.stats.is_empty():
+		lines.append("[b]Stats:[/b] %s" % ", ".join(man.stats))
+	if not man.mechanics.is_empty():
+		lines.append("[b]Mechanics:[/b] %s" % ", ".join(man.mechanics))
+	var tail: Array = []
+	if not man.artifacts.is_empty():
+		tail.append("%d artifacts" % man.artifacts.size())
+	if man.evolutions > 0:
+		tail.append("%d evolutions" % man.evolutions)
+	if not tail.is_empty():
+		lines.append("[i]%s[/i]" % "   ".join(tail))
+	return lines
+
+## The combined draft pool the selected decks produce. Composing the run is the point of the
+## select screen (a pick is a contract, not a menu) -- so show the merged result, not just parts.
+static func pool_preview(decks: Array) -> String:
+	if decks.is_empty():
+		return "Pick up to %d decks -- their cards are ALL you can draft this run." \
+			% CurrentRun.max_themed_decks
+	var total := 0
+	var weapons := 0
+	var stat_counts := {}
+	for deck in decks:
+		var man: Dictionary = deck.get_manifest()
+		total += deck.upgrades.filter(func(u): return u != null).size()
+		weapons += man.weapons.size()
+		for s in man.stats:
+			stat_counts[s] = stat_counts.get(s, 0) + 1
+	var parts: Array = []
+	for s in ALL_STAT_CARDS:
+		var label: String = s.replace("Critical Hit ", "Crit ")
+		var n: int = stat_counts.get(s, 0)
+		if n >= 2:
+			parts.append("[color=gold]%s x2[/color]" % label)
+		elif n == 1:
+			parts.append(label)
+		else:
+			parts.append("[color=#606060]%s[/color]" % label)
+	return "[b]Draft pool:[/b] %d cards, %d weapons\n[b]Stat access:[/b] %s" % [
+		total, weapons, ", ".join(parts)]
+
+## ---- Level-up cards: before -> after, using the SAME routing apply_upgrade uses ----
+
+# Keys whose card values are flat numbers, not percentages. Totals for the first set are shown via
+# get_stat (base + permanent + in-run all together); the second set are pure in-run counters.
+const FLAT_TOTAL_KEYS := ["armor", "max_health"]
+const FLAT_BONUS_KEYS := ["spark_count_bonus", "spark_bounce_bonus"]
+
+## What taking this stat card DOES: the delta and the resulting total ("a delta with no total" is
+## the genre's documented mistake). Reads the player's live two-layer state through the same
+## semantics apply_upgrade writes, so the card can never disagree with the sheet.
+static func stat_card_preview(player, upgrade, rarity: int) -> String:
+	if upgrade.rarity_values.is_empty() or rarity >= upgrade.rarity_values.size():
+		return ""
+	var v: float = upgrade.rarity_values[rarity]
+	var key: String = upgrade.key
+	match upgrade.modifier_type:
+		Upgrade.ModifierType.MULTIPLICATIVE:
+			# The "more" layer: copies compound.
+			var cur: float = player.in_run_multipliers.get(key, 1.0) \
+				if "in_run_multipliers" in player else 1.0
+			return "+%d%% more (x%.2f -> x%.2f)" % [roundi(v * 100.0), cur, cur * (1.0 + v)]
+		Upgrade.ModifierType.ADDITIVE:
+			if key in FLAT_TOTAL_KEYS:
+				var cur_total: float = player.get_stat(key)
+				return "+%d (%d -> %d)" % [roundi(v), roundi(cur_total), roundi(cur_total + v)]
+			if key in FLAT_BONUS_KEYS:
+				var cur_flat: float = float(player.in_run_bonuses.get(key, 0)) \
+					if "in_run_bonuses" in player else 0.0
+				return "+%d (%d -> %d)" % [roundi(v), roundi(cur_flat), roundi(cur_flat + v)]
+			# The "increased" layer: percent copies sum.
+			var cur_pct: float = (player.in_run_bonuses.get(key, 0.0) \
+				if "in_run_bonuses" in player else 0.0) * 100.0
+			return "+%d%% (+%d%% -> +%d%%)" % [
+				roundi(v * 100.0), roundi(cur_pct), roundi(cur_pct + v * 100.0)]
+		Upgrade.ModifierType.POWERS:
+			var cur_lv: int = int(player.unlocked_powers.get(key, 0)) \
+				if "unlocked_powers" in player else 0
+			return "+%d level(s) (Lv %d -> %d)" % [roundi(v), cur_lv, cur_lv + roundi(v)]
+	return ""
+
+## Stats the fixed panel doesn't have labels for, shown only while they're doing something.
+static func extras_line(player) -> String:
+	var parts: Array = []
+	parts.append("Max Health: %d" % roundi(player.get_stat("max_health")))
+	var dur: int = roundi(100.0 * player.get_stat("status_duration") - 100.0)
+	if dur != 0:
+		parts.append("Status Duration: %+d%%" % dur)
+	var sparks: int = int(player.get_stat("spark_count_bonus"))
+	var spark_dmg: int = roundi(100.0 * player.get_stat("spark_damage_bonus") - 100.0)
+	var bounces: int = int(player.get_stat("spark_bounce_bonus"))
+	if sparks != 0 or spark_dmg != 0 or bounces != 0:
+		parts.append("Sparks: +%d count, %+d%% dmg, +%d bounces" % [sparks, spark_dmg, bounces])
+	return "   ".join(parts)
+
 ## "Slots 3/5" -- the shared weapon+artifact pool (granted items don't count; they were never picks).
 static func slot_line(um) -> String:
 	return "Slots %d/%d" % [um.get_used_slots(), CurrentRun.max_loadout_slots]

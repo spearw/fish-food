@@ -10,6 +10,7 @@ extends Node
 
 const DAGGER := "res://systems/upgrades/weapons/daggers_unlock.tres"
 const EMBER := "res://systems/upgrades/artifacts/identity/emberheart_unlock.tres"
+const PROJECTILE := "res://systems/upgrades/packs/projectile_pack.tres"
 const BuildSummary := preload("res://systems/global/build_summary.gd")
 
 class MockPlayer:
@@ -20,6 +21,8 @@ class MockPlayer:
 		"critical_hit_damage": 0.50, "move_speed": 175.0, "luck": 1.0, "area_size": 1.0,
 		"projectile_speed": 1.0, "projectile_count_multiplier": 1.4, "dot_damage_bonus": 1.0,
 		"status_chance_bonus": 1.0, "pickup_radius": 150.0, "armor": 2.0,
+		"max_health": 120.0, "spark_count_bonus": 0.0, "spark_damage_bonus": 1.0,
+		"spark_bounce_bonus": 0.0,
 	}
 	func _init() -> void:
 		var equipment := Node2D.new()
@@ -33,7 +36,9 @@ class MockPlayer:
 
 func _ready() -> void:
 	CurrentRun.selected_character = null
-	CurrentRun.selected_pack_paths = []
+	# One real deck in the run so deck_tag has a pool-to-deck map to read (the dagger card is
+	# projectile's; load() caching makes the pool's card and load(DAGGER) the same resource).
+	CurrentRun.selected_pack_paths = [PROJECTILE] as Array[String]
 	CurrentRun.max_loadout_slots = 5
 	CurrentRun.reset_run_state()
 
@@ -105,7 +110,37 @@ func _ready() -> void:
 		cloud.stats.duration, cloud.lifetime_timer.wait_time, str(duration_ok)])
 	cloud.queue_free()
 
+	# --- 7. Deck-economy legibility (UX pass, July 2026): manifests from card data, the combined
+	#        pool preview (present/x2-gold/dim-missing stats), before->after card previews from the
+	#        same routing apply_upgrade uses, and deck tags on cards ---
+	var lightning: Deck = load("res://systems/upgrades/packs/lightning_pack.tres")
+	var melee: Deck = load("res://systems/upgrades/packs/melee_pack.tres")
+	var man_lines: String = "\n".join(BuildSummary.deck_manifest_lines(lightning))
+	var manifest_ok: bool = "Spark Dagger" in man_lines and "Damage" in man_lines \
+		and "Max Health" in man_lines and "Spark Surge" in man_lines
+	var pool: String = BuildSummary.pool_preview([lightning, melee])
+	var pool_ok: bool = "41 cards, 9 weapons" in pool \
+		and "[color=gold]Damage x2[/color]" in pool and "Crit Chance x2" in pool \
+		and "[color=#606060]Area Size[/color]" in pool
+	var armor_prev: String = BuildSummary.stat_card_preview(player,
+		load("res://systems/upgrades/upgrades/core/player_armor.tres"), Upgrade.Rarity.RARE)
+	var split_prev: String = BuildSummary.stat_card_preview(player,
+		load("res://systems/upgrades/upgrades/projectile/split_fire_upgrade.tres"), Upgrade.Rarity.COMMON)
+	var dmg_prev: String = BuildSummary.stat_card_preview(player,
+		load("res://systems/upgrades/upgrades/core/player_damage.tres"), Upgrade.Rarity.COMMON)
+	var preview_ok: bool = armor_prev == "+1 (2 -> 3)" and split_prev == "+15% (+0% -> +15%)" \
+		and dmg_prev == "+10% more (x1.00 -> x1.10)"
+	var extras: String = BuildSummary.extras_line(player)
+	var extras_ok: bool = "Max Health: 120" in extras and "Status Duration: +100%" in extras \
+		and not "Sparks" in extras
+	var tag: String = um.deck_tag(load(DAGGER))
+	var tag_ok: bool = tag == "  [Projectile]"
+	print("UX deck_economy: manifest=%s pool=%s previews(armor='%s' split='%s' dmg='%s')=%s extras=%s tag='%s'" % [
+		str(manifest_ok), str(pool_ok), armor_prev, split_prev, dmg_prev,
+		str(preview_ok), str(extras_ok), tag])
+
 	var pass_all: bool = stats_ok and compact_ok and loadout_ok and evolved_ok and draft_ok \
-		and pretty_ok and detail_ok and hint_ok and duration_ok
+		and pretty_ok and detail_ok and hint_ok and duration_ok \
+		and manifest_ok and pool_ok and preview_ok and extras_ok and tag_ok
 	print("UX RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

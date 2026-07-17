@@ -568,6 +568,12 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 	if is_instance_valid(player):
 		player.notify_stats_changed()
 			
+## The deck a card belongs to, as a short UI tag (" [Fire]"), or "" for deck-less cards (character
+## exclusives). Cards say where they're from so combo-gate progress is readable at draft time.
+func deck_tag(upgrade: Upgrade) -> String:
+	var deck_id: String = _upgrade_deck_ids.get(upgrade, "")
+	return "  [%s]" % deck_id.capitalize() if deck_id != "" else ""
+
 ## Builds a weapon instance at a given rarity tier.
 ## @param rarity: The tier this instance is. Must be applied before the weapon enters the tree --
 ##                Weapon._ready() bakes it into the stats it duplicates for itself.

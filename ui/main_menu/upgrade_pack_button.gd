@@ -17,6 +17,11 @@ var deck_data: Deck
 var is_unlocked: bool = false
 var _is_selected: bool = false
 
+# The deck's contents, derived from its card data (BuildSummary.deck_manifest_lines) -- with the
+# core deck dissolved, WHICH stats a deck carries is the pick's load-bearing information.
+var _manifest_label: RichTextLabel
+const BuildSummary := preload("res://systems/global/build_summary.gd")
+
 func _ready():
 	update_display()
 	select_button.pressed.connect(_on_button_pressed)
@@ -29,17 +34,28 @@ func update_display():
 	if not is_instance_valid(name_label):
 		return
 
-	name_label.text = deck_data.deck_name if is_unlocked else "LOCKED"
-	description_label.text = deck_data.deck_description if is_unlocked else ""
-
+	# Locked decks stay READABLE (name, contents, and how to get them) -- a silhouette with its
+	# unlock condition teaches the roster; a blank "LOCKED" tile teaches nothing.
 	if is_unlocked:
-		icon_rect.texture = deck_data.deck_icon
-		self.modulate = Color.WHITE
-		select_button.disabled = false
+		name_label.text = deck_data.deck_name
 	else:
-		icon_rect.texture = null
-		self.modulate = Color.DARK_GRAY
-		select_button.disabled = true
+		name_label.text = "%s  (LOCKED -- %d souls)" % [deck_data.deck_name, deck_data.unlock_cost]
+	description_label.text = deck_data.deck_description
+	icon_rect.texture = deck_data.deck_icon
+	self.modulate = Color.WHITE if is_unlocked else Color.DARK_GRAY
+	select_button.disabled = not is_unlocked
+
+	if not _manifest_label:
+		_manifest_label = RichTextLabel.new()
+		_manifest_label.bbcode_enabled = true
+		_manifest_label.fit_content = true
+		_manifest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		# Clicks must fall through to the full-tile SelectButton underneath.
+		_manifest_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for font_key in ["normal_font_size", "bold_font_size", "italics_font_size"]:
+			_manifest_label.add_theme_font_size_override(font_key, 11)
+		$MarginContainer/VBoxContainer.add_child(_manifest_label)
+	_manifest_label.text = "\n".join(BuildSummary.deck_manifest_lines(deck_data))
 
 	_update_selection_visual()
 

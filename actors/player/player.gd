@@ -298,7 +298,9 @@ func get_stat(key: String):
 		"spark_count_bonus":
 			return in_run_bonuses.get("spark_count_bonus", 0)
 		"spark_damage_bonus":
-			return 1.0 + in_run_bonuses.get("spark_damage_bonus", 0.0)
+			# Through the two-layer path: the Overload card is authored MULTIPLICATIVE, so it lands
+			# in in_run_multipliers -- the old "1.0 + bonuses" read made it a dead card.
+			return get_stat_multiplier(key)
 		"spark_bounce_bonus":
 			return in_run_bonuses.get("spark_bounce_bonus", 0)
 		_:

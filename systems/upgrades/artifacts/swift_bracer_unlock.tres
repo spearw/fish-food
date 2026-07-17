@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "swift_bracer_unlock"
 display_name = "Swift Bracer"
-description = "An artifact of speed."
+description = "Attack 25% faster."
 type = 1
 target_class_name = "SwiftBracer"
 scene_to_unlock = ExtResource("1_scene")

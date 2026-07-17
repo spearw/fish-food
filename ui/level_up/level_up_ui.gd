@@ -313,27 +313,27 @@ func _refresh_summary() -> void:
 			var upgrade: Upgrade = upgrade_package["upgrade"]
 			var rarity_enum: Upgrade.Rarity = upgrade_package["rarity"]
 			
-			# Check if it has multiple rarities
+			# Every card names its deck (combo-gate progress is a draft-time read) and stat cards
+			# show delta AND resulting total via the one formatter that shares apply_upgrade's
+			# routing -- the old inline branches printed raw values ("+0.15" for a percent card)
+			# and never said where you'd land.
+			var deck_tag: String = upgrade_manager.deck_tag(upgrade)
 			if upgrade.rarity_values.size() > 0:
-				var value = upgrade.rarity_values[rarity_enum]
-				# Dyanmic text and colors
-				if upgrade.modifier_type == Upgrade.ModifierType.MULTIPLICATIVE:
-					button.text = "%s\n%s (+%s%%)" % [upgrade.display_name, upgrade.description, value * 100]
-				elif upgrade.modifier_type == Upgrade.ModifierType.ADDITIVE:
-					button.text = "%s\n%s (+%s)" % [upgrade.display_name, upgrade.description, value]
-				elif upgrade.modifier_type == Upgrade.ModifierType.POWERS:
-					button.text = "%s\n%s (+%s level(s))" % [upgrade.display_name, upgrade.description, value]
+				button.text = "%s%s\n%s\n%s" % [upgrade.display_name, deck_tag,
+					upgrade.description,
+					BuildSummary.stat_card_preview(player_node, upgrade, rarity_enum)]
 			elif upgrade.type == Upgrade.UpgradeType.UNLOCK_WEAPON:
 				# Name the tier in text (Brotato conveys tier by colour alone and players report not
 				# being able to read it), AND what taking the card does -- a merge and an in-place
 				# upgrade resolve differently from "new weapon", and the card is where that's learned.
-				button.text = "%s (%s)%s\n%s" % [
+				button.text = "%s (%s)%s%s\n%s" % [
 					upgrade.display_name,
 					Upgrade.Rarity.keys()[rarity_enum].capitalize(),
+					deck_tag,
 					upgrade_manager.describe_weapon_take(upgrade, rarity_enum),
 					upgrade.description]
 			else:
-				button.text = "%s\n%s" % [upgrade.display_name, upgrade.description]
+				button.text = "%s%s\n%s" % [upgrade.display_name, deck_tag, upgrade.description]
 				
 			match rarity_enum:
 				Upgrade.Rarity.COMMON:

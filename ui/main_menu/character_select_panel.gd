@@ -174,6 +174,8 @@ func populate_pack_grid():
 			button.set_selected(true)
 			selected_packs.append(button)
 
+	_update_pool_preview()
+
 func _on_pack_selection_toggled(button_instance: DeckButton):
 	if button_instance.is_selected():
 		# The button was just checked.
@@ -189,6 +191,27 @@ func _on_pack_selection_toggled(button_instance: DeckButton):
 		# The button was just unchecked.
 		if button_instance in selected_packs:
 			selected_packs.erase(button_instance)
+	_update_pool_preview()
+
+# The composed result of the current picks -- pool size and which stats the PAIR carries (missing
+# ones dimmed). With the core deck dissolved the pick IS the run's stat economy, so the screen
+# shows the contract you're signing, not just the parts (design doc section 1b).
+var _pool_preview_label: RichTextLabel
+const BuildSummary := preload("res://systems/global/build_summary.gd")
+
+func _update_pool_preview() -> void:
+	if not _pool_preview_label:
+		_pool_preview_label = RichTextLabel.new()
+		_pool_preview_label.bbcode_enabled = true
+		_pool_preview_label.fit_content = true
+		_pool_preview_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_pool_preview_label.custom_minimum_size = Vector2(0, 44)
+		# The grid lives in a ScrollContainer; the preview sits under the whole packs column.
+		pack_grid.get_parent().get_parent().add_child(_pool_preview_label)
+	var decks: Array = []
+	for b in selected_packs:
+		decks.append(b.deck_data)
+	_pool_preview_label.text = BuildSummary.pool_preview(decks)
 
 # Get the player's chosen decks (the core deck joins automatically at run composition).
 func get_currently_selected_pack_paths_from_ui() -> Array[String]:

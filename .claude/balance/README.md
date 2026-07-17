@@ -141,3 +141,12 @@ explosions, DoT ticks) goes through it. Enemy-fired sources keep raw authored nu
 - Deliberately NOT built: PoE's "crits guarantee ailments" (crit→status direction) and
   Brotato-Spoon "statused enemies take bonus crit" (status→crit) — both are strong future
   artifact/combo hooks, noted here so they get built as content, not formula changes.
+
+## Melee prices in range, not numbers (William, July 2026)
+
+Melee weapons are ALLOWED to top the DPS charts: short range is the payment, and infinite cleave
+(the swing arc hits everything in it) is part of the identity, not an accident. Two standing
+"outlier" flags are hereby retired — **lightning_sword ~396 and axe ~194 are working as designed.**
+Bench context that makes this doubly true: the fixed ring parks enemies inside the arc, so the
+bench reads melee at its absolute best case. Do not propose melee damage nerfs off bench absolutes;
+melee balance questions are about REACH and SAFETY, and belong to playtest.

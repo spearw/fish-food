@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="DeckCombo" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://systems/combos/deck_combo.gd" id="1_combo"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upg"]
+[ext_resource type="Resource" path="res://systems/upgrades/combos/synergy_airburst_rounds.tres" id="3_s1"]
+[ext_resource type="Resource" path="res://systems/upgrades/combos/synergy_rolling_barrage.tres" id="4_s2"]
+
+[resource]
+script = ExtResource("1_combo")
+combo_name = "Cosmic + Projectile"
+deck_a_id = "cosmic"
+deck_b_id = "projectile"
+power_gate = 4
+synergies = Array[ExtResource("2_upg")]([ExtResource("3_s1"), ExtResource("4_s2")])

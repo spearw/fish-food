@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bfallskywpn00001" path="res://items/weapons/falling_sky/falling_sky.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "falling_sky_unlock"
+display_name = "Falling Sky"
+description = "A small strike at a random point near you, every 0.8s, always. The sky simply falls."
+type = 0
+target_class_name = "FallingSkyWeapon"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 0
+key = ""
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ComboList" load_steps=13 format=3 uid="uid://cflmastercombolist01"]
+[gd_resource type="Resource" script_class="ComboList" load_steps=18 format=3 uid="uid://cflmastercombolist01"]
 
 [ext_resource type="Script" path="res://systems/combos/combo_list.gd" id="1_list"]
 [ext_resource type="Script" path="res://systems/combos/deck_combo.gd" id="2_dc"]
@@ -12,7 +12,12 @@
 [ext_resource type="Resource" path="res://systems/combos/melee_projectile_combo.tres" id="10_mp"]
 [ext_resource type="Resource" path="res://systems/combos/melee_venom_combo.tres" id="11_mv"]
 [ext_resource type="Resource" path="res://systems/combos/projectile_venom_combo.tres" id="12_pv"]
+[ext_resource type="Resource" path="res://systems/combos/cosmic_fire_combo.tres" id="13_cf"]
+[ext_resource type="Resource" path="res://systems/combos/cosmic_lightning_combo.tres" id="14_cl"]
+[ext_resource type="Resource" path="res://systems/combos/cosmic_melee_combo.tres" id="15_cm"]
+[ext_resource type="Resource" path="res://systems/combos/cosmic_projectile_combo.tres" id="16_cp"]
+[ext_resource type="Resource" path="res://systems/combos/cosmic_venom_combo.tres" id="17_cv"]
 
 [resource]
 script = ExtResource("1_list")
-combos = Array[ExtResource("2_dc")]([ExtResource("3_flc"), ExtResource("4_fm"), ExtResource("5_fp"), ExtResource("6_fv"), ExtResource("7_lm"), ExtResource("8_lp"), ExtResource("9_lv"), ExtResource("10_mp"), ExtResource("11_mv"), ExtResource("12_pv")])
+combos = Array[ExtResource("2_dc")]([ExtResource("3_flc"), ExtResource("4_fm"), ExtResource("5_fp"), ExtResource("6_fv"), ExtResource("7_lm"), ExtResource("8_lp"), ExtResource("9_lv"), ExtResource("10_mp"), ExtResource("11_mv"), ExtResource("12_pv"), ExtResource("13_cf"), ExtResource("14_cl"), ExtResource("15_cm"), ExtResource("16_cp"), ExtResource("17_cv")])

@@ -231,6 +231,20 @@ func _deal_damage(body: Node2D) -> float:
 				and user.global_position.distance_to(body.global_position) < 130.0:
 			final_damage *= 1.0 + point_blank
 
+		# Cosmic combo conditionals -- Solar Flare (+dmg vs burning) and Critical Condition
+		# (+dmg vs FULL venom stacks). Guarded to zero cost unless the artifacts are held.
+		var vs_burn: float = user.get_stat("bonus_vs_burning")
+		var vs_venom: float = user.get_stat("bonus_vs_max_venom")
+		if (vs_burn > 0.0 or vs_venom > 0.0) and body.has_node("StatusEffectManager"):
+			var target_mgr = body.get_node("StatusEffectManager")
+			if vs_burn > 0.0 and (target_mgr.active_statuses.has("burning") \
+					or target_mgr.active_statuses.has("ignited")):
+				final_damage *= 1.0 + vs_burn
+			if vs_venom > 0.0 and target_mgr.active_statuses.has("poison"):
+				var venom = target_mgr.active_statuses["poison"]["effect"]
+				if "stacks" in venom and venom.stacks >= venom.max_stacks:
+					final_damage *= 1.0 + vs_venom
+
 	# Apply ARMOR_PEN effect for bonus penetration
 	var armor_pen = stats.armor_penetration
 	if stats.has_effect(WeaponTags.Effect.ARMOR_PEN):
@@ -278,6 +292,15 @@ func _apply_effect_tags(body: Node2D, damage_dealt: float):
 		if venom_chance > 0.0 and randf() < venom_chance:
 			body.get_node("StatusEffectManager").apply_status(COMBO_POISON, user, "Toxic Rounds")
 
+	# Cosmic combo triggers -- Airburst Rounds (hits chance a mini-strike) and Storm Cell
+	# (crits release a spark; registry defaults, projectile path only).
+	if is_instance_valid(user) and user.has_method("get_stat"):
+		var strike_chance: float = user.get_stat("on_hit_strike_chance")
+		if strike_chance > 0.0 and randf() < strike_chance:
+			_spawn_airburst(body)
+		if _last_hit_crit and user.get_stat("crit_spark") > 0.0:
+			_create_spark(body.global_position, body, 6, 3, 200.0, 600.0, 0.5)
+
 	if stats.effects.is_empty():
 		return
 
@@ -295,6 +318,21 @@ func _apply_effect_tags(body: Node2D, damage_dealt: float):
 	# LIFESTEAL Effect - Heal user based on damage dealt
 	if stats.has_effect(WeaponTags.Effect.LIFESTEAL) and damage_dealt > 0:
 		_apply_lifesteal_effect(damage_dealt)
+
+## Airburst Rounds (Cosmic+Projectile combo): a mini-strike detonates on the struck enemy.
+func _spawn_airburst(body: Node2D) -> void:
+	var burst_stats = ExplosionStats.new()
+	burst_stats.damage = 12
+	burst_stats.scale = Vector2(2.2, 2.2)
+	burst_stats.modulation = Color(0.85, 0.9, 1.0, 0.8)
+	burst_stats.effect_duration = 0.25
+	var explosion = load("res://systems/projectiles/explosion/explosion_effect.tscn").instantiate()
+	explosion.stats = burst_stats
+	explosion.allegiance = allegiance
+	explosion.user = user
+	explosion.attribution_key = "Airburst Rounds"
+	get_tree().current_scene.add_child(explosion)
+	explosion.global_position = body.global_position
 
 ## Creates and applies a DOT status effect based on registry data.
 func _apply_dot_effect(body: Node2D):

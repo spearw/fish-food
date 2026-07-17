@@ -45,7 +45,7 @@ func _ready() -> void:
 		and velocity_card.modifier_type == Upgrade.ModifierType.MULTIPLICATIVE \
 		and nova_card.key == "critical_hit_damage" \
 		and nova_card.modifier_type == Upgrade.ModifierType.MULTIPLICATIVE
-	var shape_ok: bool = man.weapons.size() == 3 and man.evolutions == 6 \
+	var shape_ok: bool = man.weapons.size() == 5 and man.evolutions == 10 \
 		and man.artifacts.size() == 3 and man.mechanics.size() == 4 and cards_ok \
 		and master.size() == 7 and deck.id == "cosmic" \
 		and meteor_scene.themes == Array([5], TYPE_INT, "", null)
@@ -85,9 +85,58 @@ func _ready() -> void:
 	var gyre_ok: bool = gyre.ok and absf(gyre_zone.tick_rate - 0.2625) < 0.001 \
 		and absf(gyre_zone.scale.x - 2.24) < 0.01
 
-	var evo_ok: bool = shower_ok and impact_ok and twin_ok and iron_ok and eternal_ok and gyre_ok
-	print("COSMIC evolutions: shower=%s impact=%s twin=%s iron=%s eternal=%s gyre=%s" % [
-		str(shower_ok), str(impact_ok), str(twin_ok), str(iron_ok), str(eternal_ok), str(gyre_ok)])
+	var accretion: Dictionary = _transformed("res://items/weapons/singularity/singularity.tscn",
+		C + "singularity_accretion_transform.tres")
+	var accretion_ok: bool = accretion.ok and absf(accretion.weapon.pull_radius - 330.0) < 0.01 \
+		and absf(accretion.weapon.pull_force - 126.0) < 0.01
+
+	var collapse: Dictionary = _transformed("res://items/weapons/singularity/singularity.tscn",
+		C + "singularity_collapse_transform.tres")
+	var collapse_ok: bool = collapse.ok and collapse.weapon.pop_per_enemy == 6
+
+	var storm_stars: Dictionary = _transformed("res://items/weapons/falling_sky/falling_sky.tscn",
+		C + "falling_sky_storm_of_stars_transform.tres")
+	var storm_stars_ok: bool = storm_stars.ok \
+		and absf(storm_stars.weapon.base_fire_rate - 0.52) < 0.001
+
+	var guided: Dictionary = _transformed("res://items/weapons/falling_sky/falling_sky.tscn",
+		C + "falling_sky_guided_descent_transform.tres")
+	var guided_ok: bool = guided.ok and guided.weapon.has_transformation("guided_descent")
+
+	var evo_ok: bool = shower_ok and impact_ok and twin_ok and iron_ok and eternal_ok \
+		and gyre_ok and accretion_ok and collapse_ok and storm_stars_ok and guided_ok
+	print("COSMIC evolutions: shower=%s impact=%s twin=%s iron=%s eternal=%s gyre=%s accretion=%s collapse=%s storm=%s guided=%s" % [
+		str(shower_ok), str(impact_ok), str(twin_ok), str(iron_ok), str(eternal_ok), str(gyre_ok),
+		str(accretion_ok), str(collapse_ok), str(storm_stars_ok), str(guided_ok)])
+
+	# --- 2b. Singularity zone runtime: the pull drags an entity toward the center; the pop lands ---
+	var zone = load("res://items/weapons/singularity/singularity_zone.tscn").instantiate()
+	zone.stats = load("res://items/weapons/singularity/singularity_stats.tres").duplicate(true)
+	zone.user = mock
+	zone.attribution_key = "SingularityWeapon"
+	add_child(zone)
+	zone.global_position = Vector2.ZERO
+	var prey = load("res://actors/entity.gd").new()
+	prey.stats = load("res://bench_dummies/dummy_baseline.tres").duplicate()
+	add_child(prey)
+	var prey_mgr := StatusEffectManager.new()
+	prey_mgr.name = "StatusEffectManager"
+	prey.add_child(prey_mgr)
+	prey.global_position = Vector2(100, 0)
+	EntityRegistry.register_enemy(prey)  # the zone finds targets through the registry
+	EntityRegistry._rebuild_grid()  # grid rebuilds on physics frames; _ready is synchronous
+	# Pull ticks push from the enemy's far-side reflection = knockback velocity points centerward.
+	zone._pull_tick = 0.0
+	zone._physics_process(0.016)
+	var pulled_ok: bool = false
+	if "knockback_velocity" in prey:
+		pulled_ok = prey.knockback_velocity.x < 0.0
+	var hp_prey: int = prey.current_health
+	zone._age = 99.0
+	zone._physics_process(0.016)  # past pull_duration -> pop
+	var pop_ok: bool = hp_prey - prey.current_health == 25 and zone._popped
+	print("COSMIC singularity: pulled_centerward=%s pop_dmg=%d (want 25) ok=%s" % [
+		str(pulled_ok), hp_prey - prey.current_health, str(pulled_ok and pop_ok)])
 
 	# --- 3. Artifacts ---
 	var charts = load("res://items/artifacts/cosmic/star_charts_artifact.gd").new()
@@ -107,6 +156,6 @@ func _ready() -> void:
 	print("COSMIC artifacts: charts=+%d escape=x%.2f skyfall_no_target_safe=true ok=%s" % [
 		charts.get_projectile_bonus(), escape.get_speed_modifier(), str(art_ok)])
 
-	var pass_all: bool = shape_ok and evo_ok and art_ok
+	var pass_all: bool = shape_ok and evo_ok and art_ok and pulled_ok and pop_ok
 	print("COSMIC RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

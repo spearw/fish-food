@@ -12,7 +12,7 @@ func _ready() -> void:
 	for combo in loaded:
 		if combo.involves("fire", "lightning"):
 			fl = combo
-	var content_ok: bool = loaded.size() == 10 and fl != null and fl.synergies.size() == 3
+	var content_ok: bool = loaded.size() == 15 and fl != null and fl.synergies.size() == 3
 	if content_ok:
 		for syn in fl.synergies:
 			if syn == null or syn.scene_to_unlock == null:

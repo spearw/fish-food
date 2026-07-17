@@ -52,7 +52,7 @@ func _ready() -> void:
 	for deck in load("res://systems/global/lists/master_pack_list.tres").decks:
 		deck_ids.append(deck.id)
 	var pairs := {}
-	var registry_ok: bool = master.combos.size() == 10
+	var registry_ok: bool = master.combos.size() == 15  # C(6,2): full coverage incl. Cosmic
 	for combo in master.combos:
 		var key_arr: Array = [combo.deck_a_id, combo.deck_b_id]
 		key_arr.sort()
@@ -165,8 +165,75 @@ func _ready() -> void:
 	bloom_ok = bloom_ok and _count(func(c): return c is PersistentDamageEffect) == zones0 + 1
 	print("COMBOS fever_bloom: zone_on_poisoned_death=%s" % str(bloom_ok))
 
+	# --- 2g. Cosmic combo hooks ---
+	# Tidal Lock: applying poison also applies the slow (listener on the status signal).
+	var tidal = load("res://items/artifacts/combos/cosmic_venom/tidal_lock_artifact.gd").new()
+	tidal.user = mock
+	add_child(tidal)
+	tidal.on_equipped()
+	var victim7 = _entity()
+	victim7.get_node("StatusEffectManager").apply_status(
+		load(POISON), null, "T")
+	var tidal_ok: bool = victim7.get_node("StatusEffectManager").active_statuses.has("tidal_lock")
+	tidal.on_unequipped()
+
+	# Comet Fist: the 4th melee hit calls a burst on the victim.
+	var fist = load("res://items/artifacts/combos/cosmic_melee/comet_fist_artifact.gd").new()
+	fist.user = mock
+	add_child(fist)
+	fist.on_equipped()
+	var victim8 = _entity()
+	var bursts0: int = _count(func(c): return String(c.get("attribution_key")) == "Comet Fist" if c.get("attribution_key") != null else false)
+	for i in range(3):
+		Events.enemy_hit.emit({"enemy": victim8, "damage": 5, "is_crit": false})
+	var early_bursts: int = _count(func(c): return String(c.get("attribution_key")) == "Comet Fist" if c.get("attribution_key") != null else false)
+	Events.enemy_hit.emit({"enemy": victim8, "damage": 5, "is_crit": false})
+	var fist_ok: bool = early_bursts == bursts0 \
+		and _count(func(c): return String(c.get("attribution_key")) == "Comet Fist" if c.get("attribution_key") != null else false) == bursts0 + 1
+	fist.on_unequipped()
+
+	# Solar Flare conditional: hits on a BURNING target are amplified (real damage path).
+	mock.stat_values["bonus_vs_burning"] = 1.0
+	var victim9 = _entity()
+	var flare_burn: DotStatusEffect = load("res://systems/status_effects/fire/burning.tres").duplicate(true)
+	flare_burn.additional_status_chance = 0.0
+	victim9.get_node("StatusEffectManager").apply_status(flare_burn, null, "T")
+	var proj3 = load("res://systems/projectiles/projectile.tscn").instantiate()
+	var flare_stats = load("res://items/artifacts/combos/melee_projectile/riposte_dart_stats.tres").duplicate(true)
+	flare_stats.critical_hit_rate = 0.0  # determinism
+	proj3.stats = flare_stats
+	proj3.user = mock
+	proj3.allegiance = Projectile.Allegiance.PLAYER
+	proj3.direction = Vector2.RIGHT
+	add_child(proj3)
+	var hp9: int = victim9.current_health
+	proj3._deal_damage(victim9)
+	var flare_ok: bool = hp9 - victim9.current_health == 12  # 6 base x2 vs burning
+	mock.stat_values["bonus_vs_burning"] = 0.0
+
+	# Storm Cell + Airburst: crit releases a spark; hit-strike chance detonates.
+	mock.stat_values["crit_spark"] = 1.0
+	mock.stat_values["on_hit_strike_chance"] = 1.0
+	var proj4 = load("res://systems/projectiles/projectile.tscn").instantiate()
+	proj4.stats = flare_stats
+	proj4.user = mock
+	proj4.allegiance = Projectile.Allegiance.PLAYER
+	proj4.direction = Vector2.RIGHT
+	add_child(proj4)
+	proj4._last_hit_crit = true
+	var sparks_before: int = _count(func(c): return c is SparkProjectile)
+	var bursts_before: int = _count(func(c): return String(c.get("attribution_key")) == "Airburst Rounds" if c.get("attribution_key") != null else false)
+	proj4._apply_effect_tags(victim9, 5.0)
+	var cell_ok: bool = _count(func(c): return c is SparkProjectile) == sparks_before + 1 \
+		and _count(func(c): return String(c.get("attribution_key")) == "Airburst Rounds" if c.get("attribution_key") != null else false) == bursts_before + 1
+	mock.stat_values["crit_spark"] = 0.0
+	mock.stat_values["on_hit_strike_chance"] = 0.0
+	print("COMBOS cosmic: tidal=%s fist=%s flare=%s cell+airburst=%s" % [
+		str(tidal_ok), str(fist_ok), str(flare_ok), str(cell_ok)])
+
 	CurrentRun.reset_run_state()
 	var pass_all: bool = registry_ok and caustic_ok and discharge_ok and whiff_ok \
-		and incendiary_ok and blades_ok and bloom_ok
+		and incendiary_ok and blades_ok and bloom_ok \
+		and tidal_ok and fist_ok and flare_ok and cell_ok
 	print("COMBOS RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

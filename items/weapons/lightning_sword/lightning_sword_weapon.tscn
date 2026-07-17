@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://clightningswordweapon"]
+[gd_scene load_steps=8 format=3 uid="uid://clightningswordweapon"]
 
-[ext_resource type="Script" uid="uid://b0g8wtar8xbcn" path="res://items/weapons/_generics/weapon.gd" id="1_weapon"]
+[ext_resource type="Script" path="res://items/weapons/lightning_sword/lightning_sword_weapon.gd" id="1_weapon"]
+[ext_resource type="Resource" uid="uid://bstormwavest0001" path="res://items/weapons/lightning_sword/storm_wave_stats.tres" id="7_wave"]
 [ext_resource type="Resource" path="res://items/weapons/lightning_sword/lightning_sword_stats.tres" id="2_stats"]
 [ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="3_targeting"]
 [ext_resource type="PackedScene" path="res://items/weapons/lightning_sword/lightning_sword_swing.tscn" id="4_swing"]
@@ -10,6 +11,7 @@
 [node name="LightningSwordWeapon" type="Node2D"]
 script = ExtResource("1_weapon")
 projectile_stats = ExtResource("2_stats")
+wave_stats = ExtResource("7_wave")
 custom_projectile_scene = ExtResource("4_swing")
 base_fire_rate = 0.8
 themes = Array[int]([2])

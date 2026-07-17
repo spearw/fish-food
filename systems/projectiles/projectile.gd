@@ -17,6 +17,9 @@ var has_redirected: bool = false
 ## Damage-report identity ("Daggers"): set by FireBehaviorComponent from the owning weapon each
 ## fire; inherited by everything this projectile causes (sparks, explosions, statuses, zones).
 var attribution_key: String = ""
+## Whether the most recent _deal_damage roll was a crit -- read by the spark spawner so
+## crit-reactive evolutions (Static Needles) can scale their output.
+var _last_hit_crit := false
 
 # --- Calculated Values ---
 var damage: float = 0.0
@@ -201,6 +204,7 @@ func _deal_damage(body: Node2D) -> float:
 	if randf() < crit_rate:
 		final_damage = damage * crit_damage
 		is_crit = true
+	_last_hit_crit = is_crit
 
 	# Apply tag bonus damage vs enemy types
 	final_damage *= _calculate_tag_bonus(body)
@@ -325,6 +329,10 @@ func _apply_spark_effect(hit_body: Node2D):
 		var damage_mult = user.get_stat("spark_damage_bonus") if user.get_stat("spark_damage_bonus") else 1.0
 		spark_damage = int(spark_damage * damage_mult)
 		spark_bounces += int(user.get_stat("spark_bounce_bonus")) if user.get_stat("spark_bounce_bonus") else 0
+
+	# Static Needles: critical hits release extra sparks (authored via SPARK effect_overrides).
+	if _last_hit_crit:
+		spark_count = int(spark_count * spark_data.get("crit_spark_multiplier", 1.0))
 
 	# Find enemies to target (excluding the one we just hit) -- spatial-hash query, not all enemies.
 	var candidates = EntityRegistry.get_candidates_near("enemies", hit_body.global_position, spark_range)

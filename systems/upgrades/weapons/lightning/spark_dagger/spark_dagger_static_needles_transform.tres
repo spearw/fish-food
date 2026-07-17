@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = "spark_dagger_static_needles_transform"
+display_name = "Static Needles"
+description = "+10% base crit, and critical hits release double sparks."
+type = 3
+target_class_name = "SparkDaggerWeapon"
+rarity = 2
+key = "static_needles"
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

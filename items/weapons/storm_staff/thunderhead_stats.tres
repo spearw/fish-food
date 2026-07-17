@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MultiStageProjectileStats" load_steps=5 format=3 uid="uid://bthunderheadst001"]
+
+[ext_resource type="PackedScene" uid="uid://dixeudgqhntlc" path="res://items/effects/persistent_damage_effect.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://0gxb71relmj2" path="res://systems/projectiles/multi_stage_projectile/multi_stage_projectile.gd" id="2_script"]
+[ext_resource type="Resource" uid="uid://bthundercloudst01" path="res://items/weapons/storm_staff/thunderhead_cloud_stats.tres" id="3_cloud"]
+[ext_resource type="Texture2D" uid="uid://cjhuc2ggq2dov" path="res://items/weapons/storm_staff/storm.png" id="4_tex"]
+
+[resource]
+script = ExtResource("2_script")
+on_death_effect_stats = ExtResource("3_cloud")
+on_death_effect_scene = ExtResource("1_scene")
+damage = 12
+speed = 350.0
+lifetime = 2.5
+pierce = 0
+knockback_force = 60.0
+armor_penetration = 0.0
+critical_hit_rate = 0.08
+critical_hit_damage = 0.75
+homing_strength = 2.0
+is_scaling = true
+status_chance = 1.0
+effects = Array[int]([5, 12])
+effect_overrides = {}
+texture = ExtResource("4_tex")
+scale = Vector2(1.2, 1.2)
+modulation = Color(0.6, 0.7, 1, 1)
+metadata/_custom_type_script = "uid://0gxb71relmj2"

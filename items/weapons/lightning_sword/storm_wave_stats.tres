@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ProjectileStats" load_steps=3 format=3 uid="uid://bstormwavest0001"]
+
+[ext_resource type="Script" uid="uid://dm4u2phuyptno" path="res://systems/projectiles/projectile_stats.gd" id="1_stats"]
+[ext_resource type="Texture2D" uid="uid://cng855njfowub" path="res://items/weapons/chain_lightning/lightning.png" id="2_tex"]
+
+[resource]
+script = ExtResource("1_stats")
+damage = 8
+speed = 450.0
+lifetime = 0.45
+pierce = 5
+knockback_force = 60.0
+armor_penetration = 0.1
+critical_hit_rate = 0.15
+critical_hit_damage = 0.5
+homing_strength = 0.0
+is_scaling = true
+status_chance = 1.0
+effects = Array[int]([3, 12])
+effect_overrides = {}
+texture = ExtResource("2_tex")
+scale = Vector2(2.2, 1.1)
+modulation = Color(0.7, 0.85, 1, 1)
+metadata/_custom_type_script = "uid://dm4u2phuyptno"

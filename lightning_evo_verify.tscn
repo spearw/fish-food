@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://blightningevo001"]
+
+[ext_resource type="Script" path="res://lightning_evo_verify.gd" id="1_evo"]
+
+[node name="LightningEvoVerify" type="Node"]
+script = ExtResource("1_evo")

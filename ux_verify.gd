@@ -124,7 +124,7 @@ func _ready() -> void:
 	var manifest_ok: bool = "Spark Dagger" in man_lines and "Damage" in man_lines \
 		and "Max Health" in man_lines and "Spark Surge" in man_lines
 	var pool: String = BuildSummary.pool_preview([lightning, melee])
-	var pool_ok: bool = "41 cards, 9 weapons" in pool \
+	var pool_ok: bool = "46 cards, 9 weapons" in pool \
 		and "[color=gold]Damage x2[/color]" in pool and "Crit Chance x2" in pool \
 		and "[color=#606060]Area Size[/color]" in pool
 	var armor_prev: String = BuildSummary.stat_card_preview(player,

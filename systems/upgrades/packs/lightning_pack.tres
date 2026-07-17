@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=25 format=3 uid="uid://bocg4md8mrsy6"]
+[gd_resource type="Resource" script_class="Deck" load_steps=30 format=3 uid="uid://bocg4md8mrsy6"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_pack"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/upgrade.gd" id="2_upgrade"]
@@ -12,6 +12,11 @@
 [ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/storm_staff/storm_staff_thunderhead_transform.tres" id="97_thundertrans"]
 [ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/lightning_sword/lightning_sword_storm_blade_transform.tres" id="98_bladetrans"]
 [ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/spark_dagger/spark_dagger_static_needles_transform.tres" id="99_needletrans"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/chain_lightning/chain_lightning_superconductor_transform.tres" id="100_supertrans"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/tesla_coil/tesla_coil_field_transform.tres" id="101_fieldtrans"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/storm_staff/storm_staff_ball_lightning_transform.tres" id="102_balltrans"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/lightning_sword/lightning_sword_thunderclap_transform.tres" id="103_claptrans"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/lightning/spark_dagger/spark_dagger_arc_fan_transform.tres" id="104_fantrans"]
 [ext_resource type="Resource" uid="uid://cthtnn8kxephd" path="res://systems/upgrades/artifacts/lightning/grounding_unlock.tres" id="7_grounding"]
 [ext_resource type="Resource" path="res://systems/upgrades/artifacts/lightning/surge_protector_unlock.tres" id="8_surgeprotector"]
 [ext_resource type="Resource" uid="uid://b7srv8d3unwc8" path="res://systems/upgrades/artifacts/lightning/static_discharge_unlock.tres" id="9_staticdischarge"]
@@ -31,5 +36,5 @@ id = "lightning"
 deck_name = "Lightning"
 deck_description = "Sparks bounce between enemies, chaining damage across groups. Synergizes with spark count, damage, and bounce upgrades."
 unlock_cost = 0
-upgrades = Array[ExtResource("2_upgrade")]([ExtResource("3_chainlightning"), ExtResource("4_teslacoil"), ExtResource("5_stormstaff"), ExtResource("6_lightningsword"), ExtResource("14_sparkdagger"), ExtResource("7_grounding"), ExtResource("8_surgeprotector"), ExtResource("9_staticdischarge"), ExtResource("10_conductive"), ExtResource("11_sparkcount"), ExtResource("12_sparkdamage"), ExtResource("13_conductivity"), ExtResource("90_statdamage"), ExtResource("91_statcritc"), ExtResource("92_statcritd"), ExtResource("93_statluck"), ExtResource("94_statmaxhp"), ExtResource("95_forktrans"), ExtResource("96_overtrans"), ExtResource("97_thundertrans"), ExtResource("98_bladetrans"), ExtResource("99_needletrans")])
+upgrades = Array[ExtResource("2_upgrade")]([ExtResource("3_chainlightning"), ExtResource("4_teslacoil"), ExtResource("5_stormstaff"), ExtResource("6_lightningsword"), ExtResource("14_sparkdagger"), ExtResource("7_grounding"), ExtResource("8_surgeprotector"), ExtResource("9_staticdischarge"), ExtResource("10_conductive"), ExtResource("11_sparkcount"), ExtResource("12_sparkdamage"), ExtResource("13_conductivity"), ExtResource("90_statdamage"), ExtResource("91_statcritc"), ExtResource("92_statcritd"), ExtResource("93_statluck"), ExtResource("94_statmaxhp"), ExtResource("95_forktrans"), ExtResource("96_overtrans"), ExtResource("97_thundertrans"), ExtResource("98_bladetrans"), ExtResource("99_needletrans"), ExtResource("100_supertrans"), ExtResource("101_fieldtrans"), ExtResource("102_balltrans"), ExtResource("103_claptrans"), ExtResource("104_fantrans")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

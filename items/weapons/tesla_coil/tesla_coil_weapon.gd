@@ -4,9 +4,21 @@ extends TransformableWeapon
 
 ## Overcharged Capacitor: the coil finally becomes what its card always claimed -- a slow,
 ## PATIENT weapon. Longer charge, triple hit, and the bolt forks into three on impact.
+## Tesla Field: turret becomes FIELD -- the coil stops firing and projects a permanent zap aura
+## around the player (the flamethrower Ring of Fire pattern, recolored).
 const FORK_SCENE := preload("res://systems/projectiles/fork_projectile/fork_bolt_x3.tscn")
 const OVERCHARGE_WAIT := 4.0
 const OVERCHARGE_DAMAGE_MULT := 3.0
+
+## Exported so weapon._ready() localizes and rarity-scales the aura with the instance's tier.
+@export var tesla_field_stats: PersistentEffectStats
+var _field_instance: Node = null
+
+func fire(multiplier: int = 1):
+	# Tesla Field replaces firing entirely: the aura IS the weapon now.
+	if has_transformation("tesla_field"):
+		return
+	super.fire(multiplier)
 
 func _on_transformation_acquired(id: String):
 	if id == "overcharged_capacitor":
@@ -16,3 +28,19 @@ func _on_transformation_acquired(id: String):
 		projectile_stats.damage = projectile_stats.damage * OVERCHARGE_DAMAGE_MULT
 		custom_projectile_scene = FORK_SCENE
 		update_stats()  # re-derive the fire timer from the new base rate
+	if id == "tesla_field":
+		_create_field()
+
+func _create_field() -> void:
+	var field_user = stats_component.user
+	if not is_instance_valid(field_user):
+		return
+	if is_instance_valid(_field_instance):
+		return
+	var field = load("res://items/effects/persistent_damage_effect.tscn").instantiate()
+	field.stats = tesla_field_stats
+	field.allegiance = stats_component.get_projectile_allegiance()
+	field.user = field_user
+	field.attribution_key = String(get_meta("weapon_type", name))
+	field_user.add_child(field)
+	_field_instance = field

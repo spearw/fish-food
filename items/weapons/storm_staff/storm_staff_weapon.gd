@@ -17,3 +17,13 @@ func _on_transformation_acquired(id: String):
 			return
 		projectile_stats = thunderhead_stats
 		custom_projectile_scene = EXPLODING_SCENE
+	## Ball Lightning: bolts become slow drifting orbs that pierce everything, retarget after
+	## kills, and spark every enemy they touch (the living-flame mutation set, recolored).
+	## can_retarget makes pooled projectiles unpoolable -- safe since abandon_generic (eel-bug fix).
+	if id == "ball_lightning":
+		projectile_stats.pierce = -1
+		projectile_stats.speed = projectile_stats.speed * 0.4
+		projectile_stats.lifetime = projectile_stats.lifetime * 2.5
+		projectile_stats.can_retarget = true
+		projectile_stats.homing_strength = 3.0
+		projectile_stats.scale = projectile_stats.scale * 1.6

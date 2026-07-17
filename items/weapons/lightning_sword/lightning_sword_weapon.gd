@@ -3,15 +3,38 @@ class_name LightningSwordWeapon
 extends TransformableWeapon
 
 ## Storm Blade: each swing also launches a piercing wave of charge -- melee's range answer.
-## Shape, not multipliers: the sword is the bench's damage outlier, so its evolution adds REACH.
-## Exported so weapon._ready() localizes and rarity-scales the wave with the instance's tier.
+## Thunderclap: every 3rd swing detonates a nova around the player -- rhythm, not raw rate.
+## Both shape, not multipliers: the sword is the bench's damage outlier.
+## Exported so weapon._ready() localizes and rarity-scales them with the instance's tier.
 @export var wave_stats: ProjectileStats
+@export var thunderclap_stats: ExplosionStats
 const WAVE_SCENE := preload("res://systems/projectiles/projectile.tscn")
+const EXPLOSION_SCENE := preload("res://systems/projectiles/explosion/explosion_effect.tscn")
+const THUNDERCLAP_EVERY := 3
+var _swing_count: int = 0
 
 func _on_fire_rate_timer_timeout():
 	super()
 	if has_transformation("storm_blade"):
 		_fire_wave()
+	if has_transformation("thunderclap"):
+		_register_swing()
+
+func _register_swing() -> void:
+	_swing_count += 1
+	if _swing_count < THUNDERCLAP_EVERY:
+		return
+	_swing_count = 0
+	if thunderclap_stats == null or not is_instance_valid(stats_component.user):
+		return
+	var clap_user = stats_component.user
+	var explosion = EXPLOSION_SCENE.instantiate()
+	explosion.stats = thunderclap_stats
+	explosion.allegiance = stats_component.get_projectile_allegiance()
+	explosion.user = clap_user
+	explosion.attribution_key = String(get_meta("weapon_type", name))
+	get_tree().current_scene.add_child(explosion)
+	explosion.global_position = clap_user.global_position
 
 func _fire_wave() -> void:
 	if wave_stats == null or not is_instance_valid(stats_component.user):

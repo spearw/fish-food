@@ -13,6 +13,7 @@ extends Node
 
 class MockUser:
 	extends Node2D
+	signal stats_changed  # component/aura user-setters connect to this
 	var stat_values := {
 		"damage_increase": 1.0, "firerate": 1.0, "crit_flat": 0.0, "critical_hit_rate": 1.0,
 		"crit_damage_flat": 0.0, "critical_hit_damage": 1.0, "dot_damage_bonus": 1.0,
@@ -31,8 +32,12 @@ class Victim:
 		hits += 1
 
 func _transformed(scene_path: String, card_path: String) -> Dictionary:
+	# Each weapon gets its OWN holder: two instances of the same scene under one parent get
+	# auto-renamed ("ChainLightningWeapon2"), which breaks the name==target check for real.
+	var holder := Node.new()
+	add_child(holder)
 	var weapon = load(scene_path).instantiate()
-	add_child(weapon)
+	holder.add_child(weapon)
 	var card: Upgrade = load(card_path)
 	var wired: bool = String(weapon.name) == card.target_class_name \
 		and card.type == Upgrade.UpgradeType.TRANSFORMATION
@@ -82,8 +87,10 @@ func _ready() -> void:
 		fork.stats.damage, str(no_refork_ok)])
 
 	# --- 2. Overcharged Capacitor ---
+	var tesla_holder := Node.new()
+	add_child(tesla_holder)
 	var tesla = load("res://items/weapons/tesla_coil/tesla_coil.tscn").instantiate()
-	add_child(tesla)
+	tesla_holder.add_child(tesla)
 	var pre_damage: float = tesla.projectile_stats.damage
 	var tesla_card: Upgrade = load(
 		"res://systems/upgrades/weapons/lightning/tesla_coil/tesla_coil_overcharge_transform.tres")
@@ -105,9 +112,11 @@ func _ready() -> void:
 		if storm.weapon.projectile_stats is MultiStageProjectileStats else null
 	var storm_ok: bool = storm.ok and cloud is PersistentEffectStats and cloud.duration == 3.0
 	var common_cloud_dmg: float = cloud.damage if cloud else -1.0
+	var epic_holder := Node.new()
+	add_child(epic_holder)
 	var storm_epic = load("res://items/weapons/storm_staff/storm_staff.tscn").instantiate()
 	storm_epic.set_rarity(Upgrade.Rarity.EPIC)
-	add_child(storm_epic)
+	epic_holder.add_child(storm_epic)
 	storm_epic.apply_transformation("thunderhead")
 	var epic_cloud_dmg: float = storm_epic.projectile_stats.on_death_effect_stats.damage
 	var cloud_scales_ok: bool = epic_cloud_dmg > common_cloud_dmg
@@ -150,7 +159,91 @@ func _ready() -> void:
 		d_stats.critical_hit_rate, str(needles_ok), normal_sparks, crit_sparks,
 		str(needles_ok and double_ok)])
 
+	# ============ SECOND evolutions (every weapon has 2; alternatives, pick one per run) ========
+
+	# --- 6. Superconductor: spark data overrides through the real merge (registry + overrides) ---
+	var chain2: Dictionary = _transformed(
+		"res://items/weapons/chain_lightning/chain_lightning.tscn",
+		"res://systems/upgrades/weapons/lightning/chain_lightning/chain_lightning_superconductor_transform.tres")
+	var spark_data: Dictionary = chain2.weapon.projectile_stats.get_effect_data(WeaponTags.Effect.SPARK)
+	var super_ok: bool = chain2.ok and spark_data.get("spark_count", 0) == 2 \
+		and spark_data.get("spark_bounces", 0) == 6 and spark_data.get("spark_range", 0.0) == 300.0
+	print("EVO superconductor: count=%s bounces=%s range=%s ok=%s" % [
+		str(spark_data.get("spark_count")), str(spark_data.get("spark_bounces")),
+		str(spark_data.get("spark_range")), str(super_ok)])
+
+	# --- 7. Tesla Field: firing stops, a permanent aura rides the user, attribution intact ---
+	var tesla2_holder := Node.new()
+	add_child(tesla2_holder)
+	var tesla2 = load("res://items/weapons/tesla_coil/tesla_coil.tscn").instantiate()
+	tesla2_holder.add_child(tesla2)
+	tesla2.get_node("WeaponStatsComponent").user = mock
+	var field_card: Upgrade = load(
+		"res://systems/upgrades/weapons/lightning/tesla_coil/tesla_coil_field_transform.tres")
+	var field_wired: bool = String(tesla2.name) == field_card.target_class_name
+	tesla2.apply_transformation(field_card.key)
+	var field = tesla2._field_instance
+	var field_ok: bool = field_wired and is_instance_valid(field) \
+		and field.get_parent() == mock and field.attribution_key == "TeslaCoilWeapon" \
+		and field.stats.duration > 1000.0
+	var mock_children_before: int = mock.get_child_count()
+	tesla2.fire()  # transformed: must be inert (no projectiles, no second aura)
+	var field_inert_ok: bool = mock.get_child_count() == mock_children_before \
+		and get_tree().current_scene == self
+	print("EVO tesla_field: aura=%s on_user=%s inert_fire=%s ok=%s" % [
+		str(is_instance_valid(field)), str(is_instance_valid(field) and field.get_parent() == mock),
+		str(field_inert_ok), str(field_ok and field_inert_ok)])
+
+	# --- 8. Ball Lightning: the living-flame mutation set on the LOCALIZED stats ---
+	var storm2: Dictionary = _transformed(
+		"res://items/weapons/storm_staff/storm_staff.tscn",
+		"res://systems/upgrades/weapons/lightning/storm_staff/storm_staff_ball_lightning_transform.tres")
+	var ball = storm2.weapon.projectile_stats
+	var ball_ok: bool = storm2.ok and ball.pierce == -1 and ball.can_retarget \
+		and absf(ball.speed - 350.0 * 0.4) < 0.01 and ball.homing_strength == 3.0
+	print("EVO ball_lightning: pierce=%d retarget=%s speed=%.0f ok=%s" % [
+		ball.pierce, str(ball.can_retarget), ball.speed, str(ball_ok)])
+
+	# --- 9. Thunderclap: every 3rd swing detonates (counter via _register_swing, no firing) ---
+	var sword2_holder := Node.new()
+	add_child(sword2_holder)
+	var sword2 = load("res://items/weapons/lightning_sword/lightning_sword_weapon.tscn").instantiate()
+	sword2_holder.add_child(sword2)
+	sword2.get_node("WeaponStatsComponent").user = mock
+	var clap_card: Upgrade = load(
+		"res://systems/upgrades/weapons/lightning/lightning_sword/lightning_sword_thunderclap_transform.tres")
+	var clap_wired: bool = String(sword2.name) == clap_card.target_class_name
+	sword2.apply_transformation(clap_card.key)
+	var claps0: int = _count(func(c): return String(c.get("attribution_key")) == "LightningSwordWeapon" if c.get("attribution_key") != null else false)
+	sword2._register_swing()
+	sword2._register_swing()
+	var early: int = _count(func(c): return String(c.get("attribution_key")) == "LightningSwordWeapon" if c.get("attribution_key") != null else false)
+	sword2._register_swing()
+	var after_third: int = _count(func(c): return String(c.get("attribution_key")) == "LightningSwordWeapon" if c.get("attribution_key") != null else false)
+	var clap_ok: bool = clap_wired and sword2.is_transformed \
+		and early == claps0 and after_third == claps0 + 1
+	print("EVO thunderclap: swings1-2=%d (base %d) swing3=%d ok=%s" % [
+		early, claps0, after_third, str(clap_ok)])
+
+	# --- 10. Arc Fan: the shotgun plumbing (weapon-local count + spread) ---
+	var dagger2_holder := Node.new()
+	add_child(dagger2_holder)
+	var dagger2 = load("res://items/weapons/spark_dagger/spark_dagger.tscn").instantiate()
+	dagger2_holder.add_child(dagger2)
+	var pre_count: int = dagger2.base_projectile_count
+	var fan_card: Upgrade = load(
+		"res://systems/upgrades/weapons/lightning/spark_dagger/spark_dagger_arc_fan_transform.tres")
+	var fan_wired: bool = String(dagger2.name) == fan_card.target_class_name
+	dagger2.apply_transformation(fan_card.key)
+	var fan_ok: bool = fan_wired and dagger2.is_transformed \
+		and dagger2.base_projectile_count == pre_count + 2 \
+		and dagger2.fire_behavior_component.spread_angle_degrees == 24.0
+	print("EVO arc_fan: count %d->%d spread=%.0f ok=%s" % [
+		pre_count, dagger2.base_projectile_count,
+		dagger2.fire_behavior_component.spread_angle_degrees, str(fan_ok)])
+
 	var pass_all: bool = fork_ok and no_refork_ok and tesla_ok and storm_ok \
-		and cloud_scales_ok and sword_ok and needles_ok and double_ok
+		and cloud_scales_ok and sword_ok and needles_ok and double_ok \
+		and super_ok and field_ok and field_inert_ok and ball_ok and clap_ok and fan_ok
 	print("LIGHTNINGEVO RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

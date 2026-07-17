@@ -52,8 +52,10 @@ func _ready() -> void:
 	var mgr: StatusEffectManager = bare.get_node("StatusEffectManager")
 	var burn: DotStatusEffect = load("res://systems/status_effects/fire/burning.tres").duplicate(true)
 	burn.attribution_key = "FireballStaffWeapon"
+	burn.additional_status_chance = 0.0  # determinism: a random ignite escalation would tick extra
 	burn._do_damage_tick(mgr, null)  # tick 2.0 -> +2 to the staff, nothing extra anywhere
 	var unstamped: DotStatusEffect = load("res://systems/status_effects/fire/burning.tres").duplicate(true)
+	unstamped.additional_status_chance = 0.0
 	unstamped._do_damage_tick(mgr, null)  # no key -> Other
 	var tick_ok: bool = CurrentRun.damage_by_source.get("FireballStaffWeapon", 0) == 2 \
 		and CurrentRun.damage_by_source.get("Other", 0) == 4

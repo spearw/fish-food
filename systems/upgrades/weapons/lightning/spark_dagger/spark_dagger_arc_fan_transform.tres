@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = "spark_dagger_arc_fan_transform"
+display_name = "Arc Fan"
+description = "Throws a fan of 3 daggers. Projectile-count bonuses multiply the whole fan."
+type = 3
+target_class_name = "SparkDaggerWeapon"
+rarity = 2
+key = "arc_fan"
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

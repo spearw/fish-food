@@ -7,6 +7,9 @@ extends Node
 ##      staleness was a live bug (starting_weapon_chosen / combo_taken / deck_draft_counts).
 
 const FIRE := "res://systems/upgrades/packs/fire_pack.tres"
+# Melee is in the run because the zero-tier check reads the armor card, which is melee-exclusive
+# now that the core deck is dissolved (design doc section 1b).
+const MELEE := "res://systems/upgrades/packs/melee_pack.tres"
 const FLAMETHROWER := "res://systems/upgrades/weapons/fire/flamethrower/flamethrower_unlock.tres"
 
 class MockPlayer:
@@ -23,7 +26,7 @@ class MockPlayer:
 
 func _ready() -> void:
 	CurrentRun.selected_character = null
-	CurrentRun.selected_pack_paths = [FIRE] as Array[String]
+	CurrentRun.selected_pack_paths = [FIRE, MELEE] as Array[String]
 	CurrentRun.max_loadout_slots = 99
 	CurrentRun.reset_run_state()
 

@@ -11,7 +11,9 @@ for the perf-critical systems).
 
 The code currently calls these **packs** (`UpgradePack`). Rename to **decks** — same concept.
 
-- **Core deck** — granted every run, base-stat upgrades only (no weapons), locked on.
+- ~~**Core deck** — granted every run, base-stat upgrades only (no weapons), locked on.~~
+  **DISSOLVED (July 2026, locked — see §1b):** generic stat cards live *inside* themed decks now,
+  with deliberate overlap. A run's pool is its picks and nothing else.
 - **Themed decks** — organized into slot categories:
   - ~3 weapons
   - ~2 evolution upgrades per weapon (a weapon's evolutions are alternatives — pick one per weapon per run)
@@ -21,6 +23,66 @@ The code currently calls these **packs** (`UpgradePack`). Rename to **decks** �
   organization + validation/warnings, not a rigid 15-card cap.
 - **Every deck has a stable `id`.** This is the anchor synergies key on — non-negotiable, add it in the
   packs→decks rename.
+
+---
+
+## 1b. Stat cards live IN decks — the core deck is dissolved (LOCKED, July 2026)
+
+The always-on core deck of eleven generic stat cards is gone; the cards were redistributed into the
+themed decks with deliberate overlap. **Deck choice is now also a stat-economy choice.** The model is
+**Monster Train's two-clan structure** (every card comes from your chosen clans, pairings define the
+run), not Vampire Survivors' universal passive pool.
+
+Why (this doc's own research, §"why another weapon is always best"):
+
+- Additive generic stat cards were already indicted as the decaying auto-pick wallpaper.
+- Every core card in the union pool diluted themed offers and advanced **no combo counter** — while
+  the doc's stated goal is that a run "feel like *a specific thing*."
+- The pattern was half-built anyway: projectile carried Swift Bracer / Slipstream / Split Fire, toxin
+  its status trio, lightning its spark trio. The core deck was the vestige.
+
+**The law (locked): hard exclusivity for combat stats, guaranteed coverage for survival plumbing.**
+
+- Every themed deck carries `player_max_health` — the universal defense floor.
+- `player_armor` is **melee-exclusive**. "You have to take melee to get armor" is the point: deck
+  select is a strategic read on what you'll need.
+- Every former core stat must remain offerable from at least one deck.
+- Enforced by `deck_link_verify.gd` (coverage section) — a deck that drops its max-health card or a
+  second deck that picks up armor fails the build.
+
+**Distribution v1 (WORKING — tweak freely as balance; only the law above is locked):**
+
+| Card | Fire | Lightning | Melee | Projectile | Toxin |
+|---|---|---|---|---|---|
+| Damage | ✓ | ✓ | ✓ | | |
+| Crit chance / crit damage | | ✓ | ✓ | | |
+| Area | ✓ | | | | ✓ |
+| Fire rate | | | | ✓ | |
+| Projectile count | ✓ | | | ✓ | |
+| Projectile speed | | | | ✓ | |
+| **Armor** | | | **✓ (only)** | | |
+| Move speed | | | | ✓ | ✓ |
+| Luck | | ✓ | | | |
+| Max health | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Notes:
+
+- **Doubling down:** pairing two decks that share a stat doubles your draft density on it. Cross-deck
+  copies are the SAME resource today (one card, one tune). Two later balance levers, in escalation
+  order: deck-flavored *variants* (different values/names — lightning's benched
+  amplification/overcharge/reach are the ready-made template, see
+  `systems/upgrades/upgrades/lightning/BENCHED.md`), and moving a doubled stat's rarer tiers into the
+  multiplicative "more" layer so committing to the overlap *compounds* instead of decaying.
+- **Mobility is NOT universal** (fire/lightning/melee pairings have no move-speed card; melee's Fight
+  or Flight is its flavored answer). Watch-item: if dodge starvation feels bad rather than
+  interesting, add *flavored* mobility per deck — never re-centralize.
+- The meta shop's `permanent_stats` remain the out-of-deck plumbing floor.
+- **Combo gate:** with core gone, every pick advances a deck counter, so combos arrive faster — the
+  gate threshold is a playtest knob.
+- **Zero decks = dead run** (empty pool, no starter weapon), so character select refuses to start
+  without a pick. Fresh saves unlock fire + projectile (a full stat economy between them); when decks
+  re-lock behind meta progression, the **unlock order must keep coverage sane**.
+- The card resources still live in `systems/upgrades/upgrades/core/` — folder name is historical.
 
 ---
 
@@ -431,7 +493,8 @@ DeckCombo (Resource)
 
 ## 7. Build order (from the gap analysis)
 
-0. ✅ Bug sweep (Static Discharge, Goliath, guaranteed core deck).
+0. ✅ Bug sweep (Static Discharge, Goliath, guaranteed core deck — *the guarantee is since retired
+   with the core deck itself, §1b; the verifier now pins pool-from-picks-only*).
 1. ✅ Biome soft-preference + confirmed adversarial countering.
 2. ✅ **Deck restructure** — packs→decks, stable `Deck.id`, counted slot structure
    (`get_composition()`).
@@ -476,3 +539,7 @@ DeckCombo (Resource)
    flags, killing the starter roll and combo. *"Swap" folded into banish (banish = swap this card for
    another); a dedicated swap can come later if playtest wants it.*
 7. Content + the multiplicativity decision (§3 argues for multiplicative).
+8. ✅ **Core deck dissolved → stat cards live in decks** (§1b, Jul 2026) — Monster Train model:
+   eleven cards redistributed with overlap (same shared resources), max-health floor everywhere,
+   armor melee-exclusive, coverage law enforced in `deck_link_verify.gd`; character select requires
+   ≥1 deck; fresh saves start fire+projectile. *Distribution v1 is a balance knob, not locked.*

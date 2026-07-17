@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_14ml2")
-id = "player_projectile_speed"
+id = "player_projectile_count"
 display_name = "Projectile Count"
 description = "Increases number of projectiles by %"
 type = 2

@@ -20,8 +20,13 @@ var starter_data = {
 	"selected_character_path": "res://actors/player/characters/edgerunner/edgerunner_character.tres",
 	# A list of resource paths for all characters the player has unlocked.
 	"unlocked_character_paths": ["res://actors/player/characters/edgerunner/edgerunner_character.tres"],
-	# A list of resource paths for all unlocked upgrade packs.
-	"unlocked_pack_paths": ["res://systems/upgrades/packs/core_pack.tres"],
+	# A list of resource paths for all unlocked upgrade packs. There is no core deck -- fresh saves
+	# start with fire + projectile, which between them carry a full stat economy (design doc
+	# section 1b: deck-unlock order must keep stat coverage sane).
+	"unlocked_pack_paths": [
+		"res://systems/upgrades/packs/fire_pack.tres",
+		"res://systems/upgrades/packs/projectile_pack.tres",
+	],
 	"permanent_stats": {
 		"move_speed": 0.0,
 		"damage_increase": 0.0,

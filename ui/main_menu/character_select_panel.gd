@@ -114,6 +114,13 @@ func update_details_panel(char_data: PlayerStats):
 	_select_character_by_data(char_data)
 
 func _on_select_and_start_button_pressed():
+	# Zero decks means an empty draft pool AND no starting weapon -- a dead run. The core deck used
+	# to paper over this with stat cards; now that it's dissolved (design doc section 1b), picking
+	# at least one deck is mandatory.
+	if get_currently_selected_pack_paths_from_ui().is_empty():
+		Logs.add_message("Pick at least one deck to start a run.")
+		return
+
 	# Fresh per-run state FIRST -- draft counts, combo/starter flags, manipulation charges, banishes.
 	# Without this, run 2 in the same session inherits run 1's flags (no starter roll, no combo).
 	CurrentRun.reset_run_state()
@@ -155,10 +162,6 @@ func populate_pack_grid():
 	var remembered: Array = GameData.data.get("selected_pack_paths", [])
 
 	for pack_data in all_packs.decks:
-		# The core deck is in every run automatically, so it isn't a choice to offer.
-		if pack_data.resource_path == CurrentRun.CORE_DECK_PATH:
-			continue
-
 		var button: DeckButton = upgrade_pack_button_scene.instantiate()
 		var is_unlocked = pack_data.resource_path in unlocked_paths
 		button.set_deck_data(pack_data, is_unlocked)

@@ -1,13 +1,15 @@
 extends Node
 ## Headless check of the UNCOUPLED character/deck/weapon model (design doc section 3). Run headless.
-##   1. Run composition: core (always) + up to max_themed_decks picks, deduped, core never a slot.
+##   1. Run composition: the player's picks only, deduped, capped -- there is NO core deck.
 ##   2. Upgrade 0: one starting-weapon candidate rolled per chosen deck, from the right decks.
 ##   3. Identity: every character's starting_upgrades are ARTIFACTS (no character starts with a
 ##      weapon), and applying one granted costs no loadout slot.
 ##   4. Content: the once-exclusive weapons are back in their decks (Cinder Volley in fire, Axe in
 ##      melee), and the projectile deck now carries daggers + shotgun.
+##   5. Stat coverage law (design doc section 1b, core deck dissolved): every themed deck carries
+##      the max-health floor, armor is melee-exclusive, and every former core stat card is still
+##      offerable from somewhere.
 
-const CORE := "res://systems/upgrades/packs/core_pack.tres"
 const FIRE := "res://systems/upgrades/packs/fire_pack.tres"
 const LIGHTNING := "res://systems/upgrades/packs/lightning_pack.tres"
 const MELEE := "res://systems/upgrades/packs/melee_pack.tres"
@@ -45,12 +47,12 @@ func _ready() -> void:
 	CurrentRun.selected_character = null
 	CurrentRun.max_themed_decks = 2
 
-	# --- 1. Composition: picks + core, deduped, capped -- no character involvement at all ---
-	var comp_ok: bool = _decks([] as Array[String]) == [CORE] \
-		and _decks([FIRE] as Array[String]) == [CORE, FIRE] \
-		and _decks([FIRE, LIGHTNING] as Array[String]) == [CORE, FIRE, LIGHTNING] \
-		and _decks([FIRE, LIGHTNING, MELEE] as Array[String]) == [CORE, FIRE, LIGHTNING] \
-		and _decks([CORE, FIRE, FIRE, LIGHTNING] as Array[String]) == [CORE, FIRE, LIGHTNING]
+	# --- 1. Composition: picks only, deduped, capped -- no core deck, no character involvement ---
+	var comp_ok: bool = _decks([] as Array[String]).is_empty() \
+		and _decks([FIRE] as Array[String]) == [FIRE] \
+		and _decks([FIRE, LIGHTNING] as Array[String]) == [FIRE, LIGHTNING] \
+		and _decks([FIRE, LIGHTNING, MELEE] as Array[String]) == [FIRE, LIGHTNING] \
+		and _decks([FIRE, FIRE, LIGHTNING] as Array[String]) == [FIRE, LIGHTNING]
 	print("DECKLINK composition=%s" % str(comp_ok))
 
 	# --- 2. Upgrade 0: one weapon candidate per themed deck, each from ITS deck ---
@@ -121,7 +123,35 @@ func _ready() -> void:
 	print("DECKLINK content: fire_weapons=%d melee_weapons=%d projectile_weapons=%d ok=%s" % [
 		fire_weapons, melee_weapons, proj_weapons, str(content_ok)])
 
+	# --- 5. Stat coverage law (section 1b): the core deck is dissolved into the themed decks ---
+	var master: Array = load("res://systems/global/lists/master_pack_list.tres").decks
+	var health_ok := true
+	var armor_decks: Array = []
+	var union_ids: Array = []
+	for deck in master:
+		if deck.id == "test":  # dev scratch pack, exempt from the law
+			continue
+		var ids: Array = []
+		for u in deck.upgrades:
+			if u != null:
+				ids.append(u.id)
+		union_ids.append_array(ids)
+		if not "player_max_health" in ids:
+			health_ok = false
+		if "player_armor" in ids:
+			armor_decks.append(deck.id)
+	var armor_ok: bool = armor_decks == ["melee"]
+	var missing_stats: Array = []
+	for stat_id in ["player_damage", "player_crit_chance", "player_crit_damage", "player_area",
+			"player_firerate", "player_projectile_count", "player_projectile_speed", "player_armor",
+			"player_speed", "player_luck", "player_max_health"]:
+		if not stat_id in union_ids:
+			missing_stats.append(stat_id)
+	print("DECKLINK coverage: health_floor=%s armor_decks=%s missing_stats=%s" % [
+		str(health_ok), str(armor_decks), str(missing_stats)])
+
 	var pass_all: bool = comp_ok and starter_ok and starter_none_ok and identity_ok \
-		and granted_ok and ember_alive_ok and content_ok
+		and granted_ok and ember_alive_ok and content_ok \
+		and health_ok and armor_ok and missing_stats.is_empty()
 	print("DECKLINK RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

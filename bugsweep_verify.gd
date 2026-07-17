@@ -1,6 +1,7 @@
 extends Node
 ## Headless verification for the Phase-0 bug sweep. Confirms all three fixes. Run with --headless.
-##   1. Core deck is guaranteed into the upgrade pool even with no packs selected.
+##   1. The upgrade pool comes from PICKED decks only (the core deck is dissolved -- design doc
+##      section 1b): zero picks = empty pool (character select blocks that), one pick = live pool.
 ##   2. Goliath artifact reads max_health correctly and scales with bonus HP.
 ##   3. A spark kill emits Events.chain_kill (so Static Discharge can react).
 
@@ -26,16 +27,23 @@ class MockEnemy:
 func _ready() -> void:
 	var pass_all := true
 
-	# --- Bug 3: core deck is always in the pool, even with zero packs selected ---
+	# --- Bug 3 (historical): the pool comes from picked decks only. The old guarantee ("core deck
+	# always in the pool") died with the core deck (design doc section 1b): zero picks now means an
+	# EMPTY pool -- which is exactly why character select refuses to start a deckless run.
 	# UpgradeManager is NOT an autoload -- it's a scene node -- so instantiate the script directly;
-	# its _ready() builds the pool from CurrentRun.selected_pack_paths (which we've emptied).
+	# its _ready() builds the pool from CurrentRun.selected_pack_paths.
 	CurrentRun.selected_pack_paths.clear()
 	var um = load("res://systems/upgrades/upgrade_manager.gd").new()
 	add_child(um)
-	var pool_size: int = um.active_upgrade_pool.size()
-	var pool_ok: bool = pool_size > 0
+	var empty_pool: int = um.active_upgrade_pool.size()
+	CurrentRun.selected_pack_paths = ["res://systems/upgrades/packs/fire_pack.tres"] as Array[String]
+	var um_picked = load("res://systems/upgrades/upgrade_manager.gd").new()
+	add_child(um_picked)
+	var picked_pool: int = um_picked.active_upgrade_pool.size()
+	var pool_ok: bool = empty_pool == 0 and picked_pool > 0
 	pass_all = pass_all and pool_ok
-	print("BUGSWEEP core_deck_guaranteed: %s (pool_size=%d)" % ["PASS" if pool_ok else "FAIL", pool_size])
+	print("BUGSWEEP deck_pool_from_picks: %s (empty=%d picked=%d)" % [
+		"PASS" if pool_ok else "FAIL", empty_pool, picked_pool])
 
 	# --- Bug 2: Goliath reads max_health and scales with bonus HP ---
 	var user := MockUser.new()

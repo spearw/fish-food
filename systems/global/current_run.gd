@@ -27,10 +27,6 @@ const INTENSITY_MULTIPLIERS = {
 	SpawnIntensity.HIGH: 1.5,
 }
 
-## The core deck is granted every run regardless of selection -- it holds the base-stat upgrades, so
-## without it a run has almost nothing to draft.
-const CORE_DECK_PATH := "res://systems/upgrades/packs/core_pack.tres"
-
 # The PlayerStats resource for the player in this run.
 var selected_character: PlayerStats = null
 
@@ -104,18 +100,17 @@ var combo_taken: bool = false
 func get_intensity_multiplier() -> float:
 	return INTENSITY_MULTIPLIERS.get(spawn_intensity, 1.0)
 
-## The decks whose cards can appear this run: the core deck (always) plus the player's picks,
-## clamped to max_themed_decks. Characters are NOT linked to decks -- identity lives in the granted
-## identity artifact, and any character can run any pair (design doc section 3).
+## The decks whose cards can appear this run: the player's picks, deduped, clamped to
+## max_themed_decks. There is NO core deck -- generic stat cards live inside the themed decks with
+## deliberate overlap (Monster Train model, design doc section 1b), so picking decks IS picking a
+## stat economy. Characters are NOT linked to decks -- identity lives in the granted identity
+## artifact, and any character can run any pair (design doc section 3).
 func get_active_deck_paths() -> Array[String]:
 	var themed: Array[String] = []
 	for path in selected_pack_paths:
 		if themed.size() >= max_themed_decks:
 			break
-		if path == CORE_DECK_PATH or path in themed:
+		if path in themed:
 			continue
 		themed.append(path)
-
-	var paths: Array[String] = [CORE_DECK_PATH]
-	paths.append_array(themed)
-	return paths
+	return themed

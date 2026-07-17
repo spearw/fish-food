@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://c7go0mrrcgyyi"]
+[gd_resource type="Resource" script_class="Deck" load_steps=27 format=3 uid="uid://c7go0mrrcgyyi"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_l02k6"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_v22cx"]
@@ -21,6 +21,11 @@
 [ext_resource type="Resource" uid="uid://cha8jrarccqwh" path="res://systems/upgrades/artifacts/melee/goliath_unlock.tres" id="19_x762d"]
 [ext_resource type="Resource" uid="uid://cv0rfe310drw6" path="res://systems/upgrades/artifacts/melee/bloodlust_unlock.tres" id="20_chv20"]
 [ext_resource type="Resource" uid="uid://dyiyacs841ppe" path="res://systems/upgrades/artifacts/melee/redirect_unlock.tres" id="21_5a720"]
+[ext_resource type="Resource" uid="uid://dtkdbyh7dvh3p" path="res://systems/upgrades/upgrades/core/player_damage.tres" id="90_statdamage"]
+[ext_resource type="Resource" uid="uid://dpdqputv7lmtl" path="res://systems/upgrades/upgrades/core/player_armor.tres" id="91_statarmor"]
+[ext_resource type="Resource" uid="uid://r4fcwjdtk7w0" path="res://systems/upgrades/upgrades/core/player_crit_chance.tres" id="92_statcritc"]
+[ext_resource type="Resource" uid="uid://bu1jj4wjwfkub" path="res://systems/upgrades/upgrades/core/player_crit_damage.tres" id="93_statcritd"]
+[ext_resource type="Resource" uid="uid://c3w4ydbjmr47i" path="res://systems/upgrades/upgrades/core/player_max_health.tres" id="94_statmaxhp"]
 
 [resource]
 script = ExtResource("1_l02k6")
@@ -28,5 +33,5 @@ id = "melee"
 deck_name = "Melee"
 deck_description = "Must be adjacent to enemy, but does high damage"
 unlock_cost = 0
-upgrades = Array[ExtResource("2_v22cx")]([ExtResource("3_n2chr"), ExtResource("4_x762d"), ExtResource("5_chv20"), ExtResource("6_5a720"), ExtResource("7_thdsj"), ExtResource("8_lpvku"), ExtResource("9_e4wt0"), ExtResource("10_xwp00"), ExtResource("11_1n2fc"), ExtResource("12_7h14r"), ExtResource("13_s5atr"), ExtResource("14_uq0ht"), ExtResource("15_k6aj6"), ExtResource("16_puna0"), ExtResource("17_lcqdh"), ExtResource("18_tpjyj"), ExtResource("19_x762d"), ExtResource("20_chv20"), ExtResource("21_5a720")])
+upgrades = Array[ExtResource("2_v22cx")]([ExtResource("3_n2chr"), ExtResource("4_x762d"), ExtResource("5_chv20"), ExtResource("6_5a720"), ExtResource("7_thdsj"), ExtResource("8_lpvku"), ExtResource("9_e4wt0"), ExtResource("10_xwp00"), ExtResource("11_1n2fc"), ExtResource("12_7h14r"), ExtResource("13_s5atr"), ExtResource("14_uq0ht"), ExtResource("15_k6aj6"), ExtResource("16_puna0"), ExtResource("17_lcqdh"), ExtResource("18_tpjyj"), ExtResource("19_x762d"), ExtResource("20_chv20"), ExtResource("21_5a720"), ExtResource("90_statdamage"), ExtResource("91_statarmor"), ExtResource("92_statcritc"), ExtResource("93_statcritd"), ExtResource("94_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

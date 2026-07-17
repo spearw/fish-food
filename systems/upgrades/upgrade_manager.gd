@@ -116,8 +116,6 @@ func _add_character_exclusives() -> void:
 func get_starting_weapon_candidates() -> Array[Dictionary]:
 	var candidates: Array[Dictionary] = []
 	for path in CurrentRun.get_active_deck_paths():
-		if path == CurrentRun.CORE_DECK_PATH:
-			continue
 		var deck: Deck = load(path)
 		if not deck:
 			continue

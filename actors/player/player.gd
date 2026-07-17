@@ -225,20 +225,33 @@ func get_stat(key: String):
 					luck *= artifact.get_luck_modifier()
 			return luck
 		"critical_hit_rate":
-			# BONUS semantics: DamageUtils multiplies weapon crit by (1 + this). Character base is
-			# a starting bonus and cards ADD on top -- the old base*cards form multiplied the
-			# character's base, and with base 0.0 on 3 of 4 characters every crit card was dead.
-			var crit_rate = stats.critical_chance + get_stat_multiplier(key) - 1.0
+			# The CARD multiplier layer (>= 1.0). DamageUtils.compose_crit applies
+			# (source base + crit_flat) x THIS -- cards amplify whatever base you've composed,
+			# which is why the flat layer below exists (x0 has nothing to amplify).
+			var crit_cards = get_stat_multiplier(key)
 			for artifact in _cached_artifacts:
 				if artifact.has_method("get_crit_chance_modifier"):
-					crit_rate *= artifact.get_crit_chance_modifier()
-			return crit_rate
+					crit_cards *= artifact.get_crit_chance_modifier()
+			return crit_cards
+		"crit_flat":
+			# The UNIVERSAL flat layer: percentage POINTS added to every damage source's base
+			# crit -- including 0-base sources (DoT ticks, sparks, zones). This is what lets a
+			# crit character make poison crit (July 2026 decision; genre evidence: Hades/Brotato
+			# flat models, HoT's "100% of 0 stays 0" trap).
+			var flat: float = stats.critical_chance
+			for artifact in _cached_artifacts:
+				if artifact.has_method("get_crit_flat_bonus"):
+					flat += artifact.get_crit_flat_bonus()
+			return flat
 		"critical_hit_damage":
-			var crit_dmg = stats.critical_damage + get_stat_multiplier(key) - 1.0
+			# Crit-damage CARD multiplier layer; the flat half is "crit_damage_flat".
+			var cd_cards = get_stat_multiplier(key)
 			for artifact in _cached_artifacts:
 				if artifact.has_method("get_crit_damage_modifier"):
-					crit_dmg *= artifact.get_crit_damage_modifier()
-			return crit_dmg
+					cd_cards *= artifact.get_crit_damage_modifier()
+			return cd_cards
+		"crit_damage_flat":
+			return stats.critical_damage
 		"damage_increase":
 			var damage = get_stat_multiplier(key)
 			for artifact in _cached_artifacts:

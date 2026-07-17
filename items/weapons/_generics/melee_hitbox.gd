@@ -23,8 +23,11 @@ func _on_body_entered(body: Node2D):
 	if hit_targets.has(body): return # Already hit this target
 
 	if body.has_method("take_damage"):
-		# Roll for crit using DamageUtils.
-		var crit_result = DamageUtils.roll_crit(stats.damage, stats.critical_hit_rate, stats.critical_hit_damage)
+		# Composed crit: weapon base + the player's universal flat layer, x crit cards. (Melee
+		# previously rolled raw weapon fields only -- player crit never reached swings at all.)
+		var crit: Dictionary = DamageUtils.compose_crit(
+			stats.critical_hit_rate, stats.critical_hit_damage, user)
+		var crit_result = DamageUtils.roll_crit(stats.damage, crit.rate, crit.mult)
 		var damage = crit_result["damage"]
 		var is_crit = crit_result["is_crit"]
 

@@ -18,10 +18,12 @@ static func stat_map(player) -> Dictionary:
 	m["damage"] = "Damage: %+d%%" % roundi(100.0 * player.get_stat("damage_increase") - 100.0)
 	var fr: float = maxf(player.get_stat("firerate"), 0.01)
 	m["attack_speed"] = "Attack Speed: %+d%%" % roundi((1.0 / fr - 1.0) * 100.0)
-	# BONUS labels: the player crit stat MULTIPLIES each weapon's own base crit (x(1+bonus)) --
-	# printing it as "Crit Chance: N%" read as an absolute rate, which it never was.
-	m["crit_chance"] = "Crit Bonus: +%d%% weapon crit" % roundi(100.0 * player.get_stat("critical_hit_rate"))
-	m["crit_damage"] = "Crit Dmg Bonus: +%d%%" % roundi(100.0 * player.get_stat("critical_hit_damage"))
+	# Crit is TWO layers (DamageUtils.compose_crit): a universal FLAT base added to every damage
+	# source -- even 0-base ones like DoT ticks -- times the crit cards.
+	m["crit_chance"] = "Crit: +%d%% base (x%.2f cards)" % [
+		roundi(100.0 * player.get_stat("crit_flat")), player.get_stat("critical_hit_rate")]
+	m["crit_damage"] = "Crit Dmg: +%d%% base (x%.2f cards)" % [
+		roundi(100.0 * player.get_stat("crit_damage_flat")), player.get_stat("critical_hit_damage")]
 	m["move_speed"] = "Move Speed: %.0f" % player.get_stat("move_speed")
 	m["luck"] = "Luck: %.2f" % player.get_stat("luck")
 	m["area"] = "Area: %+d%%" % roundi(100.0 * player.get_stat("area_size") - 100.0)
@@ -224,13 +226,13 @@ static func weapon_detail_line(weapon, player) -> String:
 			if s.get("dot_tick", 0.0) > 0:
 				bits.append("%.1f/tick dot" % (s["dot_tick"] * dot_mult))
 
-	# EFFECTIVE crit for THIS weapon: its own base times the player's crit bonus -- the number
-	# the damage roll actually uses (crit is per-weapon; the sheet's bonus alone tells you nothing).
-	if "projectile_stats" in weapon and weapon.projectile_stats \
-			and weapon.projectile_stats.critical_hit_rate > 0.0:
-		var eff_crit: float = weapon.projectile_stats.critical_hit_rate \
-			* (1.0 + player.get_stat("critical_hit_rate"))
-		bits.append("%d%% crit" % roundi(eff_crit * 100.0))
+	# EFFECTIVE crit for THIS weapon: (its base + the player's universal flat) x crit cards --
+	# the number the damage roll actually uses (the sheet's layers alone tell you nothing).
+	if "projectile_stats" in weapon and weapon.projectile_stats:
+		var eff_crit: float = (weapon.projectile_stats.critical_hit_rate \
+			+ player.get_stat("crit_flat")) * player.get_stat("critical_hit_rate")
+		if eff_crit > 0.0:
+			bits.append("%d%% crit" % roundi(eff_crit * 100.0))
 
 	var tier: String = Upgrade.Rarity.keys()[weapon.rarity].capitalize() if "rarity" in weapon else "?"
 	return "%s (%s%s): %s" % [

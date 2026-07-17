@@ -113,3 +113,31 @@ Changeable — but change them knowingly, and read the rationale first.
   cannot damage, and self-disables once the build has any answer. Armor-interaction (break bars, chip
   floors) is **artifact content, never a formula change**. Full decision in
   [workflow.md](workflow.md).
+
+## Crit composition (LOCKED, July 2026 — research-backed)
+
+**`effective = (source_base + player_FLAT) × crit_cards`** for chance;
+**`(1 + source_base_cd + player_flat_cd) × cd_cards`** for damage. One helper owns it:
+`DamageUtils.compose_crit` — every crit roll in the game (projectiles, melee, sparks, zones,
+explosions, DoT ticks) goes through it. Enemy-fired sources keep raw authored numbers.
+
+- **The flat layer is UNIVERSAL and character-carried** (`PlayerStats.critical_chance` + artifact
+  flats like Bushido's momentum stacks). It reaches sources with **zero base crit** — DoT ticks,
+  sparks — which is the point: a crit character makes *poison crit*. Cross-builds
+  (crit×toxin, crit×lightning) exist because of this layer and only this layer.
+- **Cards stay multiplicative** on the composed base: they amplify commitment, and do nothing on a
+  build with no crit source — investment stays conditional, not commodity (the RoR2 "9 glasses"
+  auto-pick trap).
+- Why flat won (field research, July 2026): every modern survivors-like adds player crit as flat
+  points (RoR2/Brotato/DMD/Soulstone/HoT's flat half); Hades' Artemis — flat crit onto 0-crit
+  weapons — is the genre's celebrated build-variety engine; HoT documents the multiplicative trap
+  verbatim ("100% of 0 will stay 0"); and PoE, the multiplicative flagship, prices its rare FLAT
+  crit mods as premium fixes and needed a keystone (Resolute Technique) as the dead-stat exit.
+  Weapon identity survives flat adds when base/multiplier spreads stay WIDE (Brotato: 3%/×2 SMG vs
+  45%/×4 Knife) — author weapon crit bases accordingly.
+- Overflow: rates ≥1.0 simply always crit (no waste-cliff mechanics yet). If crit stacking wants
+  an open end later, HoT/Soulstone **overcrit** (150% = guaranteed + 50% double-crit) is the
+  proven rule — and "Overwhelming Critical" in the Drive artifact sheet is exactly that hook.
+- Deliberately NOT built: PoE's "crits guarantee ailments" (crit→status direction) and
+  Brotato-Spoon "statused enemies take bonus crit" (status→crit) — both are strong future
+  artifact/combo hooks, noted here so they get built as content, not formula changes.

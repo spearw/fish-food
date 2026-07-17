@@ -121,16 +121,14 @@ func _on_body_entered(body: Node2D):
 
 	# Deal damage
 	if body.has_method("take_damage"):
-		var is_crit = false
-		# Check for crit from user stats
-		if is_instance_valid(user) and user.has_method("get_stat"):
-			var crit_chance = user.get_stat("critical_hit_rate")
-			if randf() < crit_chance:
-				is_crit = true
-
-		var final_damage = base_damage
-		if is_crit and is_instance_valid(user) and user.has_method("get_stat"):
-			final_damage = int(base_damage * user.get_stat("critical_hit_damage"))
+		# Universal crit composition: sparks have no base crit -- the player's flat layer
+		# (x crit cards) is the only path, so crit characters make their sparks crit too.
+		# (The old roll read the raw player stat as a chance, which under card-multiplier
+		# semantics would have been an always-crit bug.)
+		var crit: Dictionary = DamageUtils.compose_crit(0.0, 0.5, user)
+		var rolled: Dictionary = DamageUtils.roll_crit(base_damage, crit.rate, crit.mult)
+		var final_damage: int = rolled.damage
+		var is_crit: bool = rolled.is_crit
 
 		body.take_damage(final_damage, 0.0, is_crit, self)
 		# Announce the spark hit so combo synergies (e.g. Fire+Lightning) can react.

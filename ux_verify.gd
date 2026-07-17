@@ -17,8 +17,11 @@ class MockPlayer:
 	extends Node2D
 	const ARMOR_SPEED_PENALTY: float = 0.01
 	var stat_values := {
-		"damage_increase": 1.331, "firerate": 0.909, "critical_hit_rate": 0.10,
-		"critical_hit_damage": 0.50, "move_speed": 175.0, "luck": 1.0, "area_size": 1.0,
+		"damage_increase": 1.331, "firerate": 0.909,
+		# Two-layer crit: flat points + card multiplier (DamageUtils.compose_crit).
+		"crit_flat": 0.10, "critical_hit_rate": 1.20,
+		"crit_damage_flat": 0.50, "critical_hit_damage": 1.0,
+		"move_speed": 175.0, "luck": 1.0, "area_size": 1.0,
 		"projectile_speed": 1.0, "projectile_count_multiplier": 1.4, "dot_damage_bonus": 1.0,
 		"status_chance_bonus": 1.0, "pickup_radius": 150.0, "armor": 2.0,
 		"max_health": 120.0, "spark_count_bonus": 0.0, "spark_damage_bonus": 1.0,
@@ -52,7 +55,7 @@ func _ready() -> void:
 	var m: Dictionary = BuildSummary.stat_map(player)
 	var stats_ok: bool = m["damage"] == "Damage: +33%" \
 		and m["attack_speed"] == "Attack Speed: +10%" \
-		and m["crit_chance"] == "Crit Bonus: +10% weapon crit" \
+		and m["crit_chance"] == "Crit: +10% base (x1.20 cards)" \
 		and m["projectile_count"] == "Projectile Count: x1.40" \
 		and m["armor"] == "Armor: 2 (-2% speed)"
 	print("UX stat_map: dmg='%s' atkspd='%s' projcount='%s' ok=%s" % [
@@ -85,9 +88,9 @@ func _ready() -> void:
 	var dagger_node = um._owned_copies(load(DAGGER).target_class_name)[0]
 	var detail: String = BuildSummary.weapon_detail_line(dagger_node, player)
 	# Rare dagger 18 dmg x player 1.331 = 24; base 0.5s wait x firerate 0.909 = 2.2 atk/s;
-	# effective crit = daggers' own base 15% x (1 + player bonus 0.10) = 16.5% -> "17% crit".
+	# effective crit = (daggers' base 15% + flat 10%) x cards 1.20 = 30% -> "30% crit".
 	var detail_ok: bool = "24 dmg" in detail and "2.20 atk/s" in detail and "(Rare*" in detail \
-		and "17% crit" in detail
+		and "30% crit" in detail
 	print("UX weapon_detail: '%s' ok=%s" % [detail, str(detail_ok)])
 
 	# --- 5. Concrete numbers on the merge preview: fill the loadout, offer the same tier ---

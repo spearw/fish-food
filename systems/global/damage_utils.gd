@@ -58,20 +58,33 @@ static func calculate_final_damage(
 ## @param base_crit_damage: The base critical hit damage multiplier.
 ## @param user: The entity using the attack (must have get_stat method if player).
 ## @returns: Dictionary with "damage", "crit_rate", "crit_damage".
+## Composed crit for ANY damage source (decision July 2026, research-backed -- see
+## .claude/balance/README.md "Crit composition"):
+##   chance = (source base + player FLAT crit) x player crit cards
+##   damage = (1 + source base + player flat crit dmg) x player crit-damage cards
+## The flat layer is UNIVERSAL: it reaches sources with no base crit at all (DoT ticks, sparks,
+## zones) -- a crit character can make poison crit, which is the crit-status build enabler.
+## Non-player sources keep their raw authored numbers (enemy crits unchanged).
+static func compose_crit(base_crit_rate: float, base_crit_damage: float, user) -> Dictionary:
+	if user != null and is_instance_valid(user) and user.is_in_group("player"):
+		return {
+			"rate": (base_crit_rate + user.get_stat("crit_flat")) * user.get_stat("critical_hit_rate"),
+			"mult": (1.0 + base_crit_damage + user.get_stat("crit_damage_flat")) \
+				* user.get_stat("critical_hit_damage"),
+		}
+	return {"rate": base_crit_rate, "mult": base_crit_damage}
+
 static func scale_damage_stats(base_damage: float, base_crit_rate: float, base_crit_damage: float, user: Node) -> Dictionary:
 	var damage = base_damage
-	var crit_rate = base_crit_rate
-	var crit_damage = base_crit_damage
+	var crit: Dictionary = compose_crit(base_crit_rate, base_crit_damage, user)
 
 	if user.is_in_group("player"):
 		damage *= user.get_stat("damage_increase")
-		crit_rate *= (1 + user.get_stat("critical_hit_rate"))
-		crit_damage = (1 + crit_damage) * (1 + user.get_stat("critical_hit_damage"))
 
 	return {
 		"damage": damage,
-		"crit_rate": crit_rate,
-		"crit_damage": crit_damage
+		"crit_rate": crit.rate,
+		"crit_damage": crit.mult
 	}
 
 ## Scales projectile-specific stats based on player bonuses.

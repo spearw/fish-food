@@ -50,13 +50,18 @@ func _do_damage_tick(manager: StatusEffectManager, source):
 		if is_instance_valid(source):
 			damage_multiplier = source.get_stat("dot_damage_bonus")
 
+		# Universal crit (July 2026): ticks have ZERO base crit, so only a player's flat crit
+		# layer (x crit cards) can make them crit -- the crit-status build enabler. Enemy-sourced
+		# statuses compose to rate 0 and never crit.
+		var crit: Dictionary = DamageUtils.compose_crit(0.0, 0.5, source)
+		var rolled: Dictionary = DamageUtils.roll_crit(
+			damage_per_tick * damage_multiplier, crit.rate, crit.mult)
 		# Tick attribution happens HERE (take_damage sees a null source and skips crediting):
-		# 100% pen means the post-armor result is exactly the int-truncated tick.
+		# 100% pen means the post-armor result is exactly the rolled tick.
 		CurrentRun.credit_damage(
-			attribution_key if attribution_key != "" else "Other",
-			int(damage_per_tick * damage_multiplier))
-		# 100% armor pen, no chance to crit.
-		host.take_damage(damage_per_tick * damage_multiplier, 1, false)
+			attribution_key if attribution_key != "" else "Other", rolled.damage)
+		# 100% armor pen.
+		host.take_damage(rolled.damage, 1, rolled.is_crit)
 		
 		# Handle Ignite chance.
 		var status_chance_mult = 1.0

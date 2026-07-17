@@ -44,7 +44,11 @@ func _ready():
 
 	for body in bodies:
 		if body.is_in_group(target_group) and body.has_method("take_damage"):
-			body.take_damage(stats.damage, stats.armor_penetration, false, self) # Explosions don't crit by default
+			# Universal crit: explosions compose their base with the player's flat layer.
+			var crit: Dictionary = DamageUtils.compose_crit(
+				stats.critical_hit_rate, stats.critical_hit_damage, user)
+			var rolled: Dictionary = DamageUtils.roll_crit(stats.damage, crit.rate, crit.mult)
+			body.take_damage(rolled.damage, stats.armor_penetration, rolled.is_crit, self)
 
 	# Quick scale animation for visual feedback.
 	var tween = create_tween()

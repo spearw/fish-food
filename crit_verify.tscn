@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bcritverify0001"]
+
+[ext_resource type="Script" path="res://crit_verify.gd" id="1_crit"]
+
+[node name="CritVerify" type="Node"]
+script = ExtResource("1_crit")

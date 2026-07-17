@@ -98,7 +98,11 @@ func _on_tick_timer_timeout():
 				if mgr != null:
 					mgr.apply_status(stats.status_to_apply, user)
 			if stats.damage and body.has_method("take_damage"):
-				body.take_damage(stats.damage, stats.armor_penetration, false, self)
+				# Universal crit: the zone's own base composes with the player's flat layer.
+				var crit: Dictionary = DamageUtils.compose_crit(
+					stats.critical_hit_rate, stats.critical_hit_damage, user)
+				var rolled: Dictionary = DamageUtils.roll_crit(stats.damage, crit.rate, crit.mult)
+				body.take_damage(rolled.damage, stats.armor_penetration, rolled.is_crit, self)
 
 func _generate_circular_hitbox():
 	# A helper to make a circular hitbox around character

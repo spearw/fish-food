@@ -184,7 +184,7 @@ func get_stat_multiplier(key: String) -> float:
 	var more: float = in_run_multipliers.get(key, 1.0)
 	# For stats where a lower number is better (e.g., cooldowns), increased subtracts and a "more"
 	# factor divides -- +10% attack speed cuts the wait to 1/1.1, it doesn't subtract a flat tenth.
-	if (key in ["firerate", "dot_damage_tick_rate"]):
+	if (key in ["firerate", "dot_damage_tick_rate", "impact_delay"]):
 		return max(0.1, (1.0 - increased) / more)
 	else:
 		return (1.0 + increased) * more
@@ -313,6 +313,10 @@ func get_stat(key: String):
 			return get_stat_multiplier(key)
 		"spark_count_bonus":
 			return in_run_bonuses.get("spark_count_bonus", 0)
+		"impact_delay":
+			# Terminal Velocity (Cosmic): scales AIMED_AOE warning delays. Inverted two-layer
+			# key -- more-cards DIVIDE, so stacking picks land strikes faster.
+			return get_stat_multiplier(key)
 		"on_hit_burn_chance", "on_hit_venom_chance", "point_blank_bonus", "whiff_spark", \
 		"pierce_bonus":
 			# Combo-synergy grants (Incendiary/Toxic Rounds, Powder Burn, Capacitor Magazine):

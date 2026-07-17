@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1_upgrade")
-id = "cosmic_heavy_elements"
-display_name = "Heavy Elements"
-description = "All damage dealt grows -- multiplicatively."
+id = "cosmic_terminal_velocity"
+display_name = "Terminal Velocity"
+description = "Your strikes fall faster -- impact delay shrinks multiplicatively."
 type = 2
 target_class_name = "Player"
 rarity = 1
-key = "damage_increase"
+key = "impact_delay"
 modifier_type = 0
-rarity_values = Array[float]([0.05,0.08,0.1,0.12])
+rarity_values = Array[float]([0.1, 0.15, 0.2, 0.25])
 metadata/_custom_type_script = "uid://d0ibxieicws6j"

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=21 format=3 uid="uid://bcosmicpack00001"]
+[gd_resource type="Resource" script_class="Deck" load_steps=22 format=3 uid="uid://bcosmicpack00001"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_pk"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
@@ -12,13 +12,14 @@
 [ext_resource type="Resource" path="res://systems/upgrades/weapons/cosmic/pillar_eternal_light_transform.tres" id="10_eternal"]
 [ext_resource type="Resource" path="res://systems/upgrades/weapons/cosmic/pillar_widening_gyre_transform.tres" id="11_gyre"]
 [ext_resource type="Resource" path="res://systems/upgrades/upgrades/cosmic/cosmic_event_horizon_upgrade.tres" id="12_horizon"]
-[ext_resource type="Resource" path="res://systems/upgrades/upgrades/cosmic/cosmic_heavy_elements_upgrade.tres" id="13_heavy"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/cosmic/cosmic_supernova_upgrade.tres" id="13_nova"]
 [ext_resource type="Resource" path="res://systems/upgrades/upgrades/cosmic/cosmic_orbital_decay_upgrade.tres" id="14_decay"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/cosmic/cosmic_terminal_velocity_upgrade.tres" id="18_velocity"]
 [ext_resource type="Resource" path="res://systems/upgrades/artifacts/cosmic/skyfall_unlock.tres" id="15_skyfall"]
 [ext_resource type="Resource" path="res://systems/upgrades/artifacts/cosmic/star_charts_unlock.tres" id="16_charts"]
 [ext_resource type="Resource" path="res://systems/upgrades/artifacts/cosmic/escape_velocity_unlock.tres" id="17_escape"]
 [ext_resource type="Resource" uid="uid://cfotgiwrbnbbf" path="res://systems/upgrades/upgrades/core/player_area_size.tres" id="90_statarea"]
-[ext_resource type="Resource" uid="uid://dtkdbyh7dvh3p" path="res://systems/upgrades/upgrades/core/player_damage.tres" id="91_statdamage"]
+[ext_resource type="Resource" uid="uid://bu1jj4wjwfkub" path="res://systems/upgrades/upgrades/core/player_crit_damage.tres" id="91_statcritd"]
 [ext_resource type="Resource" uid="uid://c3w4ydbjmr47i" path="res://systems/upgrades/upgrades/core/player_max_health.tres" id="92_statmaxhp"]
 
 [resource]
@@ -27,5 +28,5 @@ id = "cosmic"
 deck_name = "Cosmic"
 deck_description = "Death from above: telegraphed devastation on a delay. Huge blasts, lingering light, and multiplicative scaling -- if you can wait for the sky."
 unlock_cost = 150
-upgrades = Array[ExtResource("2_upg")]([ExtResource("3_met"), ExtResource("4_comet"), ExtResource("5_pillar"), ExtResource("6_shower"), ExtResource("7_impact"), ExtResource("8_twin"), ExtResource("9_iron"), ExtResource("10_eternal"), ExtResource("11_gyre"), ExtResource("12_horizon"), ExtResource("13_heavy"), ExtResource("14_decay"), ExtResource("15_skyfall"), ExtResource("16_charts"), ExtResource("17_escape"), ExtResource("90_statarea"), ExtResource("91_statdamage"), ExtResource("92_statmaxhp")])
+upgrades = Array[ExtResource("2_upg")]([ExtResource("3_met"), ExtResource("4_comet"), ExtResource("5_pillar"), ExtResource("6_shower"), ExtResource("7_impact"), ExtResource("8_twin"), ExtResource("9_iron"), ExtResource("10_eternal"), ExtResource("11_gyre"), ExtResource("12_horizon"), ExtResource("13_nova"), ExtResource("14_decay"), ExtResource("18_velocity"), ExtResource("15_skyfall"), ExtResource("16_charts"), ExtResource("17_escape"), ExtResource("90_statarea"), ExtResource("91_statcritd"), ExtResource("92_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

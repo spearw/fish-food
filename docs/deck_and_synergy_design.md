@@ -52,18 +52,19 @@ Why (this doc's own research, §"why another weapon is always best"):
 
 **Distribution v1 (WORKING — tweak freely as balance; only the law above is locked):**
 
-| Card | Fire | Lightning | Melee | Projectile | Venom (id: toxin) |
-|---|---|---|---|---|---|
-| Damage | ✓ | ✓ | ✓ | | |
-| Crit chance / crit damage | | ✓ | ✓ | | |
-| Area | ✓ | | | | ✓ |
-| Fire rate | | | | ✓ | |
-| Projectile count | ✓ | | | ✓ | |
-| Projectile speed | | | | ✓ | |
-| **Armor** | | | **✓ (only)** | | |
-| Move speed | | | | ✓ | ✓ |
-| Luck | | ✓ | | | |
-| Max health | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Card | Fire | Lightning | Melee | Projectile | Venom (id: toxin) | Cosmic |
+|---|---|---|---|---|---|---|
+| Damage | ✓ | ✓ | ✓ | | | |
+| Crit chance | | ✓ | ✓ | | | |
+| Crit damage | | ✓ | ✓ | | | ✓ |
+| Area | ✓ | | | | ✓ | ✓ |
+| Fire rate | | | | ✓ | | |
+| Projectile count | ✓ | | | ✓ | | |
+| Projectile speed | | | | ✓ | | |
+| **Armor** | | | **✓ (only)** | | | |
+| Move speed | | | | ✓ | ✓ | |
+| Luck | | ✓ | | | | |
+| Max health | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 Notes:
 

@@ -260,9 +260,14 @@ func _execute_aoe_strike(target_pos: Vector2, p_stats: ProjectileStats, p_allegi
 		_current_scene.add_child(warning)
 		warning.global_position = target_pos
 
-	# Wait for AoE delay (only if timer exists).
+	# Wait for AoE delay (only if timer exists). Terminal Velocity (Cosmic) shrinks it: the
+	# impact_delay stat is INVERTED two-layer (more-cards divide), so 1.0 = authored delay.
 	if aoe_delay_timer:
-		aoe_delay_timer.wait_time = aoe_delay
+		var final_delay: float = aoe_delay
+		if stats_comp and is_instance_valid(stats_comp.user) \
+				and stats_comp.user.has_method("get_stat") and stats_comp.user.is_in_group("player"):
+			final_delay = aoe_delay * stats_comp.user.get_stat("impact_delay")
+		aoe_delay_timer.wait_time = maxf(final_delay, 0.15)
 		aoe_delay_timer.start()
 		await aoe_delay_timer.timeout
 

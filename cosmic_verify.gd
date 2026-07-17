@@ -35,8 +35,18 @@ func _ready() -> void:
 	var man: Dictionary = deck.get_manifest()
 	var master = load("res://systems/global/lists/master_pack_list.tres").decks
 	var meteor_scene = load("res://items/weapons/meteor/meteor_weapon.tscn").instantiate()
+	# Mechanics are FOUR (user revision): Event Horizon / Supernova (crit damage, replaced the
+	# damage card) / Orbital Decay / Terminal Velocity (impact delay -- the deck's own dial).
+	var velocity_card: Upgrade = load(
+		"res://systems/upgrades/upgrades/cosmic/cosmic_terminal_velocity_upgrade.tres")
+	var nova_card: Upgrade = load(
+		"res://systems/upgrades/upgrades/cosmic/cosmic_supernova_upgrade.tres")
+	var cards_ok: bool = velocity_card.key == "impact_delay" \
+		and velocity_card.modifier_type == Upgrade.ModifierType.MULTIPLICATIVE \
+		and nova_card.key == "critical_hit_damage" \
+		and nova_card.modifier_type == Upgrade.ModifierType.MULTIPLICATIVE
 	var shape_ok: bool = man.weapons.size() == 3 and man.evolutions == 6 \
-		and man.artifacts.size() == 3 and man.mechanics.size() == 3 \
+		and man.artifacts.size() == 3 and man.mechanics.size() == 4 and cards_ok \
 		and master.size() == 7 and deck.id == "cosmic" \
 		and meteor_scene.themes == Array([5], TYPE_INT, "", null)
 	meteor_scene.queue_free()

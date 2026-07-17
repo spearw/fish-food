@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bwaterstone00001"]
+
+[ext_resource type="Script" path="res://items/artifacts/lightning/water_wears_stone/water_wears_stone_artifact.gd" id="1_art"]
+
+[node name="WaterWearsStoneArtifact" type="Node"]
+script = ExtResource("1_art")

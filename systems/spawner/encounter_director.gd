@@ -251,19 +251,25 @@ func _update_build_analysis():
 func _build_damage_profile() -> Dictionary:
 	var sources: Array = []
 	var any_dot := false
+	var chip_floor := false
 	if is_instance_valid(player_node) and player_node.has_node("Equipment"):
 		for weapon in player_node.get_node("Equipment").get_children():
 			if weapon.has_method("get_damage_sources"):
 				for s in weapon.get_damage_sources():
 					sources.append(s)
 					any_dot = any_dot or s["dot"]
-	return {"sources": sources, "any_dot": any_dot}
+	# Water Wears Stone (chip-floor artifact): every hit lands at least a fraction of raw damage,
+	# so NOTHING is ever walled -- the cap self-disables, exactly like drafting DoT or pen does.
+	if is_instance_valid(player_node) and player_node.has_method("get_stat"):
+		chip_floor = player_node.get_stat("chip_floor") > 0.0
+	return {"sources": sources, "any_dot": any_dot, "chip_floor": chip_floor}
 
 ## The wall test: true if this much armor zeroes the build's every hit.
 func _armor_walls_build(armor: float, build: Dictionary) -> bool:
-	# No armor never walls; DoT ignores armor entirely; an empty profile is a boot-order quirk, not
-	# a wall.
-	if armor <= 0.0 or build["any_dot"] or build["sources"].is_empty():
+	# No armor never walls; DoT ignores armor entirely; a chip floor means every hit lands; an
+	# empty profile is a boot-order quirk, not a wall.
+	if armor <= 0.0 or build["any_dot"] or build.get("chip_floor", false) \
+			or build["sources"].is_empty():
 		return false
 	for s in build["sources"]:
 		if s["damage"] - armor * (1.0 - s["armor_pen"]) > 0.0:

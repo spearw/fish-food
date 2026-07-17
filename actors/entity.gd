@@ -59,6 +59,16 @@ func take_damage(amount: int, armor_pen: float, is_crit: bool, source_node: Node
 	var damage_taken = DamageUtils.apply_armor(
 		amount, maxf(0.0, self.stats.armor - armor_shred), armor_pen)
 
+	# Water Wears Stone (chip-floor artifact): hits from a chip-floor build always land at least
+	# floor_pct of their RAW damage (min 1) -- armor can blunt, never wall. Player-side verb; the
+	# global armor rule above is untouched. Only consulted when armor actually blunted the hit.
+	if damage_taken < amount and source_node != null:
+		var attacker = source_node.get("user")
+		if attacker != null and is_instance_valid(attacker) and attacker.has_method("get_stat"):
+			var floor_pct: float = attacker.get_stat("chip_floor")
+			if floor_pct > 0.0:
+				damage_taken = maxi(damage_taken, maxi(1, int(amount * floor_pct)))
+
 	# Per-source damage attribution: ACTUAL post-armor damage, credited to the source's
 	# attribution_key (armor-blocked hits honestly credit nothing). A null source is a DoT tick,
 	# which credits itself where the tick is computed -- crediting it here too would double-count.

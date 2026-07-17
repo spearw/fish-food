@@ -17,6 +17,14 @@ func _fake_enemy(armor: int, sizes: Array) -> EnemyStats:
 	stats.challenge_rating = 1.0
 	return stats
 
+class ChipPlayer:
+	extends Node2D
+	func get_stat(key): return 0.2 if key == "chip_floor" else 1.0
+
+class ChipSource:
+	extends Node2D
+	var user: Node2D
+
 func _ready() -> void:
 	# --- 1. Damage-source fingerprints off real weapon scenes (off-tree: reads authored stats) ---
 	var dagger = load(DAGGER_UNLOCK).scene_to_unlock.instantiate()
@@ -46,13 +54,43 @@ func _ready() -> void:
 	var pen_build := {"sources": [{"damage": 25.0, "armor_pen": 0.5, "dot": false}], "any_dot": false}
 	var dot_build := {"sources": [{"damage": 1.0, "armor_pen": 0.0, "dot": true}], "any_dot": true}
 
+	# Water Wears Stone (chip floor): a build that always chips is NEVER walled -- the cap
+	# stands down exactly as it does for DoT or pen.
+	var chip_build := {"sources": [{"damage": 10.0, "armor_pen": 0.0, "dot": false}],
+		"any_dot": false, "chip_floor": true}
+
 	var wall_ok: bool = d._armor_walls_build(15.0, dagger_build) \
 		and not d._armor_walls_build(7.5, dagger_build) \
 		and not d._armor_walls_build(15.0, epic_build) \
 		and not d._armor_walls_build(15.0, pen_build) \
 		and not d._armor_walls_build(999.0, dot_build) \
+		and not d._armor_walls_build(999.0, chip_build) \
 		and not d._armor_walls_build(0.0, dagger_build)
-	print("ARMORCAP wall_test=%s" % str(wall_ok))
+	print("ARMORCAP wall_test=%s (chip_floor stands the cap down)" % str(wall_ok))
+
+	# --- 2b. The chip floor itself, through the REAL damage sink: 6 raw into 10 armor is a wall
+	#         (0) without the artifact, a chip (1) with it; big hits are never LOWERED by it.
+	var chip_player := ChipPlayer.new()
+	add_child(chip_player)
+	var chip_source := ChipSource.new()
+	chip_source.user = chip_player
+	add_child(chip_source)
+	var armored = load("res://actors/entity.gd").new()
+	armored.stats = load("res://bench_dummies/dummy_armor10.tres").duplicate()
+	add_child(armored)
+	var hp0: int = armored.current_health
+	armored.take_damage(6, 0.0, false, chip_source)   # blunted to 0 -> floored to max(1, 6*0.2)=1
+	var chipped: int = hp0 - armored.current_health
+	armored.take_damage(45, 0.0, false, chip_source)  # 35 through armor -- floor must not touch it
+	var big: int = hp0 - 1 - armored.current_health
+	var bare_source := Node2D.new()
+	add_child(bare_source)
+	var hp1: int = armored.current_health
+	armored.take_damage(6, 0.0, false, bare_source)   # no chip-floor attacker -> still a wall
+	var walled: int = hp1 - armored.current_health
+	var chip_ok: bool = chipped == 1 and big == 35 and walled == 0
+	print("ARMORCAP chip_floor: chipped=%d (want 1) big=%d (want 35) without=%d (want 0) ok=%s" % [
+		chipped, big, walled, str(chip_ok)])
 
 	# --- 3. Candidate test uses the worst-case size multiplier ---
 	# 7 armor, may spawn LARGE (armor x1.5 -> 10.5): 10 damage clears 7 (deals 3) but not 10.5, so the
@@ -88,6 +126,6 @@ func _ready() -> void:
 		d.max_walled_share])
 
 	d.free()
-	var pass_all: bool = dagger_ok and staff_ok and wall_ok and size_ok and gate_ok
+	var pass_all: bool = dagger_ok and staff_ok and wall_ok and chip_ok and size_ok and gate_ok
 	print("ARMORCAP RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

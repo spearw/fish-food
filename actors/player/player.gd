@@ -313,6 +313,15 @@ func get_stat(key: String):
 			return get_stat_multiplier(key)
 		"spark_count_bonus":
 			return in_run_bonuses.get("spark_count_bonus", 0)
+		"on_hit_burn_chance", "on_hit_venom_chance", "point_blank_bonus", "whiff_spark":
+			# Combo-synergy grants (Incendiary/Toxic Rounds, Powder Burn, Capacitor Magazine):
+			# artifacts contribute via get_<key>_bonus(); consumed in the projectile hit paths.
+			var combo_total: float = 0.0
+			var getter := "get_%s_bonus" % key
+			for artifact in _cached_artifacts:
+				if artifact.has_method(getter):
+					combo_total += artifact.call(getter)
+			return combo_total
 		"dot_armor_shred":
 			# Corrosion: armor points your DoT ticks eat per tick (per-entity, applied in
 			# DotStatusEffect._do_damage_tick -> entity.armor_shred).

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bcombosverify001"]
+
+[ext_resource type="Script" path="res://combos_verify.gd" id="1_combos"]
+
+[node name="CombosVerify" type="Node"]
+script = ExtResource("1_combos")

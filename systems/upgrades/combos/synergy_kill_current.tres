@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/combos/lightning_projectile/kill_current.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "synergy_kill_current"
+display_name = "Kill Current"
+description = "Lightning + Projectile: kills have a 50% chance to release a spark from the corpse."
+type = 1
+target_class_name = "KillCurrentArtifact"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 4
+key = ""
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

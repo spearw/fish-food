@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://items/artifacts/combos/lightning_venom/toxic_discharge_artifact.gd" id="1_art"]
+
+[node name="ToxicDischargeArtifact" type="Node"]
+script = ExtResource("1_art")

@@ -42,6 +42,7 @@ func _ready() -> void:
 	host.add_child(mgr)
 	var burn: DotStatusEffect = load("res://systems/status_effects/fire/burning.tres").duplicate(true)
 	burn.attribution_key = "CritTest"
+	burn.additional_status_chance = 0.0  # determinism: a random ignite escalation immediate-ticks
 
 	p.stat_values["crit_flat"] = 1.0        # guaranteed crit
 	p.stat_values["critical_hit_rate"] = 1.0

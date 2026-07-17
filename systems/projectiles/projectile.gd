@@ -20,6 +20,13 @@ var attribution_key: String = ""
 ## Whether the most recent _deal_damage roll was a crit -- read by the spark spawner so
 ## crit-reactive evolutions (Static Needles) can scale their output.
 var _last_hit_crit := false
+## Whether this projectile connected with anything this life -- Capacitor Magazine (combo) turns
+## clean misses into sparks at the expiry point. Reset per pooled life.
+var _hit_anything := false
+
+## Combo-synergy status payloads (Incendiary/Toxic Rounds grant on-hit chances via player stats).
+const COMBO_BURN := preload("res://systems/status_effects/fire/burning.tres")
+const COMBO_POISON := preload("res://systems/status_effects/poison/poison_status_effect.tres")
 
 # --- Calculated Values ---
 var damage: float = 0.0
@@ -54,6 +61,8 @@ func _ready():
 func activate():
 	_is_pooled = true
 	_is_destroying = false
+	_hit_anything = false
+	_last_hit_crit = false
 	# Re-enable collision for reused projectiles
 	if area2d:
 		area2d.monitoring = true
@@ -172,6 +181,7 @@ func _on_body_entered(body: Node2D):
 	# Valid target found - apply damage and knockback.
 	var damage_dealt = 0.0
 	if body.has_method("take_damage"):
+		_hit_anything = true
 		damage_dealt = _deal_damage(body)
 
 	# Apply effect tags (pass damage dealt for lifesteal)
@@ -209,6 +219,13 @@ func _deal_damage(body: Node2D) -> float:
 	# Apply tag bonus damage vs enemy types
 	final_damage *= _calculate_tag_bonus(body)
 
+	# Powder Burn (Melee+Projectile combo): shots that connect at melee range hit harder.
+	if is_instance_valid(user) and user.has_method("get_stat"):
+		var point_blank: float = user.get_stat("point_blank_bonus")
+		if point_blank > 0.0 \
+				and user.global_position.distance_to(body.global_position) < 130.0:
+			final_damage *= 1.0 + point_blank
+
 	# Apply ARMOR_PEN effect for bonus penetration
 	var armor_pen = stats.armor_penetration
 	if stats.has_effect(WeaponTags.Effect.ARMOR_PEN):
@@ -239,6 +256,23 @@ func _apply_status(body: Node2D):
 
 ## Applies effect tag behaviors (DOT, SLOW, LIFESTEAL, etc.)
 func _apply_effect_tags(body: Node2D, damage_dealt: float):
+	# Always-on hooks FIRST: these must fire for every projectile, including ones whose stats
+	# carry no effect tags at all (plain daggers). The old top early-return silently disabled
+	# Conductive on tag-less weapons and would have done the same to the combo rounds.
+	var has_conductive = is_instance_valid(user) and user.has_method("get_stat") and user.get_stat("has_conductive") > 0
+	if stats.has_effect(WeaponTags.Effect.SPARK) or has_conductive:
+		_apply_spark_effect(body)
+
+	# Combo synergies: artifact-granted on-hit status chances (Incendiary Rounds / Toxic Rounds
+	# make EVERY projectile a status carrier -- the conductive pattern, different payloads).
+	if is_instance_valid(user) and user.has_method("get_stat") and body.has_node("StatusEffectManager"):
+		var burn_chance: float = user.get_stat("on_hit_burn_chance")
+		if burn_chance > 0.0 and randf() < burn_chance:
+			body.get_node("StatusEffectManager").apply_status(COMBO_BURN, user, "Incendiary Rounds")
+		var venom_chance: float = user.get_stat("on_hit_venom_chance")
+		if venom_chance > 0.0 and randf() < venom_chance:
+			body.get_node("StatusEffectManager").apply_status(COMBO_POISON, user, "Toxic Rounds")
+
 	if stats.effects.is_empty():
 		return
 
@@ -256,12 +290,6 @@ func _apply_effect_tags(body: Node2D, damage_dealt: float):
 	# LIFESTEAL Effect - Heal user based on damage dealt
 	if stats.has_effect(WeaponTags.Effect.LIFESTEAL) and damage_dealt > 0:
 		_apply_lifesteal_effect(damage_dealt)
-
-	# SPARK Effect - Spawn spark projectiles on hit
-	# Also triggers if user has Conductive artifact (all weapons spark)
-	var has_conductive = is_instance_valid(user) and user.has_method("get_stat") and user.get_stat("has_conductive") > 0
-	if stats.has_effect(WeaponTags.Effect.SPARK) or has_conductive:
-		_apply_spark_effect(body)
 
 ## Creates and applies a DOT status effect based on registry data.
 func _apply_dot_effect(body: Node2D):
@@ -422,6 +450,13 @@ func _destroy():
 	if _is_destroying:
 		return
 	_is_destroying = true
+
+	# Capacitor Magazine (Lightning+Projectile combo): a projectile that dies having hit NOTHING
+	# leaves a spark at its expiry point -- volume builds convert their whiffs.
+	if not _hit_anything and allegiance == Allegiance.PLAYER \
+			and is_instance_valid(user) and user.has_method("get_stat") \
+			and user.get_stat("whiff_spark") > 0.0:
+		_create_spark(global_position, null, 6, 3, 200.0, 600.0, 0.5)
 
 	# Disable collision immediately to prevent further physics callbacks
 	if area2d:

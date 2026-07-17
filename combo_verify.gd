@@ -6,14 +6,19 @@ func _ready() -> void:
 	# --- Content: master_combo_list.tres loads the Fire+Lightning combo with 3 wired synergies whose
 	#     artifact scenes resolve. (ComboManager loaded it in its own _ready.) ---
 	var loaded: Array = ComboManager._combos
-	var content_ok: bool = loaded.size() == 1 and loaded[0].involves("fire", "lightning") \
-		and loaded[0].synergies.size() == 3
+	# Full coverage now (July 2026): all C(5,2)=10 pairs; this file keeps exercising the ORIGINAL
+	# Fire+Lightning combo end-to-end (combos_verify.tscn sweeps the whole registry).
+	var fl = null
+	for combo in loaded:
+		if combo.involves("fire", "lightning"):
+			fl = combo
+	var content_ok: bool = loaded.size() == 10 and fl != null and fl.synergies.size() == 3
 	if content_ok:
-		for syn in loaded[0].synergies:
+		for syn in fl.synergies:
 			if syn == null or syn.scene_to_unlock == null:
 				content_ok = false
 	print("COMBOVERIFY content: combos=%d synergies=%d scenes_ok=%s" % [
-		loaded.size(), (loaded[0].synergies.size() if loaded.size() > 0 else 0), str(content_ok)])
+		loaded.size(), (fl.synergies.size() if fl != null else 0), str(content_ok)])
 
 	var combo := DeckCombo.new()
 	combo.combo_name = "Fire + Lightning"

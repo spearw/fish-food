@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/combos/projectile_venom/septic_burst.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "synergy_septic_burst"
+display_name = "Septic Burst"
+description = "Projectile + Venom: poisoned enemies that die have a 50% chance to burst into 3 venom darts."
+type = 1
+target_class_name = "SepticBurstArtifact"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 4
+key = ""
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

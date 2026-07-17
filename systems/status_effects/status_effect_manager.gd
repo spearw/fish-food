@@ -48,6 +48,22 @@ func _rebuild_processing_cache():
 			})
 	_processing_cache_dirty = false
 
+## Consumes an active status (combo detonates: Caustic Detonation, Toxic Discharge): returns its
+## stack count and ends it through the normal expiry path.
+func consume_status(status_id: String) -> int:
+	if not active_statuses.has(status_id):
+		return 0
+	var effect = active_statuses[status_id]["effect"]
+	var count: int = effect.stacks if "stacks" in effect else 1
+	if count <= 0:
+		return 0
+	if "stacks" in effect:
+		# Zero NOW -- the expiry timer below only cleans up. Without this, two consumers in the
+		# same frame (burning AND ignited both landing) would double-detonate the same venom.
+		effect.stacks = 0
+	active_statuses[status_id]["timer"].start(0.01)
+	return count
+
 func apply_status(status_resource: StatusEffect, source: Node, attribution_key: String = ""):
 	if not status_resource: return
 

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://items/artifacts/combos/lightning_melee/static_charge.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "synergy_static_charge"
+display_name = "Static Charge"
+description = "Lightning + Melee: getting hit discharges a nova of 3 sparks."
+type = 1
+target_class_name = "StaticChargeArtifact"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 4
+key = ""
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

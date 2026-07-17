@@ -32,7 +32,7 @@
 script = ExtResource("1_1vjku")
 id = "projectile"
 deck_name = "Projectiles"
-deck_description = "You are the bullet hell. Volume of fire over everything."
+deck_description = "Volume of fire: many projectiles, fired fast."
 unlock_cost = 100
 upgrades = Array[ExtResource("2_s72px")]([ExtResource("3_dag"), ExtResource("4_shot"), ExtResource("5_spike"), ExtResource("20_harpoon"), ExtResource("21_boom"), ExtResource("22_ricochet"), ExtResource("23_twinthrow"), ExtResource("24_choke"), ExtResource("25_riot"), ExtResource("26_bladed"), ExtResource("27_shrapnel"), ExtResource("28_barbed"), ExtResource("29_twinharp"), ExtResource("30_razor"), ExtResource("31_widearc"), ExtResource("8_tome"), ExtResource("9_swift"), ExtResource("32_overpressure"), ExtResource("10_slip"), ExtResource("11_split"), ExtResource("90_statfirerate"), ExtResource("91_statcount"), ExtResource("92_statpspeed"), ExtResource("93_statspeed"), ExtResource("94_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

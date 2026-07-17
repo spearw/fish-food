@@ -28,7 +28,7 @@
 script = ExtResource("1_pk")
 id = "toxin"
 deck_name = "Venom"
-deck_description = "The ocean's venomous things. Venom STACKS (up to 5) and ignores armor -- poison everything, keep moving, let time do the killing."
+deck_description = "Venomous sea creatures. Venom stacks up to 5 and its damage-over-time ignores armor."
 unlock_cost = 0
 upgrades = Array[ExtResource("2_upg")]([ExtResource("3_poison"), ExtResource("10_snake"), ExtResource("11_urchin"), ExtResource("12_ink"), ExtResource("13_fog"), ExtResource("14_spore"), ExtResource("15_viper"), ExtResource("16_neuro"), ExtResource("17_tide"), ExtResource("18_needle"), ExtResource("19_deepink"), ExtResource("20_jet"), ExtResource("21_outbreak"), ExtResource("22_corrosion"), ExtResource("23_wake"), ExtResource("4_vir"), ExtResource("5_con"), ExtResource("6_lin"), ExtResource("90_statarea"), ExtResource("91_statspeed"), ExtResource("92_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

@@ -2,10 +2,9 @@
 class_name SparkDaggerWeapon
 extends TransformableWeapon
 
-## Static Needles: the blade seeks the vital line. +10 points base crit on the weapon, and
+## Static Needles: +10 points base crit on the weapon, and
 ## critical hits release DOUBLE sparks (data-driven: the projectile reads crit_spark_multiplier
-## from its SPARK effect data). Marries the dagger's crit identity to the deck's spark engine --
-## and with universal flat crit, a crit character turns this into a spark fountain.
+## from its SPARK effect data).
 func _on_transformation_acquired(id: String):
 	if id == "static_needles":
 		projectile_stats.critical_hit_rate += 0.10

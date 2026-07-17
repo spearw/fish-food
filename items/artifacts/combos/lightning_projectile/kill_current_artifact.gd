@@ -1,5 +1,5 @@
 ## kill_current_artifact.gd -- combo synergy (Lightning + Projectile): kills have a chance to
-## release a spark from the corpse. Momentum becomes current.
+## release a spark from the corpse.
 extends ArtifactBase
 
 @export var spark_chance: float = 0.5

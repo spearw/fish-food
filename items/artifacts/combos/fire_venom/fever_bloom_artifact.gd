@@ -1,5 +1,5 @@
 ## fever_bloom_artifact.gd -- combo synergy (Fire + Venom): enemies that die POISONED have a
-## chance to leave burning ground. The infection blooms into flame.
+## chance to leave burning ground.
 extends ArtifactBase
 
 const GROUND_FIRE_STATS := preload("res://items/weapons/molotov_cocktail/molotov_ground_fire_stats.tres")

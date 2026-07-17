@@ -1,5 +1,5 @@
-## return_stroke_artifact.gd -- combo synergy (Cosmic + Lightning): a chain kill completes the
-## circuit skyward, and the sky answers -- a 20-dmg burst at the kill point.
+## return_stroke_artifact.gd -- combo synergy (Cosmic + Lightning): chain kills spawn a 20-dmg
+## burst at the kill point.
 extends ArtifactBase
 
 const EXPLOSION_SCENE := preload("res://systems/projectiles/explosion/explosion_effect.tscn")

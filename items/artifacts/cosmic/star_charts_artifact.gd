@@ -1,5 +1,5 @@
-## star_charts_artifact.gd -- Cosmic deck: the charts predict one more falling star.
-## +1 projectile on everything (the Tome's machinery; they stack).
+## star_charts_artifact.gd -- Cosmic deck: +1 projectile on everything.
+## Uses the same projectile-bonus hook as the Tome of Duplication; they stack.
 extends ArtifactBase
 
 @export var bonus_projectiles: int = 1

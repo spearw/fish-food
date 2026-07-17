@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "toxic_wake_unlock"
 display_name = "Toxic Wake"
-description = "You leave a poisonous wake as you swim. Movement is offense."
+description = "You leave a poisonous wake as you swim."
 type = 1
 target_class_name = "toxic_wake"
 scene_to_unlock = ExtResource("1_scene")

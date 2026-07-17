@@ -1,5 +1,5 @@
 ## comet_fist_artifact.gd -- combo synergy (Cosmic + Melee): every 4th melee strike calls a comet
-## down on the victim (18-dmg burst). Rhythm, meet impact.
+## down on the victim (18-dmg burst).
 extends ArtifactBase
 
 const EXPLOSION_SCENE := preload("res://systems/projectiles/explosion/explosion_effect.tscn")

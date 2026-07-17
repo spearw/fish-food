@@ -1,5 +1,5 @@
 ## caustic_detonation_artifact.gd -- combo synergy (Fire + Venom): setting a POISONED enemy on
-## fire DETONATES its venom -- the stacks are consumed as instant damage. Burst meets ramp.
+## fire detonates its venom: the stacks are consumed as instant damage.
 extends ArtifactBase
 
 ## Damage-report identity for the detonation hits.

@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "water_wears_stone_unlock"
 display_name = "Water Wears Stone"
-description = "Your hits always deal at least 20% of their raw damage. Armor can blunt you -- never wall you."
+description = "Your hits always deal at least 20% of their raw damage, even through armor."
 type = 1
 target_class_name = "water_wears_stone"
 scene_to_unlock = ExtResource("1_scene")

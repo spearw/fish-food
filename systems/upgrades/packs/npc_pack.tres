@@ -8,7 +8,7 @@
 script = ExtResource("1_pk")
 id = "npc"
 deck_name = "NPC"
-deck_description = "NOT PLAYER-FACING (and not in the master list): the assigned home for enemy-wielded weapons. Bubble Bullet is the eels' attack -- enemies reference weapon scenes directly, so this deck is organizational, not functional."
+deck_description = "Not player-facing (and not in the master list): the assigned home for enemy-wielded weapons. Enemies reference weapon scenes directly, so this deck is organizational only."
 unlock_cost = 999999
 upgrades = Array[ExtResource("2_upg")]([ExtResource("3_bub")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

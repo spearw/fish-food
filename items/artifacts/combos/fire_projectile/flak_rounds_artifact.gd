@@ -1,5 +1,5 @@
 ## flak_rounds_artifact.gd -- combo synergy (Fire + Projectile): your kills have a chance to
-## detonate in a fireball. Volume of fire becomes volume of FIRE.
+## detonate in a fireball.
 extends ArtifactBase
 
 const EXPLOSION_SCENE := preload("res://systems/projectiles/explosion/explosion_effect.tscn")

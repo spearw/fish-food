@@ -1,5 +1,5 @@
 ## predators_meal_artifact.gd -- combo synergy (Melee + Venom): killing a POISONED enemy heals
-## you 1 HP. The venom tenderizes; the predator feeds.
+## you 1 HP.
 extends ArtifactBase
 
 @export var heal_per_kill: int = 1

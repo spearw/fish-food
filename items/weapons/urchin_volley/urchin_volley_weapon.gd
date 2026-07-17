@@ -1,5 +1,5 @@
 ## urchin_volley_weapon.gd -- the Venom deck's crowd-seeder: a radial burst of poisoning spines.
-## Fire it while swimming THROUGH the school -- pairs with the deck's move-speed identity.
+## Pairs with the deck's move-speed cards.
 class_name UrchinVolleyWeapon
 extends TransformableWeapon
 

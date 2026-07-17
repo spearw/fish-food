@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "synergy_solar_flare"
 display_name = "Solar Flare"
-description = "Cosmic + Fire: your hits deal +40% to burning enemies -- ignite, then obliterate."
+description = "Cosmic + Fire: your hits deal +40% to burning enemies."
 type = 1
 target_class_name = "SolarFlareArtifact"
 scene_to_unlock = ExtResource("1_scene")

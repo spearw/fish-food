@@ -1,5 +1,5 @@
 ## charged_edge_artifact.gd -- combo synergy (Lightning + Melee): melee strikes have a chance to
-## release a spark from the struck enemy. Swing into the school, watch it arc.
+## release a spark from the struck enemy.
 extends ArtifactBase
 
 @export var spark_chance: float = 0.5

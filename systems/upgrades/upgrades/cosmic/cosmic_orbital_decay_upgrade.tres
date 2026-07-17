@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "cosmic_orbital_decay"
 display_name = "Orbital Decay"
-description = "Your strikes call faster -- multiplicatively."
+description = "Attack speed grows multiplicatively."
 type = 2
 target_class_name = "Player"
 rarity = 1

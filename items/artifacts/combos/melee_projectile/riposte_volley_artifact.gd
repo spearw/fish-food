@@ -1,5 +1,5 @@
 ## riposte_volley_artifact.gd -- combo synergy (Melee + Projectile): getting hit answers with a
-## burst of three darts at the attacker. Every wound is a reload.
+## burst of three darts at the attacker.
 extends ArtifactBase
 
 const DART_STATS := preload("res://items/artifacts/combos/melee_projectile/riposte_dart_stats.tres")

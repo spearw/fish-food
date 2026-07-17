@@ -1,5 +1,5 @@
 ## static_charge_artifact.gd -- combo synergy (Lightning + Melee): getting hit discharges a nova
-## of sparks. You are the capacitor; their mistake completes the circuit.
+## of sparks.
 extends ArtifactBase
 
 @export var spark_count: int = 3

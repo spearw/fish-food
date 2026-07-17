@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "cosmic_event_horizon"
 display_name = "Event Horizon"
-description = "Your area of effect grows -- multiplicatively."
+description = "Area of effect grows multiplicatively."
 type = 2
 target_class_name = "Player"
 rarity = 1

@@ -3,7 +3,7 @@
 class_name HarpoonGunWeapon
 extends TransformableWeapon
 
-## Barbed Harpoon: impaled enemies are slowed and hurled -- the harpoon controls the line it draws.
+## Barbed Harpoon: impaled enemies are slowed 50% and knocked back hard.
 const IMPALE_SLOW := preload("res://items/weapons/harpoon_gun/impale_slow.tres")
 
 func _on_transformation_acquired(id: String):

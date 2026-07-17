@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "poison_cloud_rolling_fog_transform"
 display_name = "Rolling Fog"
-description = "Clouds creep toward the nearest enemy -- mobile area denial."
+description = "Clouds drift toward the nearest enemy."
 type = 3
 target_class_name = "PoisonCloudWeapon"
 rarity = 2

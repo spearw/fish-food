@@ -1,5 +1,5 @@
 ## orbital_guard_artifact.gd -- combo synergy (Cosmic + Melee): anything that hits you gets
-## struck from above (15-dmg burst on the attacker). The sky hits back.
+## struck from above (15-dmg burst on the attacker).
 extends ArtifactBase
 
 const EXPLOSION_SCENE := preload("res://systems/projectiles/explosion/explosion_effect.tscn")

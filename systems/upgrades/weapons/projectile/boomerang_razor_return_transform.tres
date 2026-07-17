@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "boomerang_razor_return_transform"
 display_name = "Razor Return"
-description = "The return pass hits for DOUBLE -- position the catch."
+description = "The return pass deals double damage."
 type = 3
 target_class_name = "BoomerangWeapon"
 rarity = 2

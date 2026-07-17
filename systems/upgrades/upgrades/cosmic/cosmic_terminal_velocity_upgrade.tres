@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "cosmic_terminal_velocity"
 display_name = "Terminal Velocity"
-description = "Your strikes fall faster -- impact delay shrinks multiplicatively."
+description = "Impact delay shrinks multiplicatively: strikes land sooner."
 type = 2
 target_class_name = "Player"
 rarity = 1

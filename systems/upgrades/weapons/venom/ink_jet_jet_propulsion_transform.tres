@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "ink_jet_jet_propulsion_transform"
 display_name = "Jet Propulsion"
-description = "Squid physics: every spray shoves you backward, away from your target."
+description = "Every spray shoves you backward, away from your target."
 type = 3
 target_class_name = "InkJetWeapon"
 rarity = 2

@@ -1,4 +1,4 @@
-## boomerang_projectile.gd -- out and BACK: at half-life the blade turns and homes to its thrower,
+## boomerang_projectile.gd -- at half-life the blade turns and homes back to its thrower,
 ## hitting everything on both passes (a body can be struck once per pass -- re-entry re-triggers).
 ## Custom scene, never pooled.
 class_name BoomerangProjectile
@@ -12,7 +12,7 @@ func _process(delta: float) -> void:
 	if _is_destroying:
 		return
 	_flight_time += delta
-	# Visual spin -- a boomerang that doesn't spin is just a stick.
+	# Visual spin.
 	if sprite:
 		sprite.rotation += 14.0 * delta
 	if not _returning and _flight_time >= stats.lifetime * 0.5:

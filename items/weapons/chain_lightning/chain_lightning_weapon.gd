@@ -3,7 +3,7 @@ class_name ChainLightningWeapon
 extends TransformableWeapon
 
 ## Fork Lightning: bolts split on their first hit into two bolts at 60% damage.
-## Superconductor: no resistance -- every hit releases 2 sparks that bounce 6 times at extended
+## Superconductor: every hit releases 2 sparks that bounce 6 times at extended
 ## range (pure SPARK effect_overrides; player spark cards still add on top).
 const FORK_SCENE := preload("res://systems/projectiles/fork_projectile/fork_bolt_x2.tscn")
 

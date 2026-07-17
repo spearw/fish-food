@@ -1,5 +1,5 @@
 ## toxic_wake_artifact.gd -- Venom deck: you leave a poisonous wake as you swim. The deck's
-## kiting identity (it carries the Speed cards) made literal: movement becomes offense.
+## kiting identity (it carries the Speed cards): moving drops poison zones.
 ## PERF: one zone per wake_spacing pixels of actual movement, short-lived -- a handful alive at
 ## once, and standing still spawns nothing.
 extends ArtifactBase

@@ -3,8 +3,9 @@ class_name LightningSwordWeapon
 extends TransformableWeapon
 
 ## Storm Blade: each swing also launches a piercing wave of charge -- melee's range answer.
-## Thunderclap: every 3rd swing detonates a nova around the player -- rhythm, not raw rate.
-## Both shape, not multipliers: the sword is the bench's damage outlier.
+## Thunderclap: every 3rd swing detonates a nova around the player.
+## The sword already tops the damage bench, so both evolutions change behavior instead of
+## raising damage.
 ## Exported so weapon._ready() localizes and rarity-scales them with the instance's tier.
 @export var wave_stats: ProjectileStats
 @export var thunderclap_stats: ExplosionStats

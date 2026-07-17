@@ -1,5 +1,5 @@
 ## critical_condition_artifact.gd -- combo synergy (cosmic + venom).
-## Critical Condition: your hits deal +40% to enemies at FULL venom stacks -- the haymaker cashes the ramp without consuming it.
+## Critical Condition: your hits deal +40% to enemies at full venom stacks. Does not consume the stacks (Caustic Detonation does).
 extends ArtifactBase
 
 @export var amount: float = 0.4

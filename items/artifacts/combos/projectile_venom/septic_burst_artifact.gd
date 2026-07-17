@@ -1,5 +1,5 @@
 ## septic_burst_artifact.gd -- combo synergy (Projectile + Venom): POISONED enemies that die
-## burst into three venom darts. The school infects itself.
+## burst into three venom darts.
 extends ArtifactBase
 
 const DART_STATS := preload("res://items/artifacts/combos/projectile_venom/septic_dart_stats.tres")

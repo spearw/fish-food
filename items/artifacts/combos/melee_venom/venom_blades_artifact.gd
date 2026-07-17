@@ -1,5 +1,5 @@
 ## venom_blades_artifact.gd -- combo synergy (Melee + Venom): every melee strike has a chance to
-## add a venom stack. Swings become the fastest stacker in the game up close.
+## add a venom stack.
 extends ArtifactBase
 
 const POISON := preload("res://systems/status_effects/poison/poison_status_effect.tres")

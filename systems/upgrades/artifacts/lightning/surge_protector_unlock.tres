@@ -7,7 +7,7 @@
 script = ExtResource("2_upgrade")
 id = "surge_protector_unlock"
 display_name = "Surge Protector"
-description = "When you are hit, ALL your weapons fire immediately. Works even if armor blocks the damage!"
+description = "When you are hit, all your weapons fire immediately. Works even if armor blocks the damage."
 type = 1
 target_class_name = "SurgeProtectorArtifact"
 scene_to_unlock = ExtResource("1_scene")

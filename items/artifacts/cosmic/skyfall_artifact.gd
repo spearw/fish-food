@@ -1,5 +1,5 @@
 ## skyfall_artifact.gd -- Cosmic deck: your kills have a chance to call a small cosmic burst down
-## on another enemy nearby. The sky answers momentum.
+## on another enemy nearby.
 extends ArtifactBase
 
 const EXPLOSION_SCENE := preload("res://systems/projectiles/explosion/explosion_effect.tscn")

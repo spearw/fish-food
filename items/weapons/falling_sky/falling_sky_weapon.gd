@@ -1,5 +1,5 @@
 ## falling_sky_weapon.gd -- Cosmic's ambient rain: a small strike at a random point near you,
-## always. The texture between the big telegraphs -- the sky simply falls, everywhere.
+## always. Fills the time between the aimed weapons' telegraphs.
 ## NOTE: aoe_delay stays SHORTER than the fire cadence -- the component's delay timer is shared,
 ## and overlapping awaits bunch strikes together (cosmetic, but keep the margin).
 class_name FallingSkyWeapon

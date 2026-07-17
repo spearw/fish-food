@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "boomerang_wide_arc_transform"
 display_name = "Wide Arc"
-description = "Longer, faster flight: the blade owns more water on both passes."
+description = "Longer, faster flight on both passes."
 type = 3
 target_class_name = "BoomerangWeapon"
 rarity = 2

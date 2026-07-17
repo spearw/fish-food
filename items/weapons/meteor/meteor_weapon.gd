@@ -6,7 +6,7 @@ func _on_transformation_acquired(id: String):
 	## Meteor Shower: double the volley.
 	if id == "meteor_shower":
 		base_projectile_count += 3
-	## Deep Impact: fewer questions, bigger answers -- x1.5 damage, x1.5 blast, x2 knockback.
+	## Deep Impact: x1.5 damage, x1.5 blast, x2 knockback.
 	if id == "deep_impact":
 		projectile_stats.damage = projectile_stats.damage * 1.5
 		projectile_stats.scale = projectile_stats.scale * 1.5

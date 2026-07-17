@@ -65,7 +65,7 @@ func _ready():
 	body_exited.connect(_on_body_exited)
 
 	# Despawn after set time, scaled by the owner's status-duration stat: a persistent zone IS a
-	# status writ large, so Lingering Fumes (and fire_fuel) extend clouds, ground fire and firewalls.
+	# status with a longer footprint, so Lingering Fumes (and fire_fuel) extend clouds, ground fire and firewalls.
 	# This is the persistence-build lever -- cloud count has NO cap; how many are alive is just
 	# duration / spawn-rate, and this multiplies the numerator (playtest finding, Jul 2026).
 	var duration: float = stats.duration

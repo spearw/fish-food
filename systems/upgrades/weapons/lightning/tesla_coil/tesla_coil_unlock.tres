@@ -7,7 +7,7 @@
 script = ExtResource("2_upgrade")
 id = "tesla_coil_unlock"
 display_name = "Tesla Coil"
-description = "Slow homing orbs -- a small hit that feeds big sparks."
+description = "Slow homing orbs with a small hit that release many sparks."
 type = 0
 target_class_name = "Weapon"
 scene_to_unlock = ExtResource("1_scene")

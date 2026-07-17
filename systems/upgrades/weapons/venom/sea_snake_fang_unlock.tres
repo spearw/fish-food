@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "sea_snake_fang_unlock"
 display_name = "Sea Snake Fang"
-description = "Fast homing fangs -- a small bite whose venom is the payload. Venom stacks to 5."
+description = "Fast homing fangs with a small hit and heavy venom. Venom stacks to 5."
 type = 0
 target_class_name = "SeaSnakeFangWeapon"
 scene_to_unlock = ExtResource("1_scene")

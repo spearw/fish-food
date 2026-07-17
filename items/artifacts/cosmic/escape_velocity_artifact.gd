@@ -1,4 +1,4 @@
-## escape_velocity_artifact.gd -- Cosmic deck: you fall forever, sideways. +15% move speed,
+## escape_velocity_artifact.gd -- Cosmic deck: +15% move speed,
 ## always (the Adrenaline machinery, minus the condition).
 extends ArtifactBase
 

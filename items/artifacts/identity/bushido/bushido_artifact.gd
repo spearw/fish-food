@@ -1,8 +1,8 @@
 ## bushido_artifact.gd -- Samurai's identity: the MOMENTUM edge.
-## Each kill grants flat base crit for a rolling window; stop killing and the edge cools.
-## (Replaced the permanent kill-accumulator, which by mid-run was just a stat card. Momentum is a
-## verb: strongest mid-swarm, cools exactly when kills dry up -- bosses, armored tanks -- which is
-## the designed weakness. Feed the edge on chaff before turning on the big fish.)
+## Each kill grants flat base crit for a rolling window; the bonus fades when kills stop.
+## (Replaced the permanent kill-accumulator, which by mid-run was just a stat card. The rolling
+## window makes the bonus depend on recent kills, so it drops against bosses and armored tanks --
+## the designed weakness.)
 ##
 ## PERF: no Timer nodes, no per-stack allocations (kills are hot -- 10+/sec late game). Stacks are
 ## expiry timestamps on a GAME-time clock (physics-delta accumulation; wall time would let stacks

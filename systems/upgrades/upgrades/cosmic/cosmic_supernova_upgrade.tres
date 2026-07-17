@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "cosmic_supernova"
 display_name = "Supernova"
-description = "Your critical hits detonate harder -- crit damage grows multiplicatively."
+description = "Crit damage grows multiplicatively."
 type = 2
 target_class_name = "Player"
 rarity = 1

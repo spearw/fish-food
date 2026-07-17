@@ -1,5 +1,5 @@
-## branding_blade_artifact.gd -- combo synergy (Fire + Melee): your melee strikes BRAND --
-## each swing hit has a chance to set the target burning.
+## branding_blade_artifact.gd -- combo synergy (Fire + Melee): melee hits have a chance to set
+## the target burning.
 extends ArtifactBase
 
 const BURN := preload("res://systems/status_effects/fire/burning.tres")

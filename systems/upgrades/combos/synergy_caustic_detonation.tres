@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "synergy_caustic_detonation"
 display_name = "Caustic Detonation"
-description = "Fire + Venom: igniting a poisoned enemy detonates its venom -- 6 damage per stack, stacks consumed."
+description = "Fire + Venom: igniting a poisoned enemy detonates its venom for 6 damage per stack. Stacks are consumed."
 type = 1
 target_class_name = "CausticDetonationArtifact"
 scene_to_unlock = ExtResource("1_scene")

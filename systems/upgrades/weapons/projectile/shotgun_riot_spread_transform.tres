@@ -6,7 +6,7 @@
 script = ExtResource("1_upgrade")
 id = "shotgun_riot_spread_transform"
 display_name = "Riot Spread"
-description = "16 pellets across 60 degrees with doubled knockback -- a wall of denial."
+description = "16 pellets across 60 degrees with doubled knockback."
 type = 3
 target_class_name = "Shotgun"
 rarity = 2

@@ -1,5 +1,5 @@
 ## toxic_discharge_artifact.gd -- combo synergy (Lightning + Venom): a spark that hits an enemy
-## at FULL venom stacks detonates the venom as lightning damage. Saturate, then strike.
+## at full venom stacks detonates the venom as lightning damage.
 extends ArtifactBase
 
 ## Damage-report identity for the discharge hits.

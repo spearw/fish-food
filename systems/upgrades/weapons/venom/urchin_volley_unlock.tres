@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "urchin_volley_unlock"
 display_name = "Urchin Volley"
-description = "Bursts a ring of poisoning spines around you. Fire it inside the school."
+description = "Bursts a ring of poisoning spines around you."
 type = 0
 target_class_name = "UrchinVolleyWeapon"
 scene_to_unlock = ExtResource("1_scene")

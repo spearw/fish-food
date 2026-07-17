@@ -1,5 +1,5 @@
 ## rolling_barrage_artifact.gd -- combo synergy (Cosmic + Projectile): every 10th kill calls a
-## BIG strike (40 dmg, wide) on the fallen. The barrage creeps forward on momentum.
+## big strike (40 dmg, wide) on the fallen.
 extends ArtifactBase
 
 const EXPLOSION_SCENE := preload("res://systems/projectiles/explosion/explosion_effect.tscn")

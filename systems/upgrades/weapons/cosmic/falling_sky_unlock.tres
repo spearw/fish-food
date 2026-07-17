@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "falling_sky_unlock"
 display_name = "Falling Sky"
-description = "A small strike at a random point near you, every 0.8s, always. The sky simply falls."
+description = "A small strike at a random point near you, every 0.8s."
 type = 0
 target_class_name = "FallingSkyWeapon"
 scene_to_unlock = ExtResource("1_scene")

@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "escape_velocity_unlock"
 display_name = "Escape Velocity"
-description = "You fall forever, sideways: +15% move speed."
+description = "+15% move speed."
 type = 1
 target_class_name = "escape_velocity"
 scene_to_unlock = ExtResource("1_scene")

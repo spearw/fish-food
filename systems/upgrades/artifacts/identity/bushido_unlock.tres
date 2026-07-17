@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "identity_bushido"
 display_name = "Bushido"
-description = "Identity: every kill hones the edge -- crit chance and crit damage grow with kills."
+description = "Identity: each kill grants bonus crit chance for 10 seconds."
 type = 1
 target_class_name = "BushidoArtifact"
 scene_to_unlock = ExtResource("1_scene")

@@ -32,7 +32,7 @@
 script = ExtResource("1_pk")
 id = "cosmic"
 deck_name = "Cosmic"
-deck_description = "Death from above: telegraphed devastation on a delay. Huge blasts, lingering light, and multiplicative scaling -- if you can wait for the sky."
+deck_description = "Aimed strikes that land on a delay: big blasts, lingering zones, and multiplicative scaling cards."
 unlock_cost = 150
 upgrades = Array[ExtResource("2_upg")]([ExtResource("3_met"), ExtResource("4_comet"), ExtResource("5_pillar"), ExtResource("19_sing"), ExtResource("20_sky"), ExtResource("21_accretion"), ExtResource("22_collapse"), ExtResource("23_storm"), ExtResource("24_guided"), ExtResource("6_shower"), ExtResource("7_impact"), ExtResource("8_twin"), ExtResource("9_iron"), ExtResource("10_eternal"), ExtResource("11_gyre"), ExtResource("12_horizon"), ExtResource("13_nova"), ExtResource("14_decay"), ExtResource("18_velocity"), ExtResource("15_skyfall"), ExtResource("16_charts"), ExtResource("17_escape"), ExtResource("90_statarea"), ExtResource("91_statcritd"), ExtResource("92_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

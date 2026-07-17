@@ -7,7 +7,7 @@
 script = ExtResource("2_upgrade")
 id = "conductive_unlock"
 display_name = "Conductive"
-description = "All your weapons now spawn sparks on hit. Become a living lightning rod!"
+description = "All your weapons spawn sparks on hit."
 type = 1
 target_class_name = "ConductiveArtifact"
 scene_to_unlock = ExtResource("1_scene")

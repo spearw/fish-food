@@ -1,5 +1,5 @@
 ## tidal_lock_artifact.gd -- combo synergy (Cosmic + Venom): applying poison also applies a 25%
-## slow. The school stays inside the telegraph -- venom holds them for the sky.
+## slow, so enemies stay inside strike telegraphs longer.
 extends ArtifactBase
 
 const TIDAL_SLOW := preload("res://systems/status_effects/poison/tidal_slow.tres")

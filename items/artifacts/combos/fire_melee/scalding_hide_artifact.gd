@@ -1,5 +1,5 @@
 ## scalding_hide_artifact.gd -- combo synergy (Fire + Melee): anything that hits you starts
-## BURNING. The facetank deck's revenge, in fire's currency.
+## burning.
 extends ArtifactBase
 
 const BURN := preload("res://systems/status_effects/fire/burning.tres")

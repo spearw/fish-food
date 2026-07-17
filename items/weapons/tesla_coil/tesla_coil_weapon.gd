@@ -2,9 +2,9 @@
 class_name TeslaCoilWeapon
 extends TransformableWeapon
 
-## Overcharged Capacitor: the coil finally becomes what its card always claimed -- a slow,
-## PATIENT weapon. Longer charge, triple hit, and the bolt forks into three on impact.
-## Tesla Field: turret becomes FIELD -- the coil stops firing and projects a permanent zap aura
+## Overcharged Capacitor: a longer charge, a triple hit, and the bolt forks into three on
+## impact. This makes the "slow but powerful" card text true.
+## Tesla Field: the coil stops firing and projects a permanent zap aura
 ## around the player (the flamethrower Ring of Fire pattern, recolored).
 const FORK_SCENE := preload("res://systems/projectiles/fork_projectile/fork_bolt_x3.tscn")
 const OVERCHARGE_WAIT := 4.0

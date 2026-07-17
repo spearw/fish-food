@@ -1,5 +1,5 @@
-## ink_jet_weapon.gd -- the Venom deck's impairment cone: a squid-jet spray that poisons and
-## SLOWS (the deck's only slow -- venom as impairment, not just damage).
+## ink_jet_weapon.gd -- a cone spray that poisons and
+## slows (the deck's only slow).
 class_name InkJetWeapon
 extends TransformableWeapon
 

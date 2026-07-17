@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "synergy_tidal_lock"
 display_name = "Tidal Lock"
-description = "Cosmic + Venom: applying poison also applies a 25% slow -- the school stays inside the telegraph."
+description = "Cosmic + Venom: applying poison also applies a 25% slow."
 type = 1
 target_class_name = "TidalLockArtifact"
 scene_to_unlock = ExtResource("1_scene")

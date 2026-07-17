@@ -1,6 +1,6 @@
 ## singularity_zone.gd -- the pull-then-pop at the heart of the Singularity weapon: drags nearby
 ## enemies toward its center for pull_duration, then detonates. The deck solving its own whiff
-## problem -- gather the school, THEN drop the sky. Custom scene, never pooled.
+## problem: group enemies first, then land the aimed weapons. Custom scene, never pooled.
 ## Pull trick: entity.apply_knockback(force, from) pushes AWAY from `from`, so pulling toward the
 ## center means pushing from the enemy's own reflection on the far side.
 class_name SingularityZone

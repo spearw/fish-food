@@ -58,7 +58,12 @@ func apply_status(status_resource: StatusEffect, source: Node, attribution_key: 
 		status_instance.attribution_key = attribution_key
 
 	if active_statuses.has(status_instance.id):
-		# Status already exists: refresh its duration.
+		# Status already exists: refresh its duration -- and stacking statuses (venom) gain a
+		# stack per application, up to their cap. The FIRST application's instance (and its
+		# attribution) persists; later duplicates only feed it.
+		var existing = active_statuses[status_instance.id]["effect"]
+		if "stacks" in existing and existing.max_stacks > 1:
+			existing.stacks = mini(existing.stacks + 1, existing.max_stacks)
 		active_statuses[status_instance.id]["timer"].start(status_instance.duration)
 	else:
 		# This is a new status.

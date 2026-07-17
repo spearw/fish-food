@@ -1,20 +1,34 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=10 format=3 uid="uid://dr5woa1b6yvsa"]
+[gd_resource type="Resource" script_class="Deck" load_steps=24 format=3 uid="uid://dr5woa1b6yvsa"]
 
 [ext_resource type="Script" uid="uid://cvcnhdf5np0ln" path="res://systems/upgrades/packs/upgrade_pack.gd" id="1_pk"]
 [ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
-[ext_resource type="Resource" uid="uid://jwmanhushhyu" path="res://systems/upgrades/weapons/poison_cloud_unlock.tres" id="3_poison"]
-[ext_resource type="Resource" uid="uid://6l1kuymb6eq7" path="res://systems/upgrades/upgrades/toxin/virulence_upgrade.tres" id="4_vir"]
-[ext_resource type="Resource" uid="uid://bojc67f8e6rj1" path="res://systems/upgrades/upgrades/toxin/contagion_upgrade.tres" id="5_con"]
-[ext_resource type="Resource" uid="uid://cro75f32mr01i" path="res://systems/upgrades/upgrades/toxin/lingering_upgrade.tres" id="6_lin"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/poison_cloud_unlock.tres" id="3_poison"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/toxin/virulence_upgrade.tres" id="4_vir"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/toxin/contagion_upgrade.tres" id="5_con"]
+[ext_resource type="Resource" path="res://systems/upgrades/upgrades/toxin/lingering_upgrade.tres" id="6_lin"]
 [ext_resource type="Resource" uid="uid://cfotgiwrbnbbf" path="res://systems/upgrades/upgrades/core/player_area_size.tres" id="90_statarea"]
 [ext_resource type="Resource" uid="uid://b8y1u7wm4bi06" path="res://systems/upgrades/upgrades/core/player_speed.tres" id="91_statspeed"]
 [ext_resource type="Resource" uid="uid://c3w4ydbjmr47i" path="res://systems/upgrades/upgrades/core/player_max_health.tres" id="92_statmaxhp"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/sea_snake_fang_unlock.tres" id="10_snake"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/urchin_volley_unlock.tres" id="11_urchin"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/ink_jet_unlock.tres" id="12_ink"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/poison_cloud_rolling_fog_transform.tres" id="13_fog"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/poison_cloud_spore_burst_transform.tres" id="14_spore"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/sea_snake_pit_viper_transform.tres" id="15_viper"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/sea_snake_neurotoxin_transform.tres" id="16_neuro"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/urchin_tidepool_transform.tres" id="17_tide"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/urchin_needle_storm_transform.tres" id="18_needle"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/ink_jet_deep_ink_transform.tres" id="19_deepink"]
+[ext_resource type="Resource" path="res://systems/upgrades/weapons/venom/ink_jet_jet_propulsion_transform.tres" id="20_jet"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/venom/outbreak_unlock.tres" id="21_outbreak"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/venom/corrosion_unlock.tres" id="22_corrosion"]
+[ext_resource type="Resource" path="res://systems/upgrades/artifacts/venom/toxic_wake_unlock.tres" id="23_wake"]
 
 [resource]
 script = ExtResource("1_pk")
 id = "toxin"
-deck_name = "Toxin"
-deck_description = "Poison everything and let time do the killing. Damage-over-time ignores armor."
-unlock_cost = 100
-upgrades = Array[ExtResource("2_upg")]([ExtResource("3_poison"), ExtResource("4_vir"), ExtResource("5_con"), ExtResource("6_lin"), ExtResource("90_statarea"), ExtResource("91_statspeed"), ExtResource("92_statmaxhp")])
+deck_name = "Venom"
+deck_description = "The ocean's venomous things. Venom STACKS (up to 5) and ignores armor -- poison everything, keep moving, let time do the killing."
+unlock_cost = 0
+upgrades = Array[ExtResource("2_upg")]([ExtResource("3_poison"), ExtResource("10_snake"), ExtResource("11_urchin"), ExtResource("12_ink"), ExtResource("13_fog"), ExtResource("14_spore"), ExtResource("15_viper"), ExtResource("16_neuro"), ExtResource("17_tide"), ExtResource("18_needle"), ExtResource("19_deepink"), ExtResource("20_jet"), ExtResource("21_outbreak"), ExtResource("22_corrosion"), ExtResource("23_wake"), ExtResource("4_vir"), ExtResource("5_con"), ExtResource("6_lin"), ExtResource("90_statarea"), ExtResource("91_statspeed"), ExtResource("92_statmaxhp")])
 metadata/_custom_type_script = "uid://cvcnhdf5np0ln"

@@ -37,6 +37,10 @@ func _ready() -> void:
 	health_changed.connect(_on_health_changed)
 
 
+## Armor eaten by corrosion effects this entity's lifetime (see take_damage). Floors at full
+## armor negation; never mutates the (possibly shared) stats resource.
+var armor_shred: float = 0.0
+
 ## Applies physics, primarily knockback decay.
 func _physics_process(delta: float) -> void:
 	# Lerp knockback velocity back to zero for a smooth recovery effect.
@@ -50,7 +54,10 @@ func take_damage(amount: int, armor_pen: float, is_crit: bool, source_node: Node
 		return
 
 	# --- Armor Calculation (using DamageUtils) ---
-	var damage_taken = DamageUtils.apply_armor(amount, self.stats.armor, armor_pen)
+	# armor_shred is per-ENTITY corrosion (the Corrosion artifact eats shells over time). It lives
+	# on the instance, never on the stats resource -- enemy stats resources can be shared.
+	var damage_taken = DamageUtils.apply_armor(
+		amount, maxf(0.0, self.stats.armor - armor_shred), armor_pen)
 
 	# Per-source damage attribution: ACTUAL post-armor damage, credited to the source's
 	# attribution_key (armor-blocked hits honestly credit nothing). A null source is a DoT tick,

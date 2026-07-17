@@ -75,6 +75,23 @@ func _ready():
 	lifetime_timer.timeout.connect(queue_free)
 	lifetime_timer.start()
 
+## Rolling Fog: zones with drift_speed > 0 creep toward the nearest enemy. Target re-resolved on
+## a coarse timer (spatial queries per-frame per-zone would be waste); motion is per-frame.
+var _drift_target: Node2D = null
+var _drift_requery: float = 0.0
+
+func _physics_process(delta: float) -> void:
+	if stats == null or stats.get("drift_speed") == null or stats.drift_speed <= 0.0:
+		return
+	_drift_requery -= delta
+	if _drift_requery <= 0.0 or not is_instance_valid(_drift_target):
+		_drift_requery = 0.35
+		var near: Array = EntityRegistry.get_candidates_near("enemies", global_position, 320.0)
+		_drift_target = near[0] if not near.is_empty() and is_instance_valid(near[0]) else null
+	if is_instance_valid(_drift_target):
+		global_position += (_drift_target.global_position - global_position).normalized() \
+			* stats.drift_speed * delta
+
 func _on_body_entered(body: Node2D) -> void:
 	if body not in _overlapping_bodies:
 		_overlapping_bodies.append(body)
@@ -93,10 +110,13 @@ func _on_tick_timer_timeout():
 			continue
 		if body.is_in_group(target_group):
 			# Apply payload (StatusEffectManager was resolved on entry, not looked up here).
-			if stats.status_to_apply and randf() < stats.status_chance:
+			var status_chance_mult: float = user.get_stat("status_chance_bonus") \
+				if is_instance_valid(user) and user.is_in_group("player") else 1.0
+			if stats.status_to_apply and randf() < stats.status_chance * status_chance_mult:
 				var mgr = _body_managers.get(body)
 				if mgr != null:
-					mgr.apply_status(stats.status_to_apply, user)
+					# Statuses inherit the zone's damage-report identity (was uncredited "Other").
+					mgr.apply_status(stats.status_to_apply, user, attribution_key)
 			if stats.damage and body.has_method("take_damage"):
 				# Universal crit: the zone's own base composes with the player's flat layer.
 				var crit: Dictionary = DamageUtils.compose_crit(

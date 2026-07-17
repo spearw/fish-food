@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MultiStageProjectileStats" load_steps=6 format=3 uid="uid://btidepoolmst0001"]
+
+[ext_resource type="PackedScene" uid="uid://dixeudgqhntlc" path="res://items/effects/persistent_damage_effect.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://0gxb71relmj2" path="res://systems/projectiles/multi_stage_projectile/multi_stage_projectile.gd" id="2_script"]
+[ext_resource type="Resource" uid="uid://btidepoolst00001" path="res://items/weapons/urchin_volley/tidepool_puddle_stats.tres" id="3_puddle"]
+[ext_resource type="Resource" uid="uid://dd3audw2k7dxk" path="res://systems/status_effects/poison/poison_status_effect.tres" id="4_poison"]
+[ext_resource type="Texture2D" uid="uid://d1r8kbqc0b88w" path="res://items/weapons/spike_ring/spike.png" id="5_tex"]
+
+[resource]
+script = ExtResource("2_script")
+on_death_effect_stats = ExtResource("3_puddle")
+on_death_effect_scene = ExtResource("1_scene")
+damage = 3
+speed = 380.0
+lifetime = 0.55
+pierce = 0
+knockback_force = 30.0
+armor_penetration = 0.0
+critical_hit_rate = 0.05
+critical_hit_damage = 0.5
+homing_strength = 0.0
+is_scaling = true
+status_to_apply = ExtResource("4_poison")
+status_chance = 1.0
+effects = Array[int]([])
+effect_overrides = {}
+texture = ExtResource("5_tex")
+scale = Vector2(0.8, 0.8)
+modulation = Color(0.55, 0.75, 0.5, 1)
+metadata/_custom_type_script = "uid://0gxb71relmj2"

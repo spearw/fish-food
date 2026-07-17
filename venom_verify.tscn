@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bvenomverify0001"]
+
+[ext_resource type="Script" path="res://venom_verify.gd" id="1_venom"]
+
+[node name="VenomVerify" type="Node"]
+script = ExtResource("1_venom")

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = "sea_snake_neurotoxin_transform"
+display_name = "Neurotoxin"
+description = "At 5 venom stacks the target is slowed 60% every tick."
+type = 3
+target_class_name = "SeaSnakeFangWeapon"
+rarity = 2
+key = "neurotoxin"
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

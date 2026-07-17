@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="1_upgrade"]
+
+[resource]
+script = ExtResource("1_upgrade")
+id = "sea_snake_pit_viper_transform"
+display_name = "Pit Viper"
+description = "The fang chains to a second target at full venom."
+type = 3
+target_class_name = "SeaSnakeFangWeapon"
+rarity = 2
+key = "pit_viper"
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

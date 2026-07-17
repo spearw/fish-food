@@ -42,6 +42,16 @@ func on_process(manager: StatusEffectManager, delta: float, source):
 ## application so ticks credit the right row in the damage report.
 var attribution_key: String = ""
 
+## Venom stacking (the Venom deck's mechanical signature, July 2026): statuses authored with
+## max_stacks > 1 gain a stack per application (StatusEffectManager side) and tick at
+## damage_per_tick x stacks. Fire stays refresh-only (max_stacks 1): fire ESCALATES to ignite,
+## venom RAMPS -- deliberately different games.
+@export var max_stacks: int = 1
+## Applied every tick while at FULL stacks (Neurotoxin: venom saturation slows). The threshold
+## sibling of additional_status_chance's dice roll.
+@export var max_stack_status: StatusEffect
+var stacks: int = 1
+
 ## Helper function to apply damage and check for ignite.
 func _do_damage_tick(manager: StatusEffectManager, source):
 	var host = manager.get_parent()
@@ -55,7 +65,7 @@ func _do_damage_tick(manager: StatusEffectManager, source):
 		# statuses compose to rate 0 and never crit.
 		var crit: Dictionary = DamageUtils.compose_crit(0.0, 0.5, source)
 		var rolled: Dictionary = DamageUtils.roll_crit(
-			damage_per_tick * damage_multiplier, crit.rate, crit.mult)
+			damage_per_tick * damage_multiplier * stacks, crit.rate, crit.mult)
 		# Tick attribution happens HERE (take_damage sees a null source and skips crediting):
 		# 100% pen means the post-armor result is exactly the rolled tick.
 		CurrentRun.credit_damage(
@@ -72,3 +82,14 @@ func _do_damage_tick(manager: StatusEffectManager, source):
 			if additional_status_effect:
 				# Escalations (burn -> ignite) keep crediting the weapon that started the chain.
 				manager.apply_status(additional_status_effect, source, attribution_key)
+
+		# Saturation: at full stacks the venom expresses its secondary (slow, etc.) every tick.
+		if max_stack_status and stacks >= max_stacks and max_stacks > 1:
+			manager.apply_status(max_stack_status, source, attribution_key)
+
+		# Corrosion: DoT ticks eat armor, per entity, never touching the shared stats resource.
+		if is_instance_valid(source) and source.has_method("get_stat") \
+				and "armor_shred" in host:
+			var shred: float = source.get_stat("dot_armor_shred")
+			if shred > 0.0:
+				host.armor_shred = minf(host.armor_shred + shred, host.stats.armor)

@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://b75nkt3siabrx"]
+[gd_scene load_steps=8 format=3 uid="uid://b75nkt3siabrx"]
 
-[ext_resource type="Script" uid="uid://b0g8wtar8xbcn" path="res://items/weapons/_generics/weapon.gd" id="1_mv4fc"]
+[ext_resource type="Script" path="res://items/weapons/poison_cloud/poison_cloud_weapon.gd" id="1_mv4fc"]
+[ext_resource type="Resource" uid="uid://bsporecloudst001" path="res://items/weapons/poison_cloud/spore_cloud_stats.tres" id="8_spore"]
 [ext_resource type="Resource" uid="uid://devtdk87ib7v" path="res://items/weapons/poison_cloud/poison_cloud_projectile_stats.tres" id="2_ihj3y"]
 [ext_resource type="PackedScene" uid="uid://bstdvb8jo38ni" path="res://systems/projectiles/exploding_projectile/exploding_projectile.tscn" id="3_1v4qh"]
 [ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="4_kcy6v"]
@@ -10,6 +11,7 @@
 [node name="PoisonCloudWeapon" type="Node2D"]
 script = ExtResource("1_mv4fc")
 projectile_stats = ExtResource("2_ihj3y")
+spore_cloud_stats = ExtResource("8_spore")
 custom_projectile_scene = ExtResource("3_1v4qh")
 base_fire_rate = 6.0
 themes = Array[int]([4])

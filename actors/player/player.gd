@@ -313,6 +313,14 @@ func get_stat(key: String):
 			return get_stat_multiplier(key)
 		"spark_count_bonus":
 			return in_run_bonuses.get("spark_count_bonus", 0)
+		"dot_armor_shred":
+			# Corrosion: armor points your DoT ticks eat per tick (per-entity, applied in
+			# DotStatusEffect._do_damage_tick -> entity.armor_shred).
+			var shred: float = 0.0
+			for artifact in _cached_artifacts:
+				if artifact.has_method("get_dot_armor_shred_bonus"):
+					shred += artifact.get_dot_armor_shred_bonus()
+			return shred
 		"spark_damage_bonus":
 			# Through the two-layer path: the Overload card is authored MULTIPLICATIVE, so it lands
 			# in in_run_multipliers -- the old "1.0 + bonuses" read made it a dead card.

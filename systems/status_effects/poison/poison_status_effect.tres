@@ -8,6 +8,7 @@ damage_per_tick = 1.0
 time_between_ticks = 1.0
 additional_status_chance = 0.0
 id = "poison"
+max_stacks = 5
 duration = 10.0
 modulate_color = Color(0.447059, 0.54902, 0, 1)
 metadata/_custom_type_script = "uid://b6spqm1ea2rj5"

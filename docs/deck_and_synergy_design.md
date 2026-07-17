@@ -52,7 +52,7 @@ Why (this doc's own research, §"why another weapon is always best"):
 
 **Distribution v1 (WORKING — tweak freely as balance; only the law above is locked):**
 
-| Card | Fire | Lightning | Melee | Projectile | Toxin |
+| Card | Fire | Lightning | Melee | Projectile | Venom (id: toxin) |
 |---|---|---|---|---|---|
 | Damage | ✓ | ✓ | ✓ | | |
 | Crit chance / crit damage | | ✓ | ✓ | | |

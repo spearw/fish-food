@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3 uid="uid://bseasnakewpn0001"]
+
+[ext_resource type="Script" path="res://items/weapons/sea_snake_fang/sea_snake_fang_weapon.gd" id="1_weapon"]
+[ext_resource type="Resource" uid="uid://bseasnakest00001" path="res://items/weapons/sea_snake_fang/sea_snake_fang_stats.tres" id="2_stats"]
+[ext_resource type="Script" uid="uid://5nf8qiekyyrw" path="res://systems/components/targeting_component.gd" id="3_targeting"]
+[ext_resource type="PackedScene" uid="uid://bi2e3pkfcknbt" path="res://systems/components/weapon_stats_component.tscn" id="4_weaponstats"]
+[ext_resource type="PackedScene" uid="uid://c5vl748oixb2p" path="res://systems/components/fire_behavior_component.tscn" id="5_firebehavior"]
+
+[node name="SeaSnakeFangWeapon" type="Node2D"]
+script = ExtResource("1_weapon")
+projectile_stats = ExtResource("2_stats")
+base_fire_rate = 0.9
+themes = Array[int]([4])
+effects = Array[int]([0, 6])
+direct_rarity_weight = 0.3
+status_rarity_weight = 1.5
+
+[node name="FireRateTimer" type="Timer" parent="."]
+wait_time = 0.9
+autostart = true
+
+[node name="TargetingComponent" type="Node" parent="."]
+script = ExtResource("3_targeting")
+metadata/_custom_type_script = "uid://5nf8qiekyyrw"
+
+[node name="WeaponStatsComponent" parent="." instance=ExtResource("4_weaponstats")]
+
+[node name="FireBehaviorComponent" parent="." instance=ExtResource("5_firebehavior")]
+
+[connection signal="timeout" from="FireRateTimer" to="." method="_on_fire_rate_timer_timeout"]

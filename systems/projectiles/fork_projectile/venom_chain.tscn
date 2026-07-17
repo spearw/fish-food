@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://bvenomchain00001"]
+
+[ext_resource type="Script" path="res://systems/projectiles/fork_projectile/fork_projectile.gd" id="1_fork"]
+
+[node name="VenomChain" type="Node2D"]
+script = ExtResource("1_fork")
+fork_count = 1
+fork_damage_ratio = 1.0
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="Area2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+
+[node name="LifetimeTimer" type="Timer" parent="."]
+
+[connection signal="body_entered" from="Area2D" to="Area2D" method="_on_body_entered"]

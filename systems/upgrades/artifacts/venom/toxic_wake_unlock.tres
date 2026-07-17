@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://btoxicwakeart001" path="res://items/artifacts/venom/toxic_wake/toxic_wake.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://d0ibxieicws6j" path="res://systems/upgrades/Upgrade.gd" id="2_upg"]
+
+[resource]
+script = ExtResource("2_upg")
+id = "toxic_wake_unlock"
+display_name = "Toxic Wake"
+description = "You leave a poisonous wake as you swim. Movement is offense."
+type = 1
+target_class_name = "toxic_wake"
+scene_to_unlock = ExtResource("1_scene")
+rarity = 2
+key = ""
+modifier_type = 1
+rarity_values = Array[float]([])
+metadata/_custom_type_script = "uid://d0ibxieicws6j"

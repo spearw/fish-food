@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://btoxicwakeart001"]
+
+[ext_resource type="Script" path="res://items/artifacts/venom/toxic_wake/toxic_wake_artifact.gd" id="1_art"]
+
+[node name="ToxicWakeArtifact" type="Node"]
+script = ExtResource("1_art")

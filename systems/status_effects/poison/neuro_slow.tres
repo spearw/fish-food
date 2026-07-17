@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SlowStatusEffect" load_steps=2 format=3 uid="uid://bneuroslow000001"]
+
+[ext_resource type="Script" uid="uid://blawy1iryc06s" path="res://systems/status_effects/slow_status_effect.gd" id="1_slow"]
+
+[resource]
+script = ExtResource("1_slow")
+slow_percent = 0.6
+id = "neuro_slow"
+duration = 1.2
+modulate_color = Color(0.55, 0.35, 0.8, 1)
+metadata/_custom_type_script = "uid://blawy1iryc06s"

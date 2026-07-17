@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MultiStageProjectileStats" load_steps=6 format=3 uid="uid://bdeepinkmst00001"]
+
+[ext_resource type="PackedScene" uid="uid://dixeudgqhntlc" path="res://items/effects/persistent_damage_effect.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://0gxb71relmj2" path="res://systems/projectiles/multi_stage_projectile/multi_stage_projectile.gd" id="2_script"]
+[ext_resource type="Resource" uid="uid://binkblotst000001" path="res://items/weapons/ink_jet/ink_blot_stats.tres" id="3_blot"]
+[ext_resource type="Resource" uid="uid://dd3audw2k7dxk" path="res://systems/status_effects/poison/poison_status_effect.tres" id="4_poison"]
+[ext_resource type="Texture2D" path="res://items/weapons/poison_cloud/mist.png" id="5_tex"]
+
+[resource]
+script = ExtResource("2_script")
+on_death_effect_stats = ExtResource("3_blot")
+on_death_effect_scene = ExtResource("1_scene")
+damage = 2
+speed = 300.0
+lifetime = 0.38
+pierce = 2
+knockback_force = 0.0
+armor_penetration = 0.0
+critical_hit_rate = 0.05
+critical_hit_damage = 0.5
+homing_strength = 0.0
+is_scaling = true
+status_to_apply = ExtResource("4_poison")
+status_chance = 1.0
+effects = Array[int]([1])
+effect_overrides = {}
+texture = ExtResource("5_tex")
+scale = Vector2(0.7, 0.7)
+modulation = Color(0.25, 0.2, 0.35, 0.9)
+metadata/_custom_type_script = "uid://0gxb71relmj2"

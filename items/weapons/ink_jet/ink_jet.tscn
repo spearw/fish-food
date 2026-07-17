@@ -12,14 +12,14 @@ script = ExtResource("1_weapon")
 projectile_stats = ExtResource("2_stats")
 deep_ink_stats = ExtResource("3_deepink")
 base_projectile_count = 4
-base_fire_rate = 0.6
+base_fire_rate = 1.0
 themes = Array[int]([4])
 effects = Array[int]([0, 1])
 direct_rarity_weight = 0.5
 status_rarity_weight = 1.3
 
 [node name="FireRateTimer" type="Timer" parent="."]
-wait_time = 0.6
+wait_time = 1.0
 autostart = true
 
 [node name="TargetingComponent" type="Node" parent="."]

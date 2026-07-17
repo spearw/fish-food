@@ -60,9 +60,10 @@ const COUNTER_MATRIX = {
 	Effect.PIERCE: {
 		0: 1.4,   # SWARM - pierce hits multiple
 		4: 1.3,   # HORDE - pierce through lines
-		# Sweep-measured (Jul 2026): every pierce weapon zeroed into armor. Causal, not incidental --
-		# pierce multiplies TARGETS, not per-hit damage, and flat armor eats small per-hit numbers.
-		2: 0.7,   # ARMORED - many pierced targets, but each hit is small and armor eats it
+		# Sweep-measured (Jul 2026, re-confirmed on the 23-weapon field: n=5 pierce weapons ALL
+		# zeroed into armor). Causal, not incidental -- pierce multiplies TARGETS, not per-hit
+		# damage, and flat armor eats small per-hit numbers. Tightened 0.7 -> 0.5 on user review.
+		2: 0.5,   # ARMORED - many pierced targets, but each hit is small and armor eats it
 	},
 	Effect.HOMING: {
 		5: 1.8,   # EVASIVE - can't dodge homing
@@ -98,6 +99,9 @@ const COUNTER_MATRIX = {
 	Effect.CHAIN: {
 		0: 1.6,   # SWARM - chains between targets
 		4: 1.5,   # HORDE - chains through groups
+		# Sweep-measured (Jul 2026): chain lightning zeroed into armor for the same reason the
+		# spark family does -- the chain IS small spark hits. Aligned with SPARK's entry.
+		2: 0.5,   # ARMORED - armor eats the chain's tiny hits
 	},
 	# DoT's real matchups (measured + structural -- see .claude/balance/workflow.md, armor section):
 	# ticks carry 100% armor pen, so armor does NOTHING to a DoT build (measured: flamethrower flat

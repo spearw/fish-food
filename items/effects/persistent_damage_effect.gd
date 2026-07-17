@@ -5,6 +5,8 @@ class_name PersistentDamageEffect
 extends Area2D
 
 var stats: PersistentEffectStats
+## Damage-report identity, inherited from whatever spawned the zone.
+var attribution_key: String = ""
 var user: Node:
 	set(new_user):
 		# Disconnect from any old user to prevent memory leaks.
@@ -96,7 +98,7 @@ func _on_tick_timer_timeout():
 				if mgr != null:
 					mgr.apply_status(stats.status_to_apply, user)
 			if stats.damage and body.has_method("take_damage"):
-				body.take_damage(stats.damage, stats.armor_penetration, false)
+				body.take_damage(stats.damage, stats.armor_penetration, false, self)
 
 func _generate_circular_hitbox():
 	# A helper to make a circular hitbox around character

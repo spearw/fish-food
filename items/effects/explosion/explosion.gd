@@ -3,6 +3,9 @@
 class_name Explosion
 extends Area2D
 
+## Damage-report identity, inherited from whatever spawned the explosion.
+var attribution_key: String = ""
+
 # --- Configured by ProjectileStats ---
 var stats: ProjectileStats
 var allegiance: Projectile.Allegiance # Still set by the spawner weapon
@@ -41,7 +44,7 @@ func _ready():
 
 	for body in bodies:
 		if body.is_in_group(target_group) and body.has_method("take_damage"):
-			body.take_damage(stats.damage, stats.armor_penetration, false) # Explosions don't crit by default
+			body.take_damage(stats.damage, stats.armor_penetration, false, self) # Explosions don't crit by default
 
 	# Quick scale animation for visual feedback.
 	var tween = create_tween()

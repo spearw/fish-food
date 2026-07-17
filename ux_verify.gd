@@ -52,7 +52,7 @@ func _ready() -> void:
 	var m: Dictionary = BuildSummary.stat_map(player)
 	var stats_ok: bool = m["damage"] == "Damage: +33%" \
 		and m["attack_speed"] == "Attack Speed: +10%" \
-		and m["crit_chance"] == "Crit Chance: 10%" \
+		and m["crit_chance"] == "Crit Bonus: +10% weapon crit" \
 		and m["projectile_count"] == "Projectile Count: x1.40" \
 		and m["armor"] == "Armor: 2 (-2% speed)"
 	print("UX stat_map: dmg='%s' atkspd='%s' projcount='%s' ok=%s" % [
@@ -84,8 +84,10 @@ func _ready() -> void:
 	# --- 4. Per-weapon detail: the ACTUAL numbers with player multipliers applied ---
 	var dagger_node = um._owned_copies(load(DAGGER).target_class_name)[0]
 	var detail: String = BuildSummary.weapon_detail_line(dagger_node, player)
-	# Rare dagger 18 dmg x player 1.331 = 24; base 0.5s wait x firerate 0.909 = 2.2 atk/s.
-	var detail_ok: bool = "24 dmg" in detail and "2.20 atk/s" in detail and "(Rare*" in detail
+	# Rare dagger 18 dmg x player 1.331 = 24; base 0.5s wait x firerate 0.909 = 2.2 atk/s;
+	# effective crit = daggers' own base 15% x (1 + player bonus 0.10) = 16.5% -> "17% crit".
+	var detail_ok: bool = "24 dmg" in detail and "2.20 atk/s" in detail and "(Rare*" in detail \
+		and "17% crit" in detail
 	print("UX weapon_detail: '%s' ok=%s" % [detail, str(detail_ok)])
 
 	# --- 5. Concrete numbers on the merge preview: fill the loadout, offer the same tier ---

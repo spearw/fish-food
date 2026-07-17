@@ -45,12 +45,29 @@ we build UI against. Sibling docs: `.claude/balance/` (numbers), `.claude/perfor
   rectangles).
 - All pinned in `ux_verify.tscn` §7.
 
+## Per-source damage attribution (BUILT, July 2026)
+
+Brotato's post-wave report, live: `CurrentRun.damage_by_source` tallies POST-ARMOR damage per
+source key. The choke point is `entity.take_damage` (source node carries `attribution_key`);
+`FireBehaviorComponent` stamps every projectile with its weapon's `weapon_type`, and everything a
+projectile causes inherits it — sparks, explosions (exploding path), trail segments, zones, and
+DoT ticks (stamped through `apply_status`, escalations included). **A null source at the choke is
+the DoT-tick path and is deliberately NOT credited there — ticks credit themselves** (else double
+count); any new damage caller must pass a source node. Artifact damage carries its own key
+(Static Discharge, Thermal Shock, Arc Ignition, Emberheart); keyless sources land in "Other".
+Displayed via `BuildSummary.damage_report_line()` (top-first, comma-formatted, shares) on the
+level-up Build tab and the tab screen, where the top weapon row is tinted gold and each weapon row
+shows its dealt total. Pinned in `attribution_verify.tscn`.
+
+Also fixed while surfacing crit (July 2026): **player crit stat is BONUS semantics** — weapon
+crit × (1 + bonus), bonus = character base + cards. The old `base × cards` form multiplied a 0.0
+base on 3 of 4 characters: every crit card was dead. The sheet says "Crit Bonus: +N% weapon crit"
+and each weapon's detail line shows its own effective crit.
+
 ## Backlog (ranked by the research, not yet built)
 
-1. **Per-weapon damage attribution** — Brotato's post-wave "damage dealt per weapon" is the genre's
-   single most build-relevant readout (closes the pick→verify→invest loop). Needs a damage tally
-   keyed by source threaded through hits AND DoT ticks — its own work item.
-2. Hover tooltips (keyword layering; artifact descriptions on the tab screen).
-3. Logbook-style full-pool browse from deck select ("View all cards (N)").
-4. Highlight the top damage source on any summary (VS Results' yellow).
-5. Number hygiene at scale: SI prefixes past 100k.
+1. Hover tooltips (keyword layering; artifact descriptions on the tab screen).
+2. Logbook-style full-pool browse from deck select ("View all cards (N)").
+3. Number hygiene at scale: SI prefixes past 100k.
+4. "Damage since last level" window (the run-total report may get stale-heavy late; Brotato's
+   per-wave framing is the model if playtest wants recency).

@@ -18,8 +18,10 @@ static func stat_map(player) -> Dictionary:
 	m["damage"] = "Damage: %+d%%" % roundi(100.0 * player.get_stat("damage_increase") - 100.0)
 	var fr: float = maxf(player.get_stat("firerate"), 0.01)
 	m["attack_speed"] = "Attack Speed: %+d%%" % roundi((1.0 / fr - 1.0) * 100.0)
-	m["crit_chance"] = "Crit Chance: %d%%" % roundi(100.0 * player.get_stat("critical_hit_rate"))
-	m["crit_damage"] = "Crit Damage: +%d%%" % roundi(100.0 * player.get_stat("critical_hit_damage"))
+	# BONUS labels: the player crit stat MULTIPLIES each weapon's own base crit (x(1+bonus)) --
+	# printing it as "Crit Chance: N%" read as an absolute rate, which it never was.
+	m["crit_chance"] = "Crit Bonus: +%d%% weapon crit" % roundi(100.0 * player.get_stat("critical_hit_rate"))
+	m["crit_damage"] = "Crit Dmg Bonus: +%d%%" % roundi(100.0 * player.get_stat("critical_hit_damage"))
 	m["move_speed"] = "Move Speed: %.0f" % player.get_stat("move_speed")
 	m["luck"] = "Luck: %.2f" % player.get_stat("luck")
 	m["area"] = "Area: %+d%%" % roundi(100.0 * player.get_stat("area_size") - 100.0)
@@ -222,6 +224,14 @@ static func weapon_detail_line(weapon, player) -> String:
 			if s.get("dot_tick", 0.0) > 0:
 				bits.append("%.1f/tick dot" % (s["dot_tick"] * dot_mult))
 
+	# EFFECTIVE crit for THIS weapon: its own base times the player's crit bonus -- the number
+	# the damage roll actually uses (crit is per-weapon; the sheet's bonus alone tells you nothing).
+	if "projectile_stats" in weapon and weapon.projectile_stats \
+			and weapon.projectile_stats.critical_hit_rate > 0.0:
+		var eff_crit: float = weapon.projectile_stats.critical_hit_rate \
+			* (1.0 + player.get_stat("critical_hit_rate"))
+		bits.append("%d%% crit" % roundi(eff_crit * 100.0))
+
 	var tier: String = Upgrade.Rarity.keys()[weapon.rarity].capitalize() if "rarity" in weapon else "?"
 	return "%s (%s%s): %s" % [
 		_pretty_name(String(weapon.get_meta("weapon_type", weapon.name))), tier,
@@ -237,6 +247,38 @@ static func weapon_numbers(weapon) -> Dictionary:
 			best_dmg = maxf(best_dmg, s["damage"])
 			best_tick = maxf(best_tick, s.get("dot_tick", 0.0))
 	return {"dmg": best_dmg, "tick": best_tick}
+
+## "Damage: Daggers 7,500 (75%) | Poison Cloud 2,500 (25%)" -- post-armor damage per source this
+## run, top-first. The genre's most build-relevant readout (Brotato's per-weapon report): it
+## closes the pick -> verify -> invest loop at draft time.
+static func damage_report_line(max_entries: int = 4) -> String:
+	var total := 0
+	for k in CurrentRun.damage_by_source:
+		total += CurrentRun.damage_by_source[k]
+	if total <= 0:
+		return ""
+	var keys: Array = CurrentRun.damage_by_source.keys()
+	keys.sort_custom(func(a, b): return CurrentRun.damage_by_source[a] > CurrentRun.damage_by_source[b])
+	var parts: Array = []
+	for i in range(mini(keys.size(), max_entries)):
+		var k: String = keys[i]
+		parts.append("%s %s (%d%%)" % [_pretty_name(k), fmt_int(CurrentRun.damage_by_source[k]),
+			roundi(100.0 * CurrentRun.damage_by_source[k] / total)])
+	if keys.size() > max_entries:
+		parts.append("+%d more" % (keys.size() - max_entries))
+	return "Damage: " + " | ".join(parts)
+
+## 12450 -> "12,450" (number hygiene; damage totals get big).
+static func fmt_int(n: int) -> String:
+	var s := str(n)
+	var out := ""
+	var digits := 0
+	for i in range(s.length() - 1, -1, -1):
+		out = s[i] + out
+		digits += 1
+		if digits % 3 == 0 and i > 0:
+			out = "," + out
+	return out
 
 ## "FireballStaffWeapon" -> "Fireball Staff"; "EmberheartArtifact" -> "Emberheart".
 static func _pretty_name(raw: String) -> String:

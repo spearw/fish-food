@@ -81,6 +81,9 @@ func _refresh_player_stats():
 	var drafted: String = BuildSummary.draft_line()
 	if drafted != "":
 		context_parts.append(drafted)
+	var dealt: String = BuildSummary.damage_report_line()
+	if dealt != "":
+		context_parts.append(dealt)
 	_run_context_label.text = "\n".join(context_parts)
 	_extras_label.text = BuildSummary.extras_line(player)
 
@@ -102,6 +105,14 @@ var _weapon_detail_label: Label
 func _refresh_weapon_icons():
 	for child in weapons_grid.get_children(): child.queue_free()
 
+	# The run's top damage source gets the highlight -- one glance answers "what's carrying".
+	var top_key := ""
+	var top_dealt := 0
+	for k in CurrentRun.damage_by_source:
+		if CurrentRun.damage_by_source[k] > top_dealt:
+			top_dealt = CurrentRun.damage_by_source[k]
+			top_key = k
+
 	var equipment = player.get_node("Equipment")
 	for weapon in equipment.get_children():
 
@@ -111,11 +122,17 @@ func _refresh_weapon_icons():
 		# The buttons collapsed to ~zero size (icons are TODO, so they were empty) and piled onto
 		# one spot -- unclickable. A minimum size and a NAME (with tier) make them a real row.
 		button.custom_minimum_size = Vector2(150, 44)
+		var weapon_key := String(weapon.get_meta("weapon_type", weapon.name))
 		if "rarity" in weapon:
 			button.text = "%s (%s)%s" % [
-				BuildSummary._pretty_name(String(weapon.get_meta("weapon_type", weapon.name))),
+				BuildSummary._pretty_name(weapon_key),
 				Upgrade.Rarity.keys()[weapon.rarity].capitalize(),
 				"*" if weapon.is_transformed else ""]
+		var dealt: int = CurrentRun.damage_by_source.get(weapon_key, 0)
+		if dealt > 0:
+			button.text += "  %s dmg" % BuildSummary.fmt_int(dealt)
+		if weapon_key == top_key and top_dealt > 0:
+			button.modulate = Color.GOLD
 		var icon_rect = button.get_node("Icon")
 		if weapon.projectile_stats:
 			icon_rect.texture = weapon.projectile_stats.texture

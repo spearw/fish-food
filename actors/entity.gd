@@ -52,6 +52,15 @@ func take_damage(amount: int, armor_pen: float, is_crit: bool, source_node: Node
 	# --- Armor Calculation (using DamageUtils) ---
 	var damage_taken = DamageUtils.apply_armor(amount, self.stats.armor, armor_pen)
 
+	# Per-source damage attribution: ACTUAL post-armor damage, credited to the source's
+	# attribution_key (armor-blocked hits honestly credit nothing). A null source is a DoT tick,
+	# which credits itself where the tick is computed -- crediting it here too would double-count.
+	if damage_taken > 0 and source_node != null:
+		var attribution: String = "Other"
+		if "attribution_key" in source_node and source_node.attribution_key != "":
+			attribution = source_node.attribution_key
+		CurrentRun.credit_damage(attribution, damage_taken)
+
 	# Apply damage.
 	current_health = max(0, current_health - damage_taken)
 	

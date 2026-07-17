@@ -138,6 +138,10 @@ func _spawn_projectile(
 	else:
 		user = weapon  # Fallback when no stats_comp (e.g., player)
 	projectile.user = user
+	# Damage attribution: the projectile carries its weapon's identity, and everything it causes
+	# (sparks, explosions, zones, DoT ticks) inherits it -- the damage report is per-weapon.
+	if "attribution_key" in projectile:
+		projectile.attribution_key = String(get_parent().get_meta("weapon_type", get_parent().name))
 
 	match spawn_location:
 		SpawnLocation.IN_WORLD:

@@ -225,13 +225,16 @@ func get_stat(key: String):
 					luck *= artifact.get_luck_modifier()
 			return luck
 		"critical_hit_rate":
-			var crit_rate = stats.critical_chance * get_stat_multiplier(key)
+			# BONUS semantics: DamageUtils multiplies weapon crit by (1 + this). Character base is
+			# a starting bonus and cards ADD on top -- the old base*cards form multiplied the
+			# character's base, and with base 0.0 on 3 of 4 characters every crit card was dead.
+			var crit_rate = stats.critical_chance + get_stat_multiplier(key) - 1.0
 			for artifact in _cached_artifacts:
 				if artifact.has_method("get_crit_chance_modifier"):
 					crit_rate *= artifact.get_crit_chance_modifier()
 			return crit_rate
 		"critical_hit_damage":
-			var crit_dmg = stats.critical_damage * get_stat_multiplier(key)
+			var crit_dmg = stats.critical_damage + get_stat_multiplier(key) - 1.0
 			for artifact in _cached_artifacts:
 				if artifact.has_method("get_crit_damage_modifier"):
 					crit_dmg *= artifact.get_crit_damage_modifier()

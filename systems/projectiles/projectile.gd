@@ -14,6 +14,9 @@ var pierce_count: int = 0
 var weapon: Node2D
 var user: Node2D
 var has_redirected: bool = false
+## Damage-report identity ("Daggers"): set by FireBehaviorComponent from the owning weapon each
+## fire; inherited by everything this projectile causes (sparks, explosions, statuses, zones).
+var attribution_key: String = ""
 
 # --- Calculated Values ---
 var damage: float = 0.0
@@ -228,7 +231,7 @@ func _calculate_tag_bonus(target: Node2D) -> float:
 
 func _apply_status(body: Node2D):
 	var status_manager = body.get_node("StatusEffectManager")
-	status_manager.apply_status(stats.status_to_apply, user)
+	status_manager.apply_status(stats.status_to_apply, user, attribution_key)
 
 ## Applies effect tag behaviors (DOT, SLOW, LIFESTEAL, etc.)
 func _apply_effect_tags(body: Node2D, damage_dealt: float):
@@ -272,7 +275,7 @@ func _apply_dot_effect(body: Node2D):
 	dot_effect.modulate_color = Color(1.0, 0.6, 0.3)  # Orange tint for DOT
 
 	var status_manager = body.get_node("StatusEffectManager")
-	status_manager.apply_status(dot_effect, user)
+	status_manager.apply_status(dot_effect, user, attribution_key)
 
 ## Creates and applies a SLOW status effect based on registry data.
 func _apply_slow_effect(body: Node2D):
@@ -289,7 +292,7 @@ func _apply_slow_effect(body: Node2D):
 	slow_effect.modulate_color = Color(0.5, 0.7, 1.0)  # Blue tint for slow
 
 	var status_manager = body.get_node("StatusEffectManager")
-	status_manager.apply_status(slow_effect, user)
+	status_manager.apply_status(slow_effect, user, attribution_key)
 
 ## Heals the user based on damage dealt.
 func _apply_lifesteal_effect(damage_dealt: float):
@@ -347,6 +350,7 @@ func _create_spark(spawn_pos: Vector2, target_enemy: Node2D, dmg: int, bounces: 
 	spark.allegiance = SparkProjectile.Allegiance.PLAYER if allegiance == Allegiance.PLAYER else SparkProjectile.Allegiance.ENEMY
 	spark.user = user
 	spark.weapon = weapon
+	spark.attribution_key = attribution_key
 	spark.target = target_enemy
 	spark.base_damage = dmg
 	spark.bounce_count = bounces

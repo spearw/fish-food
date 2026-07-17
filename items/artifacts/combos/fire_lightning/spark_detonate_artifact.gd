@@ -4,6 +4,9 @@
 class_name SparkDetonateArtifact
 extends ArtifactBase
 
+## Damage-report identity: detonation bursts credit the combo, not "Other".
+var attribution_key: String = "Thermal Shock"
+
 func on_equipped() -> void:
 	if not Events.spark_hit_enemy.is_connected(_on_spark_hit):
 		Events.spark_hit_enemy.connect(_on_spark_hit)
@@ -30,6 +33,6 @@ func _on_spark_hit(enemy_node: Node) -> void:
 		return
 
 	if enemy_node.has_method("take_damage"):
-		enemy_node.take_damage(burst, 1.0, false)  # 100% armor pen; no crit
+		enemy_node.take_damage(burst, 1.0, false, self)  # 100% armor pen; no crit
 	# Consume the burn: shorten it so it ends almost immediately via its normal expiry path.
 	info["timer"].start(0.01)

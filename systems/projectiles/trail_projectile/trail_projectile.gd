@@ -32,6 +32,8 @@ func _on_trail_spawn_timer_timeout():
 	segment.stats = trail_data.trail_stats
 	segment.user = self.user
 	segment.allegiance = self.allegiance
+	if "attribution_key" in segment:
+		segment.attribution_key = attribution_key
 	
 	# Spawn the segment in the world at current position.
 	get_tree().current_scene.add_child(segment)

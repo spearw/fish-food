@@ -42,6 +42,7 @@ func _create_ring_of_fire():
 	ring_of_fire_instance.stats = self.ring_of_fire_stats
 	ring_of_fire_instance.allegiance = stats_component.get_projectile_allegiance()
 	ring_of_fire_instance.user = user
+	ring_of_fire_instance.attribution_key = String(get_meta("weapon_type", name))
 
 	# Attach the aura to the player.
 	user.add_child(ring_of_fire_instance)

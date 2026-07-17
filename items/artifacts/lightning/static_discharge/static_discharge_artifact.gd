@@ -38,6 +38,7 @@ func _on_chain_kill(position: Vector2, damage: float) -> void:
 	explosion.stats = explosion_stats
 	explosion.allegiance = Projectile.Allegiance.PLAYER
 	explosion.user = user
+	explosion.attribution_key = "Static Discharge"
 	explosion.global_position = position
 
 	# Add to scene

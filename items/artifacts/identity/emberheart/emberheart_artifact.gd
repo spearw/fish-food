@@ -42,7 +42,7 @@ func _on_kill(enemy_node: Node) -> void:
 		if e == enemy_node or not is_instance_valid(e) or e.is_dying:
 			continue
 		if e.has_node("StatusEffectManager"):
-			e.get_node("StatusEffectManager").apply_status(BURN, user)
+			e.get_node("StatusEffectManager").apply_status(BURN, user, "Emberheart")
 			caught += 1
 			if caught >= max_spread_targets:
 				break
@@ -55,4 +55,4 @@ func _on_status_applied(enemy_node: Node, status_id: String) -> void:
 	if randf() >= escalate_chance:
 		return
 	if enemy_node.has_node("StatusEffectManager"):
-		enemy_node.get_node("StatusEffectManager").apply_status(IGNITE, user)
+		enemy_node.get_node("StatusEffectManager").apply_status(IGNITE, user, "Emberheart")

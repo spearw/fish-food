@@ -305,6 +305,9 @@ func _refresh_summary() -> void:
 	var drafted: String = BuildSummary.draft_line()
 	if drafted != "":
 		lines.append(drafted)
+	var dealt: String = BuildSummary.damage_report_line()
+	if dealt != "":
+		lines.append(dealt)
 	_summary.text = "[center]%s[/center]" % "\n".join(lines)
 	for i in range(upgrade_buttons.size()):
 		var button = upgrade_buttons[i]

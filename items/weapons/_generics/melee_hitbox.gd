@@ -37,7 +37,8 @@ func _on_body_entered(body: Node2D):
 		}
 		# Use batched hit queue instead of direct emit (reduces per-hit signal overhead)
 		Events.queue_enemy_hit(hit_details)
-		body.take_damage(damage, stats.armor_penetration, is_crit)
+		# The swing root carries the weapon's attribution_key -- pass it as the damage source.
+		body.take_damage(damage, stats.armor_penetration, is_crit, get_parent())
 		hit_targets.append(body)
 
 		if stats.knockback_force > 0 and body.has_method("apply_knockback"):

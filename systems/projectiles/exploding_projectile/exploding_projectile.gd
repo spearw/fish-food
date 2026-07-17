@@ -16,6 +16,8 @@ func _destroy():
 		explosion_instance.stats = multi_stage_data.on_death_effect_stats
 		explosion_instance.allegiance = self.allegiance
 		explosion_instance.user = self.user
+		if "attribution_key" in explosion_instance:
+			explosion_instance.attribution_key = attribution_key
 		
 		get_tree().current_scene.add_child(explosion_instance)
 		explosion_instance.global_position = self.global_position

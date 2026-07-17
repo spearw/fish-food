@@ -89,6 +89,18 @@ func reset_run_state() -> void:
 	rerolls_remaining = REROLLS_PER_RUN
 	banishes_remaining = BANISHES_PER_RUN
 	banished_upgrades.clear()
+	damage_by_source.clear()
+
+# --- Per-source damage attribution (UX: the genre's most build-relevant readout) ---
+## Post-armor damage dealt this run, keyed by source ("Daggers", "Static Discharge", "Other").
+## Weapons use their weapon_type name; everything a weapon causes (sparks, explosions, zones,
+## DoT ticks) inherits its key, so the report answers "what's carrying" at weapon granularity.
+var damage_by_source: Dictionary = {}
+
+func credit_damage(key: String, amount: int) -> void:
+	if amount <= 0:
+		return
+	damage_by_source[key] = damage_by_source.get(key, 0) + amount
 
 # --- Cross-deck combo state (see systems/combos/) ---
 ## Cards drafted from each deck this run, keyed by Deck.id. Feeds combo power gates.

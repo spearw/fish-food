@@ -48,11 +48,14 @@ func _rebuild_processing_cache():
 			})
 	_processing_cache_dirty = false
 
-func apply_status(status_resource: StatusEffect, source: Node):
+func apply_status(status_resource: StatusEffect, source: Node, attribution_key: String = ""):
 	if not status_resource: return
-	
+
 	# Duplicate the resource to create a unique instance for this enemy.
 	var status_instance: StatusEffect = status_resource.duplicate(true)
+	# Stamp the applier's identity so damaging ticks credit the right damage-report row.
+	if attribution_key != "" and "attribution_key" in status_instance:
+		status_instance.attribution_key = attribution_key
 
 	if active_statuses.has(status_instance.id):
 		# Status already exists: refresh its duration.

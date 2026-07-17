@@ -2,6 +2,10 @@
 ## The controller for the melee swing effect. Plays the animation.
 extends Node2D
 
+## Damage-report identity, set by FireBehaviorComponent like any projectile; the child Hitbox
+## passes this node as the damage source.
+var attribution_key: String = ""
+
 # Properties needed by FireBehaviorComponent (matching Projectile interface)
 var stats: ProjectileStats
 var allegiance: Projectile.Allegiance

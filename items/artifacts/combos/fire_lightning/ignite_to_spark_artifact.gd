@@ -33,6 +33,7 @@ func _on_status_applied(enemy_node: Node, status_id: String) -> void:
 	spark.allegiance = SparkProjectile.Allegiance.PLAYER
 	spark.user = user
 	spark.weapon = null
+	spark.attribution_key = "Arc Ignition"
 	spark.target = enemy_node
 	spark.base_damage = dmg
 	spark.bounce_count = bounces

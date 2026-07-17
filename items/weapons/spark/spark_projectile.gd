@@ -26,7 +26,9 @@ const SPATIAL_HIT_RADIUS := 20.0  # spark radius (8) + typical enemy body radius
 var direction: Vector2 = Vector2.RIGHT
 var target: Node2D = null
 var user: Node2D = null
-var weapon: Node2D = null
+var weapon: Node2D
+## Damage-report identity, inherited from the projectile whose hit spawned this spark.
+var attribution_key: String = ""
 var bounces_remaining: int = 0
 var _hit_targets: Dictionary = {}  # Using Dictionary for O(1) lookup
 var _is_destroying: bool = false

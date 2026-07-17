@@ -2,6 +2,9 @@
 ## Represents the physical shield entity. Manages its own durability (pierce).
 extends Node2D
 
+## Damage-report identity, set by FireBehaviorComponent like any projectile.
+var attribution_key: String = ""
+
 # --- Properties set by the ShieldWeapon ---
 var stats: ProjectileStats
 var can_block_projectiles: bool = false

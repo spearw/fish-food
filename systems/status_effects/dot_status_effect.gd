@@ -38,6 +38,10 @@ func on_process(manager: StatusEffectManager, delta: float, source):
 			time_multiplier = source.get_stat("dot_damage_tick_rate")
 		tick_timer = time_between_ticks * time_multiplier
 
+## The weapon (or artifact) whose hit applied this status -- stamped by StatusEffectManager at
+## application so ticks credit the right row in the damage report.
+var attribution_key: String = ""
+
 ## Helper function to apply damage and check for ignite.
 func _do_damage_tick(manager: StatusEffectManager, source):
 	var host = manager.get_parent()
@@ -45,7 +49,12 @@ func _do_damage_tick(manager: StatusEffectManager, source):
 		var damage_multiplier = 1.0
 		if is_instance_valid(source):
 			damage_multiplier = source.get_stat("dot_damage_bonus")
-		
+
+		# Tick attribution happens HERE (take_damage sees a null source and skips crediting):
+		# 100% pen means the post-armor result is exactly the int-truncated tick.
+		CurrentRun.credit_damage(
+			attribution_key if attribution_key != "" else "Other",
+			int(damage_per_tick * damage_multiplier))
 		# 100% armor pen, no chance to crit.
 		host.take_damage(damage_per_tick * damage_multiplier, 1, false)
 		
@@ -56,4 +65,5 @@ func _do_damage_tick(manager: StatusEffectManager, source):
 
 		if additional_status_chance > 0 and randf() < (additional_status_chance * status_chance_mult):
 			if additional_status_effect:
-				manager.apply_status(additional_status_effect, source)
+				# Escalations (burn -> ignite) keep crediting the weapon that started the chain.
+				manager.apply_status(additional_status_effect, source, attribution_key)

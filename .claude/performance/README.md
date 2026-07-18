@@ -41,6 +41,7 @@ sounds better." Each has a reason and a measurement; see architecture.md for the
 | `MAX_ACTIVE` (damage numbers) | `damage_number_pool.gd` | `150` | Bounds on-screen numbers. Numbers themselves are cheap (~1 ms / 150); this cap is what *keeps* them cheap under any hit volume. |
 | Enemy `collision_mask` | `enemy.tscn` | `1` | Enemies collide with the player only, **not each other** — enemy-enemy collision is O(n²) broadphase for no gameplay benefit. |
 | Spatial hash | `entity_registry.gd` | `CELL_SIZE=256` | Targeting/proximity queries are O(local density), not O(all enemies). |
+| Console echo | `logs.gd` | verbose-gated | **One `print()`/`printerr()` costs ~8 ms on a Windows console** (measured Jul 2026). `Logs.add_message` echoes only under `--verbose`; history always records. The level-up screen's 4 routine log lines were a 40–60 ms freeze, and one unknown-stat `printerr` firing per projectile hit dropped frames game-wide. **Never print in a per-hit or per-frame path**; `printerr` is for genuinely rare error states. Regression gate: `levelup_profile_verify.tscn` (present path < 8 ms warm). |
 
 ## The one meta-rule
 

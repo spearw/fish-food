@@ -484,7 +484,6 @@ func _on_proximity_detected(body: Node2D):
 	# When any enemy enters our proximity, check if it's the specific target.
 	if body == self.target:
 		# Re-enable our main hitbox and destroy the detector.
-		print("Seeker missile arming!")
 		CollisionUtils.set_projectile_collision(area2d, allegiance)
 		proximity_detector.queue_free()
 
@@ -549,5 +548,4 @@ func _on_any_enemy_killed():
 		var candidates = TargetingUtils.get_candidates(target_group)
 		var new_target = TargetingUtils.find_nearest(self.global_position, candidates)
 		if is_instance_valid(new_target):
-			print("Living Flame is re-targeting!")
 			self.target = new_target

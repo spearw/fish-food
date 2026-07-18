@@ -342,6 +342,10 @@ func get_stat(key: String):
 			return get_stat_multiplier(key)
 		"spark_bounce_bonus":
 			return in_run_bonuses.get("spark_bounce_bonus", 0)
+		"has_conductive":
+			# Flag set by ConductiveArtifact via add_bonus. Must default 0: the unknown-key
+			# fallback returns 1.0, which read as "everyone holds Conductive" (all weapons sparked).
+			return in_run_bonuses.get("has_conductive", 0.0)
 		_:
 			printerr("get_stat: Requested unknown stat key: '", key, "'")
 			return 1.0

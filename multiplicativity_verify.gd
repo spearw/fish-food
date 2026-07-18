@@ -90,6 +90,12 @@ func _run_checks(player, um) -> void:
 	var invert_ok: bool = absf(fr - fr_expected) < 0.002
 	print("MULTVERIFY inverted: firerate=%.4f expected=%.4f ok=%s" % [fr, fr_expected, str(invert_ok)])
 
-	var pass_all: bool = mult_ok and flat_ok and compose_ok and invert_ok
+	# --- 5. Unknown-flag regression: has_conductive must read 0 without the artifact. The unknown-key
+	# fallback returns 1.0, which once made every weapon spark as if Conductive were held. ---
+	var conductive_flag: float = player.get_stat("has_conductive")
+	var conductive_ok: bool = conductive_flag == 0.0
+	print("MULTVERIFY conductive_flag: value=%.1f ok=%s" % [conductive_flag, str(conductive_ok)])
+
+	var pass_all: bool = mult_ok and flat_ok and compose_ok and invert_ok and conductive_ok
 	print("MULTVERIFY RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

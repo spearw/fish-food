@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://actors/enemies/boss_types/herald_moray/moray_ai.gd" id="1_mai"]
+[ext_resource type="PackedScene" uid="uid://gqd3gevs3p3m" path="res://actors/enemies/behaviors/behaviors/behavior_library.tscn" id="2_mai"]
+[ext_resource type="Resource" uid="uid://be58pxccx68xi" path="res://actors/enemies/normal_enemy_types/garden_eel/garden_eel.tres" id="3_mai"]
+
+[node name="MorayAI" type="Node"]
+script = ExtResource("1_mai")
+summon_stats = ExtResource("3_mai")
+
+[node name="BehaviorLibrary" parent="." instance=ExtResource("2_mai")]

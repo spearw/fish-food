@@ -90,6 +90,11 @@ func reset_run_state() -> void:
 	banishes_remaining = BANISHES_PER_RUN
 	banished_upgrades.clear()
 	damage_by_source.clear()
+	herald_scheduled = false
+	herald_spawned_at = -1.0
+	herald_killed_at = -1.0
+	herald_left = false
+	herald_flawless = true
 
 # --- Per-source damage attribution (UX: the genre's most build-relevant readout) ---
 ## Post-armor damage dealt this run, keyed by source ("Daggers", "Static Discharge", "Other").
@@ -107,6 +112,29 @@ func credit_damage(key: String, amount: int) -> void:
 var deck_draft_counts: Dictionary = {}
 ## True once the player has taken a cross-deck combo this run (one per run).
 var combo_taken: bool = false
+
+# --- Herald state (the mini-boss that carries the combo trigger; see EncounterDirector) ---
+## True when the run's director has herald candidates configured. When false (benches, test worlds),
+## the combo trigger stays on the legacy level check.
+var herald_scheduled: bool = false
+## Run-timer stamps, -1 until they happen. killed - spawned is the speed proof for the secret lure.
+var herald_spawned_at: float = -1.0
+var herald_killed_at: float = -1.0
+## True if the herald left unkilled (its leave timer ran out).
+var herald_left: bool = false
+## True while no player hit has landed during a live herald fight -- the flawless proof.
+var herald_flawless: bool = true
+
+func herald_active() -> bool:
+	return herald_spawned_at >= 0.0 and herald_killed_at < 0.0 and not herald_left
+
+func _ready() -> void:
+	# The flawless proof listens run-wide: any hit taken while the herald lives breaks it.
+	Events.player_was_hit.connect(_on_player_was_hit)
+
+func _on_player_was_hit(_source) -> void:
+	if herald_active():
+		herald_flawless = false
 
 ## Returns the budget multiplier for the current spawn intensity.
 func get_intensity_multiplier() -> float:

@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://actors/enemies/boss_types/herald_pufferfish/puffer_ai.gd" id="1_pai"]
+[ext_resource type="PackedScene" uid="uid://gqd3gevs3p3m" path="res://actors/enemies/behaviors/behaviors/behavior_library.tscn" id="2_pai"]
+
+[node name="PufferAI" type="Node"]
+script = ExtResource("1_pai")
+
+[node name="BehaviorLibrary" parent="." instance=ExtResource("2_pai")]

@@ -92,6 +92,16 @@ func _infinite_multiplier() -> float:
 		return 1.0
 	return pow(infinite_growth_per_minute, (run_timer - win_time) / 60.0)
 
+## --- HERALD (the mini-boss that carries the combo trigger) ---
+## One of these spawns at herald_time, picked by the same weighting as regular spawns -- so on
+## Abyssal the counter logic sends the herald your build least wants to see, and on Normal the one
+## it eats. Killing it triggers the cross-deck combo choice (see ComboManager.should_offer_combo);
+## if it lives out its welcome it burrows away and the combo falls back to the level trigger.
+## Empty candidates = no herald this run (benches and test worlds keep the legacy trigger).
+@export var herald_candidates: Array[EnemyStats] = []
+@export var herald_time: float = 480.0
+@export var herald_leave_secs: float = 90.0
+
 @onready var spawn_pulse_timer: Timer = $Timer
 
 # --- RUNTIME STATE ---
@@ -114,6 +124,10 @@ var threat_level: float = 1.0 # This will later be fetched from GameData as a pl
 
 # --- BUILD ANALYSIS (for counter-spawning) ---
 var build_analyzer: BuildAnalyzer = null
+
+# --- HERALD RUNTIME STATE ---
+var _herald: Node = null
+var _herald_spawned: bool = false
 
 func _ready():
 	# Validate that we have everything we need to function.
@@ -150,11 +164,16 @@ func _ready():
 		# Re-analyze when player's build changes (weapons/upgrades/artifacts)
 		if is_instance_valid(player_node) and player_node.has_signal("stats_changed"):
 			player_node.stats_changed.connect(_update_build_analysis)
+
+	# Announce whether this run HAS a herald: the combo trigger reads this to decide between the
+	# boss-kill trigger and the legacy level trigger.
+	CurrentRun.herald_scheduled = not herald_candidates.is_empty()
 	
 func _physics_process(delta: float):
 	if not is_instance_valid(player_node): return
 
 	run_timer += delta
+	_process_herald()
 
 	# Fire any one-time "override" events that are due. These are authored bursts/bosses and
 	# deliberately bypass the population target and cap -- the VS "map event" spike -- so intensity
@@ -232,9 +251,66 @@ func _recycle_distant_enemies() -> void:
 	for enemy in EntityRegistry.get_enemy_candidates():
 		if not is_instance_valid(enemy) or enemy.is_dying:
 			continue
+		# Bosses are never teleported: a boss that blinks onto the spawn ring mid-fight breaks the
+		# fight's readability, and the off-screen pointer already keeps it findable.
+		if enemy == _herald:
+			continue
 		if enemy.global_position.distance_squared_to(ppos) > max_dist_sq:
 			var angle: float = randf_range(0, TAU)
 			enemy.global_position = ppos + Vector2.RIGHT.rotated(angle) * spawn_radius
+
+# --- Herald machinery ---
+
+## Spawns the herald when its time comes; walks it off the field when its welcome runs out.
+func _process_herald() -> void:
+	if not _herald_spawned:
+		if not herald_candidates.is_empty() and run_timer >= herald_time:
+			_spawn_herald()
+	elif is_instance_valid(_herald) and not _herald.is_dying \
+			and run_timer >= herald_time + herald_leave_secs:
+		_herald_leaves()
+
+## Picks and spawns the herald. The pick runs through the SAME weighting as regular spawns
+## (config x biome x counter mode), so the difficulty tiers apply to the boss choice too:
+## Normal sends the candidate your build eats, Abyssal the one that eats you.
+func _spawn_herald() -> void:
+	_herald_spawned = true
+	var stats: EnemyStats = _pick_weighted_enemy(herald_candidates)
+	if stats == null:
+		return
+	# Bosses ride ON TOP of the population: count_threat=false keeps the boss's CR out of the
+	# target ledger, so the horde does not thin to pay for the fight.
+	var boss = spawn_enemy(stats, null, false)
+	# Intensity and infinite-mode growth scale boss HP the same way they scale the field. The
+	# authored base is tuned for a NORMAL-intensity spawn at herald_time.
+	var hp_mult: float = CurrentRun.get_intensity_multiplier() * _infinite_multiplier()
+	boss.stats.max_health = int(boss.stats.max_health * hp_mult)
+	boss.current_health = boss.stats.max_health
+	_herald = boss
+	CurrentRun.herald_spawned_at = run_timer
+	boss.died.connect(_on_herald_died.bind(boss))
+	Events.boss_spawned.emit(boss, boss.stats)
+	Logs.add_message(["Herald spawned:", boss.stats.display_name])
+
+func _on_herald_died(stats: EnemyStats, _boss) -> void:
+	CurrentRun.herald_killed_at = run_timer
+	Events.boss_killed.emit(stats)
+	Logs.add_message(["Herald killed:", stats.display_name])
+
+## The herald leaves unkilled: fades out and frees. The combo trigger falls back to the level check
+## (CurrentRun.herald_left) -- delayed, not lost.
+func _herald_leaves() -> void:
+	var boss = _herald
+	_herald = null
+	CurrentRun.herald_left = true
+	Events.boss_left.emit(boss.stats)
+	Logs.add_message(["Herald left unkilled:", boss.stats.display_name])
+	boss.is_dying = true
+	EntityRegistry.mark_enemy_dying(boss)
+	boss.remove_from_group("enemy")
+	var tween := boss.create_tween()
+	tween.tween_property(boss, "modulate:a", 0.0, 0.8)
+	tween.tween_callback(boss.queue_free)
 
 
 ## Updates the cached build analysis when player's build changes.
@@ -427,9 +503,11 @@ func _apply_difficulty_weight(base_weight: float, enemy_stats: EnemyStats) -> fl
 
 	return base_weight
 
-## Instantiates and positions a single enemy.
+## Instantiates and positions a single enemy. Returns the instance.
 ## If `position_override` is given, spawns there; otherwise at a random point on the spawn ring.
-func spawn_enemy(stats: EnemyStats, position_override = null):
+## count_threat=false exempts the spawn from the population ledger entirely (bosses ride on top of
+## the horde target instead of consuming it).
+func spawn_enemy(stats: EnemyStats, position_override = null, count_threat: bool = true) -> Node:
 	var enemy_instance = enemy_scene.instantiate()
 
 	# Pick a random size from the enemy's allowed sizes and apply scaling
@@ -452,9 +530,11 @@ func spawn_enemy(stats: EnemyStats, position_override = null):
 	EntityRegistry.register_enemy(enemy_instance)
 	# Track threat with the enemy's ACTUAL (size-scaled) stats, so the increment here matches the
 	# decrement on death (which emits the scaled stats). Increment the CR total once per enemy.
-	enemy_instance.died.connect(_on_enemy_died)
-	_update_threat_ledger(scaled_stats.stats, 1)
-	_active_threat_cr += scaled_stats.stats.challenge_rating
+	if count_threat:
+		enemy_instance.died.connect(_on_enemy_died)
+		_update_threat_ledger(scaled_stats.stats, 1)
+		_active_threat_cr += scaled_stats.stats.challenge_rating
+	return enemy_instance
 
 ## DEBUG: Immediately spawns `count` enemies clumped near the player, for perf testing.
 ## Invoked by the dev console `spawn` command.

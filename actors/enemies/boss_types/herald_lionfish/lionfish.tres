@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="1_lf"]
+[ext_resource type="PackedScene" uid="uid://np8hsandn71t" path="res://actors/enemies/behaviors/ai/move_and_shoot_ai/move_and_shoot_ai.tscn" id="2_lf"]
+[ext_resource type="SpriteFrames" uid="uid://5psmt1jj745a" path="res://actors/enemies/normal_enemy_types/seahorse/animations/seahorse_animations.tres" id="3_lf"]
+[ext_resource type="PackedScene" path="res://items/weapons/boss/spine_volley.tscn" id="4_lf"]
+[ext_resource type="PackedScene" path="res://items/weapons/boss/spine_nova.tscn" id="5_lf"]
+
+[resource]
+script = ExtResource("1_lf")
+damage = 8
+armor_pen = 0.0
+face_movement_direction = false
+rotation_offset_degrees = 0.0
+is_flipped = false
+default_behavior_name = "chasebehavior"
+ai_scene = ExtResource("2_lf")
+weapon_scenes = Array[PackedScene]([ExtResource("4_lf"), ExtResource("5_lf")])
+firerate = 2.6
+challenge_rating = 40.0
+biome_tags = Array[int]([4])
+type_tags = Array[int]([0])
+size_tags = Array[int]([4])
+behavior_tags = Array[int]([1])
+move_speed = 150.0
+display_name = "The Quillmother"
+max_health = 350
+armor = 0
+knockback_resistance = 1.0
+sprite_frames = ExtResource("3_lf")
+modulate = Color(1, 0.45, 0.4, 1)
+scale = Vector2(1.4, 1.4)
+metadata/_custom_type_script = "uid://b7tpycat8da2s"

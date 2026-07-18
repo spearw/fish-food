@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="1_pf"]
+[ext_resource type="PackedScene" path="res://actors/enemies/boss_types/herald_pufferfish/puffer_ai.tscn" id="2_pf"]
+[ext_resource type="SpriteFrames" uid="uid://bfv7q1d5e6kgi" path="res://actors/enemies/normal_enemy_types/fish/animations/fish_animations.tres" id="3_pf"]
+[ext_resource type="PackedScene" path="res://items/weapons/boss/spine_nova.tscn" id="4_pf"]
+[ext_resource type="PackedScene" path="res://items/weapons/boss/spike_rain.tscn" id="5_pf"]
+
+[resource]
+script = ExtResource("1_pf")
+damage = 12
+armor_pen = 0.0
+face_movement_direction = false
+rotation_offset_degrees = 0.0
+is_flipped = false
+default_behavior_name = "chasebehavior"
+ai_scene = ExtResource("2_pf")
+weapon_scenes = Array[PackedScene]([ExtResource("4_pf"), ExtResource("5_pf")])
+firerate = 3.0
+challenge_rating = 40.0
+biome_tags = Array[int]([4])
+type_tags = Array[int]([0])
+size_tags = Array[int]([4])
+behavior_tags = Array[int]([2])
+move_speed = 190.0
+display_name = "The Bloom"
+max_health = 400
+armor = 0
+knockback_resistance = 1.0
+sprite_frames = ExtResource("3_pf")
+modulate = Color(1, 0.85, 0.4, 1)
+scale = Vector2(1.4, 1.4)
+metadata/_custom_type_script = "uid://b7tpycat8da2s"

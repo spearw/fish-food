@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/boss_bar/boss_bar.gd" id="1_bb"]
+
+[node name="BossBar" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_bb")
+
+[node name="TopAnchor" type="VBoxContainer" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_right = 220.0
+offset_top = 14.0
+offset_bottom = 64.0
+grow_horizontal = 2
+
+[node name="NameLabel" type="Label" parent="TopAnchor"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Boss"
+
+[node name="Bar" type="ProgressBar" parent="TopAnchor"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+show_percentage = false
+modulate = Color(1, 0.35, 0.3, 1)
+
+[node name="Arrow" type="Node2D" parent="."]
+visible = false
+
+[node name="Polygon2D" type="Polygon2D" parent="Arrow"]
+color = Color(1, 0.35, 0.3, 0.9)
+polygon = PackedVector2Array(22, 0, -12, -13, -12, 13)

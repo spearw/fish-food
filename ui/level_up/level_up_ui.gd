@@ -52,6 +52,7 @@ func _ready() -> void:
 		# .bind(i) passes the index 'i' as an argument to the function.
 		upgrade_buttons[i].pressed.connect(_on_upgrade_button_pressed.bind(i))
 	Events.boss_reward_requested.connect(on_boss_reward_requested)
+	Events.boss_killed.connect(_on_boss_killed)
 	_build_manipulation_bar()
 	# Upgrade 0: the starting-weapon roll. Deferred so the whole world (player registration included)
 	# has finished assembling first.
@@ -204,6 +205,15 @@ func _show_reward_sequence(count: int):
 		await self.upgrade_chosen
 		await get_tree().process_frame
 	
+## Herald down: the combo choice fires on the spot when the draft gate is met. When it isn't yet,
+## nothing happens here -- the level-up checks below keep asking should_offer_combo, so the offer
+## lands at the first level-up where the gate is met (deferral without extra state).
+func _on_boss_killed(_stats) -> void:
+	if visible:
+		return  # a choice screen is already up; the next level-up carries the offer
+	if ComboManager.should_offer_combo(0):
+		show_combo_screen()
+
 ## Called when the player levels up. Fetches and displays upgrade choices.
 func on_player_leveled_up(new_level: int):
 	Logs.add_message(["Player leveled up. New level:", new_level])

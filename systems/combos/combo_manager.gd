@@ -5,7 +5,9 @@
 extends Node
 
 const COMBO_LIST_PATH := "res://systems/combos/master_combo_list.tres"
-## The level at which combos first become offerable (placeholder; later a mini-boss kill).
+## The legacy level trigger. Lives on as the FALLBACK: it applies when no herald is scheduled
+## (benches, test worlds) or when the herald left unkilled -- so a build that can't kill the boss
+## is delayed, never locked out (reward-not-requirement).
 const COMBO_UNLOCK_LEVEL := 20
 
 var _combos: Array = []
@@ -34,6 +36,18 @@ func is_gate_met(combo) -> bool:
 	return counts.get(combo.deck_a_id, 0) >= combo.power_gate \
 		and counts.get(combo.deck_b_id, 0) >= combo.power_gate
 
-## Whether a combo choice should be offered right now (used by the level-up trigger).
+## Whether a combo choice should be offered right now. Called from the level-up trigger AND from the
+## herald-kill event. The herald kill IS the trigger when a herald is scheduled:
+##   killed  -> offer immediately (any level; if the draft gate isn't met yet, the level-up checks
+##              keep asking, so the offer lands at the first level-up where it is -- deferral for free)
+##   alive/pending -> hold (the fight is the gate)
+##   left unkilled -> fall back to the level trigger
+##   never scheduled -> the level trigger, unchanged (benches and test worlds)
 func should_offer_combo(level: int) -> bool:
-	return level >= COMBO_UNLOCK_LEVEL and not CurrentRun.combo_taken and not get_eligible_synergies().is_empty()
+	if CurrentRun.combo_taken or get_eligible_synergies().is_empty():
+		return false
+	if CurrentRun.herald_killed_at >= 0.0:
+		return true
+	if CurrentRun.herald_scheduled and not CurrentRun.herald_left:
+		return false
+	return level >= COMBO_UNLOCK_LEVEL

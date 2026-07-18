@@ -96,8 +96,13 @@ func take_damage(amount: int, armor_pen: float, is_crit: bool, source_node: Node
 ## @param force: float - The strength of the knockback.
 ## @param from_position: Vector2 - The world position the knockback originates from.
 func apply_knockback(force: float, from_position: Vector2) -> void:
+	# Resistance scales the force (1.0 = immune). Pulls route through here too (a pull is knockback
+	# toward a reflected point), so one stat covers shoves, juggles and Singularity.
+	var effective := force * (1.0 - stats.knockback_resistance) if stats else force
+	if effective <= 0.0:
+		return
 	var direction = (self.global_position - from_position).normalized()
-	knockback_velocity = direction * force
+	knockback_velocity = direction * effective
 
 
 ## Heals the entity for a given amount.

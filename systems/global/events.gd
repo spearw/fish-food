@@ -17,6 +17,11 @@ signal player_was_hit(source_node)  # Emitted when player is hit (before armor c
 signal chain_kill(position: Vector2, damage: float)  # Emitted when enemy killed by chain projectile
 signal spark_hit_enemy(enemy_node)  # Emitted whenever a spark (chain lightning) hits an enemy
 
+# --- Boss events (see EncounterDirector herald machinery) ---
+signal boss_spawned(boss_node, stats)  # A boss entered the field (HP bar + pointer listen)
+signal boss_killed(stats)              # A boss died (the herald kill is the combo trigger)
+signal boss_left(stats)                # A boss left unkilled (combo falls back to the level trigger)
+
 # --- Hit Batching System ---
 var _hit_queue: Array = []  # Queued hits for this frame
 var _batch_scheduled: bool = false  # Whether we've scheduled emission

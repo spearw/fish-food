@@ -412,8 +412,14 @@ The signature mechanic: committing to **two** themed decks unlocks a powerful, b
   deck(s)** ("power level") — proof you've committed to the theme. `N` = TBD.
 - **Unlock trigger (event):** combos are **specialty cards** surfaced at a trigger, **not** in the
   normal level-up pool.
-  - **For now: level 20.**
-  - **Later: defeating a mini-boss** (secret boss → the second combo).
+  - **BUILT (Jul 2026): killing the Herald** — a mini-boss the director spawns at 8:00, drawn from
+    three candidates (Pufferfish/Moray/Lionfish) through the counter-mode weighting, so Abyssal
+    sends the one your build least answers. Kill → the combo choice on the spot (gate still
+    applies; unmet gate defers the offer to the first qualifying level-up).
+  - **Fallback:** if the Herald leaves unkilled (90s leave timer) — or the world has no herald
+    (benches) — the trigger falls back to level 20. Delayed, never lost (reward-not-requirement).
+  - **The secret boss → the second combo** (pass 2, designed: the Anglerfish lure, armed by any of
+    three proofs — fast Herald kill / combo+depth by 12:00 / flawless Herald fight).
 - **Scaling:** a synergy's effect **scales with continued theme investment** (reads your build), so it
   grows as you keep drafting the themes.
 

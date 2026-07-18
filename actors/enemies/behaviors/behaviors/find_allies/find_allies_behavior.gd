@@ -46,6 +46,9 @@ func _find_nearest_ally(host: Node) -> Node:
 
 	# Use EntityRegistry for cached enemy list (avoids tree query every frame)
 	for enemy in EntityRegistry.get_enemies():
+		# The cached list can hold allies freed this frame -- touching one is an error per scan tick.
+		if not is_instance_valid(enemy):
+			continue
 		# Standard checks: not ourself, is the right type, and not in our current group.
 		if enemy == host or enemy.stats.display_name != self.ally_name_to_find or allies_to_ignore.has(enemy):
 			continue

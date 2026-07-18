@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="1_pf"]
 [ext_resource type="PackedScene" path="res://actors/enemies/boss_types/herald_pufferfish/puffer_ai.tscn" id="2_pf"]
-[ext_resource type="SpriteFrames" uid="uid://bfv7q1d5e6kgi" path="res://actors/enemies/normal_enemy_types/fish/animations/fish_animations.tres" id="3_pf"]
+[ext_resource type="SpriteFrames" path="res://actors/enemies/boss_types/herald_pufferfish/puffer_frames.tres" id="3_pf"]
 [ext_resource type="PackedScene" path="res://items/weapons/boss/spine_nova.tscn" id="4_pf"]
 [ext_resource type="PackedScene" path="res://items/weapons/boss/spike_rain.tscn" id="5_pf"]
 
@@ -28,6 +28,6 @@ max_health = 400
 armor = 0
 knockback_resistance = 1.0
 sprite_frames = ExtResource("3_pf")
-modulate = Color(1, 0.85, 0.4, 1)
+modulate = Color(1, 1, 1, 1)
 scale = Vector2(1.4, 1.4)
 metadata/_custom_type_script = "uid://b7tpycat8da2s"

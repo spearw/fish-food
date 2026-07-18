@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="1_lf"]
 [ext_resource type="PackedScene" uid="uid://np8hsandn71t" path="res://actors/enemies/behaviors/ai/move_and_shoot_ai/move_and_shoot_ai.tscn" id="2_lf"]
-[ext_resource type="SpriteFrames" uid="uid://5psmt1jj745a" path="res://actors/enemies/normal_enemy_types/seahorse/animations/seahorse_animations.tres" id="3_lf"]
+[ext_resource type="SpriteFrames" path="res://actors/enemies/boss_types/herald_lionfish/lionfish_frames.tres" id="3_lf"]
 [ext_resource type="PackedScene" path="res://items/weapons/boss/spine_volley.tscn" id="4_lf"]
 [ext_resource type="PackedScene" path="res://items/weapons/boss/spine_nova.tscn" id="5_lf"]
 
@@ -28,6 +28,6 @@ max_health = 350
 armor = 0
 knockback_resistance = 1.0
 sprite_frames = ExtResource("3_lf")
-modulate = Color(1, 0.45, 0.4, 1)
+modulate = Color(1, 1, 1, 1)
 scale = Vector2(1.4, 1.4)
 metadata/_custom_type_script = "uid://b7tpycat8da2s"

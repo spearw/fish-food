@@ -73,7 +73,7 @@ func _ready() -> void:
 	var man: Dictionary = deck.get_manifest()
 	var rename_ok: bool = deck.deck_name == "Venom" and deck.id == "toxin" \
 		and man.weapons.size() == 4 and "Ink Jet" in man.weapons \
-		and man.evolutions == 8 and man.artifacts.size() == 3
+		and man.evolutions == 8 and man.artifacts.size() == 4
 	print("VENOM deck: name=%s id=%s weapons=%d evos=%d artifacts=%d ok=%s" % [
 		deck.deck_name, deck.id, man.weapons.size(), man.evolutions, man.artifacts.size(),
 		str(rename_ok)])

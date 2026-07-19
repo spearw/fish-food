@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://blethaldose0001"]
+
+[ext_resource type="Script" path="res://items/artifacts/venom/lethal_dose/lethal_dose_artifact.gd" id="1_art"]
+
+[node name="LethalDoseArtifact" type="Node"]
+script = ExtResource("1_art")

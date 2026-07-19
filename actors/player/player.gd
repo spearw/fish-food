@@ -319,7 +319,7 @@ func get_stat(key: String):
 			return get_stat_multiplier(key)
 		"on_hit_burn_chance", "on_hit_venom_chance", "point_blank_bonus", "whiff_spark", \
 		"pierce_bonus", "crit_spark", "on_hit_strike_chance", "bonus_vs_burning", \
-		"bonus_vs_max_venom", "chip_floor":
+		"bonus_vs_max_venom", "chip_floor", "dot_execute":
 			# Combo-synergy grants (Incendiary/Toxic Rounds, Powder Burn, Capacitor Magazine):
 			# artifacts contribute via get_<key>_bonus(); consumed in the projectile hit paths.
 			var combo_total: float = 0.0

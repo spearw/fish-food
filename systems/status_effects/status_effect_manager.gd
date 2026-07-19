@@ -113,6 +113,40 @@ func apply_status(status_resource: StatusEffect, source: Node, attribution_key: 
 		
 	# Emit signal whether new status or not.
 	Events.emit_signal("status_applied_to_enemy", host, status_instance.id)
+	# Lethal Dose: the pending total only grows here, so here is where the doomed are found.
+	_check_dot_execute(source)
+
+## Lethal Dose (Venom artifact): if the damage still queued across this enemy's DoTs exceeds its
+## MAX health, it dies now -- the doomed skip the funeral. The estimate uses the same multipliers
+## the ticks will actually apply (dot damage bonus x stacks x ticks left on the duration timer);
+## tick-rate cards shift WHEN the damage lands, not how much, so they stay out of the sum.
+func _check_dot_execute(source) -> void:
+	if not is_instance_valid(host) or host.is_dying or not ("stats" in host):
+		return
+	if not (is_instance_valid(source) and source.has_method("get_stat")):
+		return
+	if source.get_stat("dot_execute") <= 0.0:
+		return
+	var dmg_mult: float = source.get_stat("dot_damage_bonus")
+	var pending := 0.0
+	var key := "Other"
+	for status_id in active_statuses:
+		var entry = active_statuses[status_id]
+		var effect = entry["effect"]
+		if not effect is DotStatusEffect:
+			continue
+		var interval: float = maxf(0.05, effect.time_between_ticks)
+		var ticks_left: int = ceili(entry["timer"].time_left / interval)
+		pending += effect.damage_per_tick * dmg_mult * maxi(effect.stacks, 1) * ticks_left
+		if effect.attribution_key != "":
+			key = effect.attribution_key
+	if pending <= float(host.stats.max_health):
+		return
+	# Full remaining health as one armor-ignoring burst through the normal death path (loot,
+	# on-kill triggers, the damage number). Attribution credits the dose that tipped it.
+	var burst: int = host.current_health
+	host.take_damage(burst, 1.0, false, null)
+	CurrentRun.credit_damage(key, burst)
 
 func _on_status_expired(status_id: String, source):
 	if active_statuses.has(status_id):

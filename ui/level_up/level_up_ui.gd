@@ -29,6 +29,11 @@ var _summary: RichTextLabel
 var _summary_tabs: HBoxContainer
 var _summary_tab: int = -1
 const BuildSummary := preload("res://systems/global/build_summary.gd")
+const Glossary := preload("res://systems/global/glossary.gd")
+
+# Weapon effect tags per unlock upgrade id, read once by instantiating the scene (the same thing
+# apply does) and cached -- the card face's keyword row and tooltip both feed from it.
+var _weapon_tag_cache: Dictionary = {}
 
 # signal to announce when choice has been made
 signal upgrade_chosen
@@ -266,6 +271,10 @@ func show_deck_choice_screen() -> void:
 		if i < _deck_choices.size():
 			var deck = _deck_choices[i]
 			button.text = "%s\n%s" % [deck.deck_name, deck.deck_description]
+			var comp: Dictionary = deck.get_composition()
+			button.tooltip_text = "Weapons %d | Evolutions %d | Artifacts %d | Stat cards %d" % [
+				comp.get("weapons", 0), comp.get("evolutions", 0),
+				comp.get("artifacts", 0), comp.get("upgrades", 0)]
 			button.modulate = Color.CYAN
 			button.visible = true
 		else:
@@ -389,27 +398,40 @@ func _refresh_summary() -> void:
 			var upgrade: Upgrade = upgrade_package["upgrade"]
 			var rarity_enum: Upgrade.Rarity = upgrade_package["rarity"]
 			
-			# Every card names its deck (combo-gate progress is a draft-time read) and stat cards
-			# show delta AND resulting total via the one formatter that shares apply_upgrade's
-			# routing -- the old inline branches printed raw values ("+0.15" for a percent card)
-			# and never said where you'd land.
+			# Card faces follow the field's shape (researched Jul 2026 -- the Slay the Spire /
+			# Monster Train / Brotato convergence): the FACE carries the decision-critical minimum
+			# in a fixed line order (name, action, numbers/keywords), and the HOVER TOOLTIP carries
+			# the prose plus a definition line for every keyword the card touches. Progressive
+			# disclosure: short to scan, complete on demand.
 			var deck_tag: String = upgrade_manager.deck_tag(upgrade)
+			var face: String
+			var tip: String
 			if upgrade.rarity_values.size() > 0:
-				button.text = "%s%s\n%s\n%s" % [upgrade.display_name, deck_tag,
-					upgrade.description,
+				# Stat card: the generated before-and-after preview IS the decision; prose on hover.
+				face = "%s%s\n%s" % [upgrade.display_name, deck_tag,
 					BuildSummary.stat_card_preview(player_node, upgrade, rarity_enum)]
+				tip = Glossary.tooltip_for(upgrade.description)
 			elif upgrade.type == Upgrade.UpgradeType.UNLOCK_WEAPON:
 				# Name the tier in text (Brotato conveys tier by colour alone and players report not
-				# being able to read it), AND what taking the card does -- a merge and an in-place
-				# upgrade resolve differently from "new weapon", and the card is where that's learned.
-				button.text = "%s (%s)%s%s\n%s" % [
+				# being able to read it), the ACTION taking it resolves to (new copy / merge /
+				# upgrade-in-place), and the weapon's identity as a keyword row.
+				var effects: Array = _weapon_card_effects(upgrade)
+				face = "%s (%s)%s%s" % [
 					upgrade.display_name,
 					Upgrade.Rarity.keys()[rarity_enum].capitalize(),
 					deck_tag,
-					upgrade_manager.describe_weapon_take(upgrade, rarity_enum),
-					upgrade.description]
+					upgrade_manager.describe_weapon_take(upgrade, rarity_enum)]
+				var row: String = Glossary.keyword_row(effects)
+				if row != "":
+					face += "\n" + row
+				tip = Glossary.tooltip_for(upgrade.description, effects)
 			else:
-				button.text = "%s%s\n%s" % [upgrade.display_name, deck_tag, upgrade.description]
+				# Rules (artifacts, evolutions, synergies): the rule text IS the content -- it
+				# stays on the face; the tooltip adds the keyword definitions behind it.
+				face = "%s%s\n%s" % [upgrade.display_name, deck_tag, upgrade.description]
+				tip = Glossary.tooltip_for(upgrade.description)
+			button.text = face
+			button.tooltip_text = tip
 				
 			match rarity_enum:
 				Upgrade.Rarity.COMMON:
@@ -425,6 +447,21 @@ func _refresh_summary() -> void:
 			button.visible = true
 		else:
 			button.visible = false
+
+## The effect tags of an unlock card's weapon, read once per upgrade and cached. Instantiating the
+## scene is what apply does anyway; measured ~1ms, and only on cache misses.
+func _weapon_card_effects(upgrade: Upgrade) -> Array:
+	if _weapon_tag_cache.has(upgrade.id):
+		return _weapon_tag_cache[upgrade.id]
+	var effects: Array = []
+	if upgrade.scene_to_unlock:
+		var probe = upgrade.scene_to_unlock.instantiate()
+		var tags = probe.get("effects")
+		if tags != null:
+			effects = tags.duplicate()
+		probe.queue_free()
+	_weapon_tag_cache[upgrade.id] = effects
+	return effects
 
 ## Called when any of the upgrade buttons are pressed.
 ## @param choice_index: int - The index of the button that was pressed.

@@ -144,8 +144,29 @@ func _ready() -> void:
 		str(manifest_ok), str(pool_ok), armor_prev, split_prev, dmg_prev,
 		str(preview_ok), str(extras_ok), tag])
 
+	# --- Glossary (the keyword system behind card tooltips) ---
+	var Glossary := preload("res://systems/global/glossary.gd")
+	# Every face label resolves to a definition, in KEYWORDS or LABEL_NOTES.
+	var labels_defined := true
+	for effect in Glossary.EFFECT_LABELS:
+		var label: String = Glossary.EFFECT_LABELS[effect]
+		if not (Glossary.KEYWORDS.has(label) or Glossary.LABEL_NOTES.has(label)):
+			labels_defined = false
+			print("UX glossary: label '%s' has no definition" % label)
+	# The keyword row dedupes (CHAIN and SPARK both read "Spark") and brackets each label.
+	var row: String = Glossary.keyword_row(
+		[WeaponTags.Effect.CHAIN, WeaponTags.Effect.SPARK, WeaponTags.Effect.PIERCE])
+	var row_ok: bool = row == "[Spark] [Pierce]"
+	# The tooltip carries the prose plus a definition per keyword touched (text scan + tags).
+	var tip: String = Glossary.tooltip_for("Spines that apply poison.", [WeaponTags.Effect.PIERCE])
+	var tip_ok: bool = tip.contains("Poison:") and tip.contains("Pierce:") \
+		and tip.begins_with("Spines that apply poison.")
+	print("UX glossary: labels_defined=%s row='%s' tooltip_ok=%s" % [
+		str(labels_defined), row, str(tip_ok)])
+
 	var pass_all: bool = stats_ok and compact_ok and loadout_ok and evolved_ok and draft_ok \
 		and pretty_ok and detail_ok and hint_ok and duration_ok \
-		and manifest_ok and pool_ok and preview_ok and extras_ok and tag_ok
+		and manifest_ok and pool_ok and preview_ok and extras_ok and tag_ok \
+		and labels_defined and row_ok and tip_ok
 	print("UX RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

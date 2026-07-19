@@ -24,6 +24,10 @@ var can_deal_damage: bool = true
 var ai: Node
 var _cached_weapons: Array = []  # Cached weapon list for fire_weapons()
 var spawned_size: EnemyTags.Size = EnemyTags.Size.MEDIUM  # Set by encounter director at spawn
+# Regeneration bookkeeping: heal() takes ints, so fractional regen accumulates here; the pulse
+# timer throttles the green heal flash to once a second.
+var _regen_accum: float = 0.0
+var _regen_pulse_cooldown: float = 0.0
 
 
 
@@ -80,6 +84,20 @@ func _physics_process(delta: float) -> void:
 		# If alive, process AI behavior.
 		if is_instance_valid(behavior):
 			behavior.process_behavior(delta, self)
+
+		# Constant regeneration (the DoT counter): ticks always, race it with direct DPS.
+		if stats.regen_per_sec > 0.0 and current_health < stats.max_health:
+			_regen_accum += stats.regen_per_sec * delta
+			_regen_pulse_cooldown -= delta
+			if _regen_accum >= 1.0:
+				var whole := int(_regen_accum)
+				_regen_accum -= whole
+				heal(whole)
+				if _regen_pulse_cooldown <= 0.0 and is_on_screen:
+					_regen_pulse_cooldown = 1.0
+					var tween := create_tween()
+					tween.tween_property(self, "modulate", Color(0.6, 1.5, 0.6, 1.0), 0.15)
+					tween.tween_property(self, "modulate", stats.modulate, 0.25)
 
 		# Update sprite orientation based on stats (skip if off-screen for performance).
 		if is_on_screen:

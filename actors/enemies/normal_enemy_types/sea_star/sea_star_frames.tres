@@ -1,0 +1,22 @@
+[gd_resource type="SpriteFrames" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://actors/enemies/normal_enemy_types/sea_star/sea_star_photo.png" id="1_ssf"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ssf")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ssf")
+}],
+"loop": true,
+"name": &"move",
+"speed": 5.0
+}]

@@ -6,6 +6,10 @@ extends EntityStats
 # --- Core Stats ---
 @export var damage: int = 10
 @export_range(0.0, 1.0) var armor_pen: float = 0.0
+## Constant healing, HP per second. The DoT counter: armor eats many-small-HITS, regeneration eats
+## damage-over-TIME -- and raw direct DPS (daggers, sparks) beats it, closing the triangle.
+## Scaled by the size HP multiplier at spawn, like max_health.
+@export var regen_per_sec: float = 0.0
 
 # --- Visuals ---
 # If true, the sprite will automatically rotate to face its direction of movement.

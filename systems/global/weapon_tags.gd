@@ -84,6 +84,9 @@ const COUNTER_MATRIX = {
 	Effect.HIGH_FIRE_RATE: {
 		0: 1.3,   # SWARM - spray and pray works
 		2: 0.7,   # ARMORED - many weak hits blocked
+		# AUTHORED, not measured: hit volume is regeneration's natural predator -- the inverse of
+		# this row's armor entry. Daggers finally get their showcase matchup.
+		6: 1.4,   # REGENERATOR - sustained hits outpace the healing
 	},
 	Effect.MELEE: {
 		1: 0.5,   # RANGED - kited by shooters
@@ -102,6 +105,8 @@ const COUNTER_MATRIX = {
 		# Sweep-measured (Jul 2026): chain lightning zeroed into armor for the same reason the
 		# spark family does -- the chain IS small spark hits. Aligned with SPARK's entry.
 		2: 0.5,   # ARMORED - armor eats the chain's tiny hits
+		# AUTHORED, not measured: aligned with SPARK's regen entry, same archetype.
+		6: 1.3,   # REGENERATOR - constant small hits outpace the healing
 	},
 	# DoT's real matchups (measured + structural -- see .claude/balance/workflow.md, armor section):
 	# ticks carry 100% armor pen, so armor does NOTHING to a DoT build (measured: flamethrower flat
@@ -118,6 +123,10 @@ const COUNTER_MATRIX = {
 		3: 0.7,   # FAST - closers outrace the ramp
 		5: 1.3,   # EVASIVE - one graze applies the full effect
 		1: 0.8,   # RANGED - standoff shooters kite the short-range delivery
+		# AUTHORED, not measured (the bench has no regen column yet): regeneration is DoT's hard
+		# counter by design -- constant healing races the ticks the way armor eats small hits.
+		# The deliberate mirror of DOT-vs-ARMORED. Structural, so it sits at the squash floor.
+		6: 0.5,   # REGENERATOR - healing races the ticks
 	},
 	Effect.KNOCKBACK: {
 		0: 1.2,   # SWARM - crowd control
@@ -130,6 +139,9 @@ const COUNTER_MATRIX = {
 		# small hits wholesale. Softened above the raw measurement so Abyssal pressures lightning
 		# builds without deleting them; their real out is tiers (merge depth) or drafting pen/DoT.
 		2: 0.5,   # ARMORED - armor eats tiny spark hits
+		# AUTHORED, not measured: what armor eats wholesale, regeneration cannot keep up with --
+		# every tiny hit lands in full and the stream never pauses.
+		6: 1.4,   # REGENERATOR - the hit stream never lets the healing catch up
 	},
 }
 

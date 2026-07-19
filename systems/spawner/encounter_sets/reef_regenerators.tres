@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EncounterSet" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="1_es"]
+[ext_resource type="Script" uid="uid://dnb7k3xg8h5sr" path="res://systems/spawner/encounter_set.gd" id="2_rr"]
+[ext_resource type="Resource" path="res://actors/enemies/normal_enemy_types/sea_star/sea_star.tres" id="3_rr"]
+
+[resource]
+script = ExtResource("2_rr")
+time_start = 300
+time_end = -1
+spawn_immediately_on_start = false
+enemies = Array[ExtResource("1_es")]([ExtResource("3_rr")])
+metadata/_custom_type_script = "uid://dnb7k3xg8h5sr"

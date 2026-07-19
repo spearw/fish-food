@@ -492,6 +492,7 @@ func _update_build_analysis():
 func _build_damage_profile() -> Dictionary:
 	var sources: Array = []
 	var any_dot := false
+	var any_direct := false
 	var chip_floor := false
 	if is_instance_valid(player_node) and player_node.has_node("Equipment"):
 		for weapon in player_node.get_node("Equipment").get_children():
@@ -499,11 +500,15 @@ func _build_damage_profile() -> Dictionary:
 				for s in weapon.get_damage_sources():
 					sources.append(s)
 					any_dot = any_dot or s["dot"]
+					# Any direct hit nets progress against finite regeneration, so one real
+					# direct source is enough to never be regen-walled.
+					any_direct = any_direct or s["damage"] > 0.0
 	# Water Wears Stone (chip-floor artifact): every hit lands at least a fraction of raw damage,
 	# so NOTHING is ever walled -- the cap self-disables, exactly like drafting DoT or pen does.
 	if is_instance_valid(player_node) and player_node.has_method("get_stat"):
 		chip_floor = player_node.get_stat("chip_floor") > 0.0
-	return {"sources": sources, "any_dot": any_dot, "chip_floor": chip_floor}
+	return {"sources": sources, "any_dot": any_dot, "any_direct": any_direct,
+		"chip_floor": chip_floor}
 
 ## The wall test: true if this much armor zeroes the build's every hit.
 func _armor_walls_build(armor: float, build: Dictionary) -> bool:
@@ -517,9 +522,21 @@ func _armor_walls_build(armor: float, build: Dictionary) -> bool:
 			return false
 	return true
 
+## The regen wall test: a regenerator is unkillable ONLY for a build with no direct damage at all
+## (pure-DoT: every hit's direct component is zero, so the ticks race the healing alone). Any real
+## direct source nets progress against finite regen, so mixed builds are never regen-walled.
+## Defaults err toward NOT walled -- same safe direction as the armor test's artifact blindness.
+func _regen_walls_build(regen: float, build: Dictionary) -> bool:
+	if regen <= 0.0 or build.get("any_direct", true) or build.get("chip_floor", false) \
+			or build["sources"].is_empty():
+		return false
+	return true
+
 ## A candidate's WORST-case fielded armor: base armor times the largest size multiplier it can spawn
 ## at. Conservative on purpose -- a might-be-large enemy counts as a wall before it rolls large.
 func _is_walled_candidate(stats: EnemyStats, build: Dictionary) -> bool:
+	if _regen_walls_build(stats.regen_per_sec, build):
+		return true
 	var mult := 1.0
 	for size_tag in stats.size_tags:
 		mult = maxf(mult, EnemyTags.get_size_multipliers(size_tag)["armor_mult"])
@@ -528,9 +545,11 @@ func _is_walled_candidate(stats: EnemyStats, build: Dictionary) -> bool:
 ## Counts the live field: enemies alive, and how many of those the build cannot damage. Live enemies
 ## carry final size-scaled stats, so no size multiplier here.
 func _count_walled_field(build: Dictionary) -> Dictionary:
-	# Nothing can be walled for this build -> skip the scan. (The zero counts are consistent: the
-	# cap logic never reads them, because no candidate tests as walled either.)
-	if build["any_dot"] or build["sources"].is_empty():
+	# Nothing can be walled for this build -> skip the scan. Armor walls need a no-DoT build;
+	# regen walls need a no-direct build -- a build with both kinds of damage walls on neither.
+	# (The zero counts are consistent: the cap logic never reads them, because no candidate tests
+	# as walled either.)
+	if (build["any_dot"] and build.get("any_direct", true)) or build["sources"].is_empty():
 		return {"alive": 0, "walled": 0}
 	var alive := 0
 	var walled := 0
@@ -539,7 +558,8 @@ func _count_walled_field(build: Dictionary) -> Dictionary:
 				or not ("stats" in enemy) or enemy.stats == null:
 			continue
 		alive += 1
-		if _armor_walls_build(enemy.stats.armor, build):
+		if _armor_walls_build(enemy.stats.armor, build) \
+				or _regen_walls_build(enemy.stats.regen_per_sec, build):
 			walled += 1
 	return {"alive": alive, "walled": walled}
 
@@ -741,6 +761,11 @@ func _apply_size_scaling(base_stats: EnemyStats) -> Dictionary:
 	# Scale armor if enemy has any
 	if base_stats.armor > 0:
 		scaled_stats.armor = int(base_stats.armor * multipliers.armor_mult)
+
+	# Regeneration scales with the HP multiplier: a LARGE regenerator heals in proportion to the
+	# larger pool it defends, so the size roll changes toughness, not the counter's shape.
+	if base_stats.regen_per_sec > 0.0:
+		scaled_stats.regen_per_sec = base_stats.regen_per_sec * multipliers.hp
 
 	# Scale challenge rating and XP based on size
 	scaled_stats.challenge_rating = base_stats.challenge_rating * multipliers.xp

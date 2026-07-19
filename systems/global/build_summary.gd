@@ -199,6 +199,17 @@ static func draft_line() -> String:
 		parts.append("%s %d" % [deck_id, CurrentRun.deck_draft_counts[deck_id]])
 	return "Drafted: " + ", ".join(parts) if not parts.is_empty() else ""
 
+## The run's drawn final boss: a known exam shapes drafting (the Slay the Spire model). The rider
+## appears once a herald has fallen. Empty until the leviathan is drawn (and in bench worlds).
+static func leviathan_line() -> String:
+	var stats = CurrentRun.leviathan_stats
+	if stats == null:
+		return ""
+	var rider: String = CurrentRun.leviathan_rider()
+	var boss_name: String = stats.display_name if rider == "" \
+		else "%s (%s)" % [stats.display_name, rider]
+	return "The depths hold: %s" % boss_name
+
 ## Live numbers for ONE weapon: what it actually does with the player's multipliers applied.
 ## The global screen shows multipliers ("Damage +33%"); this shows the result ("24 dmg/hit") --
 ## per-weapon damage is otherwise invisible (playtest finding, Jul 2026).

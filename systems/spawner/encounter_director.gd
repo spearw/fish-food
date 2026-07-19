@@ -102,6 +102,15 @@ func _infinite_multiplier() -> float:
 @export var herald_time: float = 480.0
 @export var herald_leave_secs: float = 90.0
 
+## --- LEVIATHAN (the final boss that gates the win) ---
+## One of these is DRAWN once the starting weapon exists (so the counter weighting has a build to
+## read) and revealed in the build summary from the first level-up: the run's known exam, the Slay
+## the Spire model. It spawns at win_time; killing it IS the win. No leave timer -- by 20:00 the
+## run is a proven build, and the final boss is the door. Empty = the old timer win (benches).
+@export var leviathan_candidates: Array[EnemyStats] = []
+## Horde share while the leviathan is alive: the fight is the climax, not a pile-on.
+@export var leviathan_horde_factor: float = 0.6
+
 @onready var spawn_pulse_timer: Timer = $Timer
 
 # --- RUNTIME STATE ---
@@ -128,6 +137,10 @@ var build_analyzer: BuildAnalyzer = null
 # --- HERALD RUNTIME STATE ---
 var _herald: Node = null
 var _herald_spawned: bool = false
+
+# --- LEVIATHAN RUNTIME STATE ---
+var _leviathan: Node = null
+var _leviathan_spawned: bool = false
 
 func _ready():
 	# Validate that we have everything we need to function.
@@ -174,6 +187,7 @@ func _physics_process(delta: float):
 
 	run_timer += delta
 	_process_herald()
+	_process_leviathan()
 
 	# Fire any one-time "override" events that are due. These are authored bursts/bosses and
 	# deliberately bypass the population target and cap -- the VS "map event" spike -- so intensity
@@ -207,6 +221,9 @@ func _on_spawn_pulse_timer_timeout():
 	# Past win_time the curve has ended (sample clamps) -- the infinite multiplier compounds instead.
 	var target_cr: float = difficulty_curve.sample(run_timer) * threat_level \
 		* CurrentRun.get_intensity_multiplier() * target_threat_scale * _infinite_multiplier()
+	# The final fight is the climax, not a pile-on: thin the horde while the leviathan lives.
+	if is_instance_valid(_leviathan) and not _leviathan.is_dying:
+		target_cr *= leviathan_horde_factor
 
 	# The walled-share cap needs the build's damage profile and the field's current composition.
 	# Both are computed once per pulse and the counts tracked locally as we spawn.
@@ -253,7 +270,7 @@ func _recycle_distant_enemies() -> void:
 			continue
 		# Bosses are never teleported: a boss that blinks onto the spawn ring mid-fight breaks the
 		# fight's readability, and the off-screen pointer already keeps it findable.
-		if enemy == _herald:
+		if enemy == _herald or enemy == _leviathan:
 			continue
 		if enemy.global_position.distance_squared_to(ppos) > max_dist_sq:
 			var angle: float = randf_range(0, TAU)
@@ -294,8 +311,57 @@ func _spawn_herald() -> void:
 
 func _on_herald_died(stats: EnemyStats, _boss) -> void:
 	CurrentRun.herald_killed_at = run_timer
+	# Remember WHO fell: the leviathan's rider is the slain herald's trait passed down.
+	CurrentRun.herald_slain_name = stats.display_name
 	Events.boss_killed.emit(stats)
 	Logs.add_message(["Herald killed:", stats.display_name])
+
+# --- Leviathan machinery ---
+
+## Draws the run's final boss once a build exists to weigh against, then spawns it at win_time.
+func _process_leviathan() -> void:
+	if leviathan_candidates.is_empty():
+		return
+	if CurrentRun.leviathan_stats == null:
+		# Draw once the starting weapon is in hand (or 30s in, as a failsafe) -- early enough that
+		# the reveal reads as "from the start", late enough that Abyssal's rigging sees a build.
+		if CurrentRun.starting_weapon_chosen or run_timer > 30.0:
+			_draw_leviathan()
+		return
+	if not _leviathan_spawned and run_timer >= win_time:
+		_spawn_leviathan()
+
+## The draw runs through the same weighting as every other spawn (config x biome x counter mode):
+## Normal leans toward the candidate your build eats, Abyssal toward the one that eats you. The
+## result is revealed immediately -- a known exam shapes drafting (the Slay the Spire model).
+func _draw_leviathan() -> void:
+	if CurrentRun.counter_mode != CurrentRun.CounterMode.NEUTRAL:
+		_update_build_analysis()
+	CurrentRun.leviathan_stats = _pick_weighted_enemy(leviathan_candidates)
+	if CurrentRun.leviathan_stats:
+		Logs.add_message(["Leviathan drawn:", CurrentRun.leviathan_stats.display_name])
+
+func _spawn_leviathan() -> void:
+	_leviathan_spawned = true
+	var boss = spawn_enemy(CurrentRun.leviathan_stats, null, false)
+	var hp_mult: float = CurrentRun.get_intensity_multiplier() * _infinite_multiplier()
+	boss.stats.max_health = int(boss.stats.max_health * hp_mult)
+	boss.current_health = boss.stats.max_health
+	# The slain herald's trait passes down the food chain: bake the rider into this instance's
+	# display name (the stats are per-spawn duplicates) so the boss bar reads it for free.
+	var rider: String = CurrentRun.leviathan_rider()
+	if rider != "":
+		boss.stats.display_name = "%s (%s)" % [boss.stats.display_name, rider]
+	_leviathan = boss
+	boss.died.connect(_on_leviathan_died.bind(boss))
+	Events.boss_spawned.emit(boss, boss.stats)
+	Logs.add_message(["Leviathan surfaced:", boss.stats.display_name])
+
+func _on_leviathan_died(stats: EnemyStats, _boss) -> void:
+	CurrentRun.leviathan_killed = true
+	Events.boss_killed.emit(stats)
+	Events.leviathan_killed.emit(stats)
+	Logs.add_message(["Leviathan slain:", stats.display_name])
 
 ## The herald leaves unkilled: fades out and frees. The combo trigger falls back to the level check
 ## (CurrentRun.herald_left) -- delayed, not lost.

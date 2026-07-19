@@ -40,20 +40,26 @@ func _init() -> void:
 	var w := img.get_width()
 	var h := img.get_height()
 
-	# Average border color = the background reference.
+	# Average border color = the background reference. Alpha comes along: a source that is ALREADY
+	# transparent at the border (SVG renders) switches the fill test to alpha, because its opaque
+	# black linework would otherwise match a black "background color" and get eaten.
 	var sum := Vector3.ZERO
+	var alpha_sum := 0.0
 	var n := 0
 	for x in range(w):
 		for y in [0, h - 1]:
 			var c := img.get_pixel(x, y)
 			sum += Vector3(c.r, c.g, c.b)
+			alpha_sum += c.a
 			n += 1
 	for y in range(h):
 		for x in [0, w - 1]:
 			var c := img.get_pixel(x, y)
 			sum += Vector3(c.r, c.g, c.b)
+			alpha_sum += c.a
 			n += 1
 	var bg := sum / float(n)
+	var alpha_mode: bool = alpha_sum / float(n) < 0.5
 
 	# BFS flood fill from every border pixel that reads as background.
 	var visited := PackedByteArray()
@@ -73,7 +79,10 @@ func _init() -> void:
 			continue
 		visited[idx] = 1
 		var c := img.get_pixelv(p)
-		if Vector3(c.r, c.g, c.b).distance_to(bg) > tol:
+		if alpha_mode:
+			if c.a >= 0.5:
+				continue
+		elif Vector3(c.r, c.g, c.b).distance_to(bg) > tol:
 			continue
 		img.set_pixelv(p, Color(0, 0, 0, 0))
 		cleared += 1

@@ -21,6 +21,7 @@ signal spark_hit_enemy(enemy_node)  # Emitted whenever a spark (chain lightning)
 signal boss_spawned(boss_node, stats)  # A boss entered the field (HP bar + pointer listen)
 signal boss_killed(stats)              # A boss died (the herald kill is the combo trigger)
 signal boss_left(stats)                # A boss left unkilled (combo falls back to the level trigger)
+signal leviathan_killed(stats)         # The final boss died -- the world's win trigger
 
 # --- Hit Batching System ---
 var _hit_queue: Array = []  # Queued hits for this frame

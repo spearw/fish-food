@@ -45,6 +45,9 @@ func _ready() -> void:
 		player.initialize_character(CurrentRun.selected_character, upgrade_manager)
 		
 		player.died.connect(_on_player_died)
+		# The win rides the leviathan's death when this run has one (the director draws it); the
+		# timer alone no longer ends the run -- see _physics_process.
+		Events.leviathan_killed.connect(_on_leviathan_killed)
 	else:
 		# Failsafe in case we somehow get here without selecting a character.
 		printerr("World: No character selected in CurrentRun! Returning to main menu.")
@@ -61,10 +64,21 @@ func _physics_process(delta: float):
 	# Update the HUD with the new time.
 	hud.update_time(game_time)
 
-	# Check for the win condition (once -- going infinite keeps the clock and spawns running).
-	if game_time >= survival_goal_seconds and not _win_shown:
+	# The win condition (once -- going infinite keeps the clock and spawns running).
+	# With a leviathan drawn, reaching the goal spawns the final fight instead of the win screen
+	# (the director handles the spawn at its own win_time); the win fires on the kill. Worlds with
+	# no leviathan (benches, test setups) keep the plain timer win.
+	if game_time >= survival_goal_seconds and not _win_shown \
+			and CurrentRun.leviathan_stats == null:
 		_win_shown = true
 		win_game()
+
+## Survive to 20:00 AND slay what surfaces: the leviathan's death is the win.
+func _on_leviathan_killed(_stats) -> void:
+	if _win_shown or is_game_over:
+		return
+	_win_shown = true
+	win_game()
 		
 func _on_player_died():
 	if is_game_over: return # Prevent this from running twice

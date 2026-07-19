@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://actors/enemies/boss_types/leviathans/king_crab/crab_ai.gd" id="1_cai"]
+[ext_resource type="PackedScene" uid="uid://gqd3gevs3p3m" path="res://actors/enemies/behaviors/behaviors/behavior_library.tscn" id="2_cai"]
+[ext_resource type="Resource" uid="uid://cfgd0o08fqx37" path="res://actors/enemies/normal_enemy_types/comb_jelly/comb_jelly.tres" id="3_cai"]
+
+[node name="CrabAI" type="Node"]
+script = ExtResource("1_cai")
+summon_stats = ExtResource("3_cai")
+
+[node name="BehaviorLibrary" parent="." instance=ExtResource("2_cai")]

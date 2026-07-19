@@ -315,6 +315,9 @@ func _refresh_summary() -> void:
 	var drafted: String = BuildSummary.draft_line()
 	if drafted != "":
 		lines.append(drafted)
+	var exam: String = BuildSummary.leviathan_line()
+	if exam != "":
+		lines.append(exam)
 	var dealt: String = BuildSummary.damage_report_line()
 	if dealt != "":
 		lines.append(dealt)

@@ -95,6 +95,9 @@ func reset_run_state() -> void:
 	herald_killed_at = -1.0
 	herald_left = false
 	herald_flawless = true
+	leviathan_stats = null
+	herald_slain_name = ""
+	leviathan_killed = false
 
 # --- Per-source damage attribution (UX: the genre's most build-relevant readout) ---
 ## Post-armor damage dealt this run, keyed by source ("Daggers", "Static Discharge", "Other").
@@ -127,6 +130,25 @@ var herald_flawless: bool = true
 
 func herald_active() -> bool:
 	return herald_spawned_at >= 0.0 and herald_killed_at < 0.0 and not herald_left
+
+# --- Leviathan state (the final boss that gates the 20:00 win; see EncounterDirector) ---
+## The run's drawn final boss, revealed in the build summary from the first level-up. Drawn once
+## the starting weapon exists (so the counter-mode weighting has a build to read), null until then
+## and in worlds with no leviathan candidates.
+var leviathan_stats: EnemyStats = null
+## Which herald died this run ("" if none) -- feeds the leviathan's rider.
+var herald_slain_name: String = ""
+var leviathan_killed: bool = false
+
+## The rider the slain herald passes down the food chain: a small thematic twist on the final boss.
+const LEVIATHAN_RIDERS := {
+	"The Bloom": "Spined",        # phase transitions release a spine burst
+	"The Warden": "Restless",     # telegraphs run faster
+	"The Quillmother": "Quilled", # attacks leave drifting spines
+}
+
+func leviathan_rider() -> String:
+	return LEVIATHAN_RIDERS.get(herald_slain_name, "")
 
 func _ready() -> void:
 	# The flawless proof listens run-wide: any hit taken while the herald lives breaks it.

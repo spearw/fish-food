@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://actors/enemies/boss_types/leviathans/undertow/undertow_ai.gd" id="1_uai"]
+[ext_resource type="PackedScene" uid="uid://gqd3gevs3p3m" path="res://actors/enemies/behaviors/behaviors/behavior_library.tscn" id="2_uai"]
+
+[node name="UndertowAI" type="Node"]
+script = ExtResource("1_uai")
+
+[node name="BehaviorLibrary" parent="." instance=ExtResource("2_uai")]

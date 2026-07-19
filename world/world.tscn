@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://bdcbnkahhxu6b"]
+[gd_scene load_steps=20 format=3 uid="uid://bdcbnkahhxu6b"]
 
 [ext_resource type="Script" uid="uid://cdtrlaeo6bkx7" path="res://world/world.gd" id="1_ov2xu"]
 [ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="1_herald"]
@@ -6,6 +6,9 @@
 [ext_resource type="Resource" path="res://actors/enemies/boss_types/herald_moray/moray.tres" id="31_moray"]
 [ext_resource type="Resource" path="res://actors/enemies/boss_types/herald_lionfish/lionfish.tres" id="32_lion"]
 [ext_resource type="PackedScene" path="res://ui/boss_bar/boss_bar.tscn" id="33_bossbar"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/leviathans/undertow/undertow.tres" id="40_undertow"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/leviathans/king_crab/king_crab.tres" id="41_crab"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/leviathans/storm_eel/storm_eel.tres" id="42_eel"]
 [ext_resource type="PackedScene" uid="uid://clgxi4bd78qqi" path="res://ui/level_up/level_up_ui.tscn" id="2_mad0u"]
 [ext_resource type="PackedScene" uid="uid://dulw5xigdffvi" path="res://actors/player/player.tscn" id="3_ocfjn"]
 [ext_resource type="Script" uid="uid://cdevlwpbk7w8g" path="res://systems/upgrades/upgrade_manager.gd" id="6_h8lre"]
@@ -26,6 +29,7 @@ player_scene = ExtResource("3_ocfjn")
 [node name="EncounterDirector" parent="." instance=ExtResource("15_j34ew")]
 encounter_sets = Array[ExtResource("8_ocfjn")]([ExtResource("11_h8lre")])
 herald_candidates = Array[ExtResource("1_herald")]([ExtResource("30_puffer"), ExtResource("31_moray"), ExtResource("32_lion")])
+leviathan_candidates = Array[ExtResource("1_herald")]([ExtResource("40_undertow"), ExtResource("41_crab"), ExtResource("42_eel")])
 
 [node name="UpgradeManager" type="Node" parent="."]
 script = ExtResource("6_h8lre")

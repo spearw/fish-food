@@ -25,6 +25,21 @@ var is_open: bool = false
 
 func _ready():
 	targeting_picker.hide()
+	_wire_stat_tooltips()
+
+## Hover definitions on the stat rows that have glossary entries -- the same one-place definitions
+## the card tooltips use. Labels ignore the mouse by default, so opting in is part of the wiring.
+func _wire_stat_tooltips() -> void:
+	const Glossary = preload("res://systems/global/glossary.gd")
+	var map := {
+		critical_chance_label: "Crit",
+		critical_damage_label: "Crit",
+		armor_label: "Armor",
+	}
+	for label in map:
+		if label:
+			label.mouse_filter = Control.MOUSE_FILTER_STOP
+			label.tooltip_text = "%s: %s" % [map[label], Glossary.KEYWORDS[map[label]]]
 
 func _unhandled_input(event: InputEvent):
 	# The toggle can be handled here because this panel will be in the World scene.

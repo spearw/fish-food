@@ -285,8 +285,37 @@ static func damage_report_line(max_entries: int = 4) -> String:
 		parts.append("+%d more" % (keys.size() - max_entries))
 	return "Damage: " + " | ".join(parts)
 
-## 12450 -> "12,450" (number hygiene; damage totals get big).
+## The recent window: damage dealt since the last level-up pick, with the source carrying it.
+## Answers "what's working NOW" -- lifetime totals bury the last thirty seconds. The snapshot
+## advances when a pick resolves (not on re-presents: rerolls and banishes keep the same window).
+static func damage_since_line() -> String:
+	var delta_total := 0
+	var top_key := ""
+	var top_delta := 0
+	for k in CurrentRun.damage_by_source:
+		var delta: int = CurrentRun.damage_by_source[k] - CurrentRun.damage_snapshot.get(k, 0)
+		delta_total += delta
+		if delta > top_delta:
+			top_delta = delta
+			top_key = k
+	if delta_total <= 0:
+		return ""
+	return "Since last pick: %s (%s %d%%)" % [fmt_int(delta_total), _pretty_name(top_key),
+		roundi(100.0 * top_delta / delta_total)]
+
+static func take_damage_snapshot() -> void:
+	CurrentRun.damage_snapshot = CurrentRun.damage_by_source.duplicate()
+
+## 12450 -> "12,450"; "12.4k" past ten thousand.
 static func fmt_int(n: int) -> String:
+	# SI compression past 10k ("12.4k", "1.2M") keeps report rows narrow late-game; below that,
+	# exact with comma grouping -- early numbers are small enough that exactness reads better.
+	if n >= 1_000_000:
+		var m := "%.2f" % (n / 1_000_000.0)
+		return m.trim_suffix("0").trim_suffix("0").trim_suffix(".") + "M"
+	if n >= 10_000:
+		var k := "%.1f" % (n / 1000.0)
+		return k.trim_suffix(".0") + "k"
 	var s := str(n)
 	var out := ""
 	var digits := 0

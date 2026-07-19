@@ -93,6 +93,7 @@ func reset_run_state() -> void:
 	banishes_remaining = BANISHES_PER_RUN
 	banished_upgrades.clear()
 	damage_by_source.clear()
+	damage_snapshot.clear()
 	herald_scheduled = false
 	herald_spawned_at = -1.0
 	herald_killed_at = -1.0
@@ -114,6 +115,9 @@ func credit_damage(key: String, amount: int) -> void:
 	if amount <= 0:
 		return
 	damage_by_source[key] = damage_by_source.get(key, 0) + amount
+
+## Totals as of the last level-up pick -- the "since last pick" window's baseline.
+var damage_snapshot: Dictionary = {}
 
 # --- Cross-deck combo state (see systems/combos/) ---
 ## Cards drafted from each deck this run, keyed by Deck.id. Feeds combo power gates.

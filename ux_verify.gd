@@ -164,9 +164,27 @@ func _ready() -> void:
 	print("UX glossary: labels_defined=%s row='%s' tooltip_ok=%s" % [
 		str(labels_defined), row, str(tip_ok)])
 
+	# --- Number hygiene: SI compression past 10k, exact commas below ---
+	var si_ok: bool = BuildSummary.fmt_int(9999) == "9,999" \
+		and BuildSummary.fmt_int(12400) == "12.4k" \
+		and BuildSummary.fmt_int(10000) == "10k" \
+		and BuildSummary.fmt_int(1240000) == "1.24M" \
+		and BuildSummary.fmt_int(1000000) == "1M"
+	# --- The "since last pick" damage window ---
+	CurrentRun.damage_by_source = {"Daggers": 500, "Sparks": 300}
+	CurrentRun.damage_snapshot = {"Daggers": 100}
+	var since: String = BuildSummary.damage_since_line()
+	var since_ok: bool = since.contains("700") and since.contains("Daggers") and since.contains("57%")
+	BuildSummary.take_damage_snapshot()
+	var closed_ok: bool = BuildSummary.damage_since_line() == ""
+	CurrentRun.damage_by_source = {}
+	CurrentRun.damage_snapshot = {}
+	print("UX numbers: si=%s since='%s' ok=%s window_closes=%s" % [
+		str(si_ok), since, str(since_ok), str(closed_ok)])
+
 	var pass_all: bool = stats_ok and compact_ok and loadout_ok and evolved_ok and draft_ok \
 		and pretty_ok and detail_ok and hint_ok and duration_ok \
 		and manifest_ok and pool_ok and preview_ok and extras_ok and tag_ok \
-		and labels_defined and row_ok and tip_ok
+		and labels_defined and row_ok and tip_ok and si_ok and since_ok and closed_ok
 	print("UX RESULT=%s" % ("PASS" if pass_all else "FAIL"))
 	get_tree().quit()

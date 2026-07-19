@@ -390,6 +390,9 @@ func _refresh_summary() -> void:
 	var dealt: String = BuildSummary.damage_report_line()
 	if dealt != "":
 		lines.append(dealt)
+	var recent: String = BuildSummary.damage_since_line()
+	if recent != "":
+		lines.append(recent)
 	_summary.text = "[center]%s[/center]" % "\n".join(lines)
 	for i in range(upgrade_buttons.size()):
 		var button = upgrade_buttons[i]
@@ -493,6 +496,8 @@ func _on_upgrade_button_pressed(choice_index: int) -> void:
 
 	var choice = current_upgrades[choice_index]
 	Logs.add_message(["Player chose upgrade:", choice.upgrade.id, "Rarity:", Upgrade.Rarity.keys()[choice.rarity]])
+	# The pick closes the "since last pick" damage window (re-presents inside one draft don't).
+	BuildSummary.take_damage_snapshot()
 	# Apply the selected upgrade.
 	upgrade_manager.apply_upgrade(current_upgrades[choice_index])
 	# If this was a cross-deck combo choice, spend a combo slot and remember the pick (a second

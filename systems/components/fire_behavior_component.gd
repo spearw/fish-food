@@ -103,8 +103,11 @@ func _spawn_projectile(
 		user_override: Node2D = null,
 		projectile_target = null,
 		):
-	# The weapon is attached to the user, so its global_position is the user's position.
-	var spawn_position = weapon.global_position
+	# Where the projectile MATERIALIZES. Defaults to the weapon (= the wielder) for every normal
+	# shot; aimed-AOE strikes pass the warned target position instead. This parameter was ignored
+	# for a long time -- every "explosion" spawned on the wielder while the warning circle lied
+	# about where it would land (the cosmic deck's bench-blind 0.0 rows, live-found Jul 2026).
+	var spawn_position = p_position
 
 	# Check for custom scene
 	var projectile_scene = GENERIC_PROJECTILE_SCENE

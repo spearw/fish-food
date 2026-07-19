@@ -36,6 +36,8 @@ the AnimationController guards every name with has_animation).
 | `boss_types/leviathans/king_crab/king_crab_photo.png` | The King Crab (final boss) | Illustration cutout: NOAA Fisheries *Paralithodes camtschaticus* (public domain) |
 | `boss_types/leviathans/storm_eel/storm_eel_photo.png` | The Storm Eel (final boss) | Diagram cutout: Commons "Electric eel's electric organs.svg" render, organ labels included (CC BY-SA). Yes, the final boss says "Main organ" on its side. That is the point of placeholders. |
 | `boss_types/leviathans/` zone sprites (reuse `explosion.png`, `spike.png`) | Undertow pull zone, Storm Eel crackle wake | Reused existing art; wants distinct zone visuals |
+| `boss_types/anglerfish/anglerfish_photo.png` | The Anglerfish (secret boss) | Plate cutout: Commons *Melanocetus murrayi* (public domain; grayscale source converted to RGB via PowerShell System.Drawing -- Godot's JPEG loader rejects grayscale) |
+| `boss_types/anglerfish/anglerfish_lure.tscn` (reuses `loot_basket.png` + warning glow) | The false-chest lure | Reused chest art on purpose (the lie needs the real chest's look) but wants a bespoke dangling-lure sprite |
 | `boss_types/golem/` + `actors/enemies/unused_sprites/` | Nothing (legacy) | Old pixellab generations; superseded, safe to delete in an art cleanup |
 
 Wife-made pixel sprites (the normal enemy roster, player characters, most weapon art) are final

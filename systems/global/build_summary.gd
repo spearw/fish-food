@@ -210,6 +210,10 @@ static func leviathan_line() -> String:
 		else "%s (%s)" % [stats.display_name, rider]
 	return "The depths hold: %s" % boss_name
 
+## The armed lure, while it waits on the field: the only in-run hint the secret exists.
+static func lure_line() -> String:
+	return "A strange light hangs in the dark." if CurrentRun.lure_alive else ""
+
 ## Live numbers for ONE weapon: what it actually does with the player's multipliers applied.
 ## The global screen shows multipliers ("Damage +33%"); this shows the result ("24 dmg/hit") --
 ## per-weapon damage is otherwise invisible (playtest finding, Jul 2026).

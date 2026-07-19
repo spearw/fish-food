@@ -48,6 +48,9 @@ func _ready() -> void:
 		# The win rides the leviathan's death when this run has one (the director draws it); the
 		# timer alone no longer ends the run -- see _physics_process.
 		Events.leviathan_killed.connect(_on_leviathan_killed)
+		# The secret fight dims the world (CanvasModulate darkens the playfield, never the UI).
+		Events.secret_fight_started.connect(_on_secret_fight_started)
+		Events.secret_fight_ended.connect(_on_secret_fight_ended)
 	else:
 		# Failsafe in case we somehow get here without selecting a character.
 		printerr("World: No character selected in CurrentRun! Returning to main menu.")
@@ -79,6 +82,17 @@ func _on_leviathan_killed(_stats) -> void:
 		return
 	_win_shown = true
 	win_game()
+
+## The abyss closes in around the Anglerfish fight, and lifts when it resolves.
+func _on_secret_fight_started() -> void:
+	if has_node("Darkness"):
+		var tween := create_tween()
+		tween.tween_property($Darkness, "color", Color(0.3, 0.32, 0.45), 1.2)
+
+func _on_secret_fight_ended() -> void:
+	if has_node("Darkness"):
+		var tween := create_tween()
+		tween.tween_property($Darkness, "color", Color.WHITE, 1.5)
 		
 func _on_player_died():
 	if is_game_over: return # Prevent this from running twice

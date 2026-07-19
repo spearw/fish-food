@@ -19,15 +19,19 @@ func _ready() -> void:
 	else:
 		Logs.add_message("ComboManager: no combo list at %s (combos disabled)." % COMBO_LIST_PATH)
 
-## The synergy Upgrades the player may currently choose: from every combo whose power gate is met, if
-## the player has not already taken a combo this run. Empty if none are available.
+## The synergy Upgrades the player may currently choose: from every combo whose power gate is met,
+## while the run has combo capacity left (one, until the secret boss grants a second). Synergies
+## already taken are excluded -- a second choice must offer something new.
 func get_eligible_synergies() -> Array:
-	if CurrentRun.combo_taken:
+	if CurrentRun.combo_slots_full():
 		return []
 	var result: Array = []
 	for combo in _combos:
-		if combo != null and is_gate_met(combo):
-			result.append_array(combo.synergies)
+		if combo == null or not is_gate_met(combo):
+			continue
+		for syn in combo.synergies:
+			if syn != null and not syn.id in CurrentRun.taken_synergy_ids:
+				result.append(syn)
 	return result
 
 ## True if the player has invested enough in BOTH decks of the pair (>= power_gate cards each).
@@ -44,9 +48,9 @@ func is_gate_met(combo) -> bool:
 ##   left unkilled -> fall back to the level trigger
 ##   never scheduled -> the level trigger, unchanged (benches and test worlds)
 func should_offer_combo(level: int) -> bool:
-	if CurrentRun.combo_taken or get_eligible_synergies().is_empty():
+	if CurrentRun.combo_slots_full() or get_eligible_synergies().is_empty():
 		return false
-	if CurrentRun.herald_killed_at >= 0.0:
+	if CurrentRun.herald_killed_at >= 0.0 or CurrentRun.secret_boss_killed:
 		return true
 	if CurrentRun.herald_scheduled and not CurrentRun.herald_left:
 		return false

@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://actors/enemies/boss_types/anglerfish/angler_ai.gd" id="1_aai"]
+[ext_resource type="PackedScene" uid="uid://gqd3gevs3p3m" path="res://actors/enemies/behaviors/behaviors/behavior_library.tscn" id="2_aai"]
+[ext_resource type="Resource" uid="uid://ch4pfms6wb8yf" path="res://actors/enemies/normal_enemy_types/invisi_jelly/invisi_jelly.tres" id="3_aai"]
+
+[node name="AnglerAI" type="Node"]
+script = ExtResource("1_aai")
+summon_stats = ExtResource("3_aai")
+
+[node name="BehaviorLibrary" parent="." instance=ExtResource("2_aai")]

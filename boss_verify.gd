@@ -65,7 +65,7 @@ func _run(director, scene, player) -> void:
 	# While a herald is scheduled but unresolved, no combo offer at ANY level. Gate the draft
 	# counts first so eligibility itself is met (fire+lightning combo, power gate 4).
 	CurrentRun.deck_draft_counts = {"fire": 9, "lightning": 9}
-	CurrentRun.combo_taken = false
+	CurrentRun.combos_taken = 0
 	var hold_ok: bool = not ComboManager.should_offer_combo(99)
 	print("BOSSVERIFY hold_while_pending: %s" % str(hold_ok))
 

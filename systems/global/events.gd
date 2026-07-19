@@ -23,6 +23,12 @@ signal boss_killed(stats)              # A boss died (the herald kill is the com
 signal boss_left(stats)                # A boss left unkilled (combo falls back to the level trigger)
 signal leviathan_killed(stats)         # The final boss died -- the world's win trigger
 
+# --- Secret boss events (the Anglerfish lure; see EncounterDirector) ---
+signal lure_spawned(lure_node)     # The false chest surfaced (pointer targets it)
+signal secret_fight_started        # Lure touched -- the world dims
+signal secret_fight_ended          # The fight resolved -- light returns
+signal secret_boss_killed(stats)   # Rewards: second combo capacity + the third deck
+
 # --- Hit Batching System ---
 var _hit_queue: Array = []  # Queued hits for this frame
 var _batch_scheduled: bool = false  # Whether we've scheduled emission

@@ -103,13 +103,30 @@ func _infinite_multiplier() -> float:
 @export var herald_leave_secs: float = 90.0
 
 ## --- LEVIATHAN (the final boss that gates the win) ---
-## One of these is DRAWN once the starting weapon exists (so the counter weighting has a build to
-## read) and revealed in the build summary from the first level-up: the run's known exam, the Slay
-## the Spire model. It spawns at win_time; killing it IS the win. No leave timer -- by 20:00 the
-## run is a proven build, and the final boss is the door. Empty = the old timer win (benches).
+## One of these is DRAWN at run start -- a FAIR roll, revealed immediately in the build summary:
+## the run's known exam, the Slay the Spire model. The player builds toward it all run. It spawns
+## at win_time; killing it IS the win. No leave timer -- by 20:00 the run is a proven build, and
+## the final boss is the door. Empty = the old timer win (benches).
 @export var leviathan_candidates: Array[EnemyStats] = []
 ## Horde share while the leviathan is alive: the fight is the climax, not a pile-on.
 @export var leviathan_horde_factor: float = 0.6
+## DORMANT (user call, Jul 2026): weight the draw by counter mode instead of rolling fair. A
+## counter read off just the starting weapon is weak, and it costs draw timing (the weighting
+## needs a build to exist) -- the run-start reveal won. Kept as a switch in case it returns.
+@export var leviathan_counter_draw: bool = false
+
+## --- SECRET BOSS (the Anglerfish, found by its own false light) ---
+## At lure_time, if the run has EARNED it -- any one of three proofs: the herald killed fast, the
+## herald fight taken flawless, or a combo plus deep drafting in both decks -- a chest-like glow
+## surfaces far off-screen. Approach and the light turns out to be dangling from something large.
+## Killing it grants the run's second combo and the third deck slot. Null = no secret this run.
+@export var secret_boss_stats: EnemyStats
+@export var lure_time: float = 720.0
+@export var lure_distance: float = 1500.0
+## The speed proof: herald killed within this many seconds of its arrival.
+@export var herald_speed_proof_secs: float = 45.0
+## The depth proof: this many drafts in each of two decks (plus a combo taken).
+@export var depth_proof_drafts: int = 6
 
 @onready var spawn_pulse_timer: Timer = $Timer
 
@@ -141,6 +158,13 @@ var _herald_spawned: bool = false
 # --- LEVIATHAN RUNTIME STATE ---
 var _leviathan: Node = null
 var _leviathan_spawned: bool = false
+
+# --- SECRET BOSS RUNTIME STATE ---
+var _lure: Node = null
+var _secret_boss: Node = null
+var _lure_checked: bool = false
+
+const LURE_SCENE := preload("res://actors/enemies/boss_types/anglerfish/anglerfish_lure.tscn")
 
 func _ready():
 	# Validate that we have everything we need to function.
@@ -188,6 +212,7 @@ func _physics_process(delta: float):
 	run_timer += delta
 	_process_herald()
 	_process_leviathan()
+	_process_secret()
 
 	# Fire any one-time "override" events that are due. These are authored bursts/bosses and
 	# deliberately bypass the population target and cap -- the VS "map event" spike -- so intensity
@@ -270,7 +295,7 @@ func _recycle_distant_enemies() -> void:
 			continue
 		# Bosses are never teleported: a boss that blinks onto the spawn ring mid-fight breaks the
 		# fight's readability, and the off-screen pointer already keeps it findable.
-		if enemy == _herald or enemy == _leviathan:
+		if enemy == _herald or enemy == _leviathan or enemy == _secret_boss:
 			continue
 		if enemy.global_position.distance_squared_to(ppos) > max_dist_sq:
 			var angle: float = randf_range(0, TAU)
@@ -316,25 +341,99 @@ func _on_herald_died(stats: EnemyStats, _boss) -> void:
 	Events.boss_killed.emit(stats)
 	Logs.add_message(["Herald killed:", stats.display_name])
 
+# --- Secret boss machinery (the Anglerfish) ---
+
+## One check, at lure_time: earned or not. A run that has not proven itself by then simply never
+## learns the secret exists -- the lure is a reward's shadow, not a schedule entry.
+func _process_secret() -> void:
+	if secret_boss_stats == null or _lure_checked or run_timer < lure_time:
+		return
+	_lure_checked = true
+	if _secret_proof_met():
+		_spawn_lure()
+
+## Any ONE of three proofs arms the lure -- one accomplishment, three ways to get it:
+## speed (herald killed fast), flawlessness (no hit taken during the herald fight), or depth
+## (a combo taken and both decks drafted deep).
+func _secret_proof_met() -> bool:
+	var killed_herald: bool = CurrentRun.herald_killed_at >= 0.0
+	if killed_herald \
+			and CurrentRun.herald_killed_at - CurrentRun.herald_spawned_at <= herald_speed_proof_secs:
+		return true
+	if killed_herald and CurrentRun.herald_flawless:
+		return true
+	if CurrentRun.combos_taken >= 1:
+		var deep := 0
+		for deck_id in CurrentRun.deck_draft_counts:
+			if CurrentRun.deck_draft_counts[deck_id] >= depth_proof_drafts:
+				deep += 1
+		if deep >= 2:
+			return true
+	return false
+
+func _spawn_lure() -> void:
+	_lure = LURE_SCENE.instantiate()
+	get_tree().current_scene.add_child(_lure)
+	_lure.global_position = player_node.global_position \
+		+ Vector2.RIGHT.rotated(randf_range(0, TAU)) * lure_distance
+	_lure.touched.connect(_on_lure_touched)
+	CurrentRun.lure_alive = true
+	Events.lure_spawned.emit(_lure)
+	Logs.add_message("A strange light hangs in the dark.")
+
+func _on_lure_touched() -> void:
+	var at: Vector2 = _lure.global_position
+	_lure.queue_free()
+	_lure = null
+	CurrentRun.lure_alive = false
+	_spawn_secret_boss(at)
+
+func _spawn_secret_boss(at: Vector2) -> void:
+	var boss = spawn_enemy(secret_boss_stats, at, false)
+	var hp_mult: float = CurrentRun.get_intensity_multiplier() * _infinite_multiplier()
+	boss.stats.max_health = int(boss.stats.max_health * hp_mult)
+	boss.current_health = boss.stats.max_health
+	_secret_boss = boss
+	boss.died.connect(_on_secret_boss_died.bind(boss))
+	# boss_spawned drives the bar; the secret death deliberately does NOT emit boss_killed (that
+	# signal is the herald combo trigger) -- boss_left handles the bar teardown instead.
+	Events.boss_spawned.emit(boss, boss.stats)
+	Events.secret_fight_started.emit()
+	Logs.add_message(["The lure was a lie:", boss.stats.display_name])
+
+func _on_secret_boss_died(stats: EnemyStats, _boss) -> void:
+	CurrentRun.secret_boss_killed = true
+	Events.boss_left.emit(stats)
+	Events.secret_fight_ended.emit()
+	Events.secret_boss_killed.emit(stats)
+	Logs.add_message(["Secret boss slain:", stats.display_name])
+
 # --- Leviathan machinery ---
 
-## Draws the run's final boss once a build exists to weigh against, then spawns it at win_time.
+## Draws the run's final boss, then spawns it at win_time.
 func _process_leviathan() -> void:
 	if leviathan_candidates.is_empty():
 		return
 	if CurrentRun.leviathan_stats == null:
-		# Draw once the starting weapon is in hand (or 30s in, as a failsafe) -- early enough that
-		# the reveal reads as "from the start", late enough that Abyssal's rigging sees a build.
-		if CurrentRun.starting_weapon_chosen or run_timer > 30.0:
-			_draw_leviathan()
+		if leviathan_counter_draw:
+			# Dormant path: the weighting needs a build to read, so wait for the starting weapon.
+			if CurrentRun.starting_weapon_chosen or run_timer > 30.0:
+				_draw_leviathan_countered()
+		else:
+			_draw_leviathan_fair()
 		return
 	if not _leviathan_spawned and run_timer >= win_time:
 		_spawn_leviathan()
 
-## The draw runs through the same weighting as every other spawn (config x biome x counter mode):
-## Normal leans toward the candidate your build eats, Abyssal toward the one that eats you. The
-## result is revealed immediately -- a known exam shapes drafting (the Slay the Spire model).
-func _draw_leviathan() -> void:
+## The live draw: a fair roll at run start. The exam is known from minute zero and the player
+## builds toward it all run -- reveal-early beat counter-rigging (user call, Jul 2026).
+func _draw_leviathan_fair() -> void:
+	CurrentRun.leviathan_stats = leviathan_candidates.pick_random()
+	Logs.add_message(["Leviathan drawn:", CurrentRun.leviathan_stats.display_name])
+
+## DORMANT: the counter-weighted draw (config x biome x counter mode) -- Normal leans toward the
+## candidate your build eats, Abyssal toward the one that eats you. See leviathan_counter_draw.
+func _draw_leviathan_countered() -> void:
 	if CurrentRun.counter_mode != CurrentRun.CounterMode.NEUTRAL:
 		_update_build_analysis()
 	CurrentRun.leviathan_stats = _pick_weighted_enemy(leviathan_candidates)

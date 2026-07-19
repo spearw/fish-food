@@ -6,6 +6,9 @@ extends CanvasLayer
 var current_upgrades: Array[Dictionary]
 # True while the current screen is a cross-deck combo choice (vs a normal level-up).
 var _choosing_combo: bool = false
+# True while the current screen is the third-deck pick (the secret boss's second reward).
+var _choosing_deck: bool = false
+var _deck_choices: Array = []
 # True when reroll/banish apply to this screen: normal level-up drafts only. The combo choice and
 # the starting-weapon roll are one-shot offers, not drafts -- no manipulation there.
 var _manipulation_allowed: bool = false
@@ -53,6 +56,7 @@ func _ready() -> void:
 		upgrade_buttons[i].pressed.connect(_on_upgrade_button_pressed.bind(i))
 	Events.boss_reward_requested.connect(on_boss_reward_requested)
 	Events.boss_killed.connect(_on_boss_killed)
+	Events.secret_boss_killed.connect(_on_secret_boss_killed)
 	_build_manipulation_bar()
 	# Upgrade 0: the starting-weapon roll. Deferred so the whole world (player registration included)
 	# has finished assembling first.
@@ -214,6 +218,59 @@ func _on_boss_killed(_stats) -> void:
 	if ComboManager.should_offer_combo(0):
 		show_combo_screen()
 
+## The Anglerfish is down: the run earns a SECOND combo slot and the third deck, in sequence.
+## If the gate for the extra combo is not met yet, the raised capacity simply banks it -- the
+## level-up checks keep asking and the offer lands when it qualifies.
+func _on_secret_boss_killed(_stats) -> void:
+	CurrentRun.combo_capacity = 2
+	_run_secret_rewards()
+
+func _run_secret_rewards() -> void:
+	# A choice screen may already be up (a level-up taken mid-fight); let it resolve first.
+	if visible:
+		await upgrade_chosen
+		await get_tree().process_frame
+	if ComboManager.should_offer_combo(0):
+		show_combo_screen()
+		await upgrade_chosen
+		await get_tree().process_frame
+	show_deck_choice_screen()
+
+## The secret boss's second reward: the run's THIRD deck, picked from three drawn outsiders.
+## Rides the standard 3-button screen; the pick rebuilds the upgrade pool on the spot.
+func show_deck_choice_screen() -> void:
+	var list = load("res://systems/global/lists/master_pack_list.tres")
+	var active: Array[String] = CurrentRun.get_active_deck_paths()
+	var outsiders: Array = []
+	for deck in list.decks:
+		if deck == null or deck.resource_path in active:
+			continue
+		if deck.id in ["test", "npc"]:
+			continue
+		outsiders.append(deck)
+	if outsiders.is_empty():
+		return
+	outsiders.shuffle()
+	_deck_choices = outsiders.slice(0, 3)
+	_choosing_deck = true
+	_choosing_combo = false
+	_manipulation_allowed = false
+	current_upgrades = []
+	get_tree().paused = true
+	self.show()
+	_refresh_summary()
+	_refresh_manipulation_bar()
+	_refresh_merge_bar()
+	for i in range(upgrade_buttons.size()):
+		var button = upgrade_buttons[i]
+		if i < _deck_choices.size():
+			var deck = _deck_choices[i]
+			button.text = "%s\n%s" % [deck.deck_name, deck.deck_description]
+			button.modulate = Color.CYAN
+			button.visible = true
+		else:
+			button.visible = false
+
 ## Called when the player levels up. Fetches and displays upgrade choices.
 func on_player_leveled_up(new_level: int):
 	Logs.add_message(["Player leveled up. New level:", new_level])
@@ -318,6 +375,9 @@ func _refresh_summary() -> void:
 	var exam: String = BuildSummary.leviathan_line()
 	if exam != "":
 		lines.append(exam)
+	var lure: String = BuildSummary.lure_line()
+	if lure != "":
+		lines.append(lure)
 	var dealt: String = BuildSummary.damage_report_line()
 	if dealt != "":
 		lines.append(dealt)
@@ -382,13 +442,27 @@ func _on_upgrade_button_pressed(choice_index: int) -> void:
 			get_tree().change_scene_to_file("res://ui/main_menu/main_menu.tscn")
 		return
 
+	# The third-deck pick resolves here: cap raised, deck joined, pool rebuilt in place.
+	if _choosing_deck:
+		_choosing_deck = false
+		var deck = _deck_choices[choice_index]
+		CurrentRun.add_third_deck(deck.resource_path)
+		upgrade_manager._build_active_upgrade_pool()
+		Logs.add_message(["Third deck joined:", deck.deck_name])
+		upgrade_chosen.emit()
+		self.hide()
+		get_tree().paused = false
+		return
+
 	var choice = current_upgrades[choice_index]
 	Logs.add_message(["Player chose upgrade:", choice.upgrade.id, "Rarity:", Upgrade.Rarity.keys()[choice.rarity]])
 	# Apply the selected upgrade.
 	upgrade_manager.apply_upgrade(current_upgrades[choice_index])
-	# If this was a cross-deck combo choice, lock the run's combo (one per run).
+	# If this was a cross-deck combo choice, spend a combo slot and remember the pick (a second
+	# choice, if the secret boss grants one, must offer something new).
 	if _choosing_combo:
-		CurrentRun.combo_taken = true
+		CurrentRun.combos_taken += 1
+		CurrentRun.taken_synergy_ids.append(choice.upgrade.id)
 		_choosing_combo = false
 	upgrade_chosen.emit()
 		

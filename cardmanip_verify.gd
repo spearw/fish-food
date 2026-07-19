@@ -72,13 +72,13 @@ func _ready() -> void:
 
 	# --- 4. reset_run_state: the per-run reset (the run-2 staleness bug) ---
 	CurrentRun.starting_weapon_chosen = true
-	CurrentRun.combo_taken = true
+	CurrentRun.combos_taken = CurrentRun.combo_capacity
 	CurrentRun.deck_draft_counts = {"fire": 7}
 	CurrentRun.reset_run_state()
 	var reset_ok: bool = CurrentRun.rerolls_remaining == CurrentRun.REROLLS_PER_RUN \
 		and CurrentRun.banishes_remaining == CurrentRun.BANISHES_PER_RUN \
 		and CurrentRun.banished_upgrades.is_empty() \
-		and not CurrentRun.starting_weapon_chosen and not CurrentRun.combo_taken \
+		and not CurrentRun.starting_weapon_chosen and CurrentRun.combos_taken == 0 \
 		and CurrentRun.deck_draft_counts.is_empty()
 	var unbanished: bool = flamethrower in um.get_offerable_upgrades()
 	print("CARDMANIP reset: state_cleared=%s banished_restored=%s" % [str(reset_ok), str(unbanished)])

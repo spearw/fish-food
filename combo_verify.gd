@@ -30,7 +30,7 @@ func _ready() -> void:
 
 	# 1. No investment -> gate not met -> nothing offered.
 	CurrentRun.deck_draft_counts = {}
-	CurrentRun.combo_taken = false
+	CurrentRun.combos_taken = 0
 	var none_ok: bool = ComboManager.get_eligible_synergies().is_empty() and not ComboManager.is_gate_met(combo)
 
 	# 2. Only ONE deck invested -> still not met (need both).
@@ -48,7 +48,7 @@ func _ready() -> void:
 		and ComboManager.should_offer_combo(ComboManager.COMBO_UNLOCK_LEVEL)
 
 	# 5. One per run: after taking a combo, nothing is offered.
-	CurrentRun.combo_taken = true
+	CurrentRun.combos_taken = CurrentRun.combo_capacity
 	var one_per_run_ok: bool = ComboManager.get_eligible_synergies().is_empty() \
 		and not ComboManager.should_offer_combo(ComboManager.COMBO_UNLOCK_LEVEL)
 

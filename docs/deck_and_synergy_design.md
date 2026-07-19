@@ -418,8 +418,13 @@ The signature mechanic: committing to **two** themed decks unlocks a powerful, b
     applies; unmet gate defers the offer to the first qualifying level-up).
   - **Fallback:** if the Herald leaves unkilled (90s leave timer) — or the world has no herald
     (benches) — the trigger falls back to level 20. Delayed, never lost (reward-not-requirement).
-  - **The secret boss → the second combo** (pass 2, designed: the Anglerfish lure, armed by any of
-    three proofs — fast Herald kill / combo+depth by 12:00 / flawless Herald fight).
+  - **BUILT (Jul 2026): the secret boss → the second combo + the third deck.** The Anglerfish:
+    at 12:00, if ANY of three proofs is met (Herald killed ≤45s / Herald fight flawless / a combo
+    taken + both decks ≥6 drafts), a false-chest lure surfaces far off-screen (gold pointer).
+    Approaching it starts the fight in darkness (invisi jelly adds). The kill raises combo
+    capacity to two (second choice excludes the synergy already taken) and opens the
+    third-deck pick — three outsider decks offered, pool rebuilt in place. One accomplishment,
+    three ways to earn it; an unproven run never learns the secret exists.
 - **Scaling:** a synergy's effect **scales with continued theme investment** (reads your build), so it
   grows as you keep drafting the themes.
 

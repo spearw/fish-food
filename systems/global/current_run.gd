@@ -84,7 +84,10 @@ var banished_upgrades: Array[Upgrade] = []
 ## no combo offer, stale draft counts.
 func reset_run_state() -> void:
 	deck_draft_counts = {}
-	combo_taken = false
+	combos_taken = 0
+	combo_capacity = 1
+	taken_synergy_ids.clear()
+	max_themed_decks = 2
 	starting_weapon_chosen = false
 	rerolls_remaining = REROLLS_PER_RUN
 	banishes_remaining = BANISHES_PER_RUN
@@ -98,6 +101,8 @@ func reset_run_state() -> void:
 	leviathan_stats = null
 	herald_slain_name = ""
 	leviathan_killed = false
+	lure_alive = false
+	secret_boss_killed = false
 
 # --- Per-source damage attribution (UX: the genre's most build-relevant readout) ---
 ## Post-armor damage dealt this run, keyed by source ("Daggers", "Static Discharge", "Other").
@@ -113,8 +118,15 @@ func credit_damage(key: String, amount: int) -> void:
 # --- Cross-deck combo state (see systems/combos/) ---
 ## Cards drafted from each deck this run, keyed by Deck.id. Feeds combo power gates.
 var deck_draft_counts: Dictionary = {}
-## True once the player has taken a cross-deck combo this run (one per run).
-var combo_taken: bool = false
+## Cross-deck combos: one per run -- until the secret boss raises the capacity to two (its whole
+## reward). Counted, not boolean, for exactly that reason.
+var combos_taken: int = 0
+var combo_capacity: int = 1
+## Synergy upgrade ids already taken this run: a second combo choice must offer something new.
+var taken_synergy_ids: Array = []
+
+func combo_slots_full() -> bool:
+	return combos_taken >= combo_capacity
 
 # --- Herald state (the mini-boss that carries the combo trigger; see EncounterDirector) ---
 ## True when the run's director has herald candidates configured. When false (benches, test worlds),
@@ -139,6 +151,18 @@ var leviathan_stats: EnemyStats = null
 ## Which herald died this run ("" if none) -- feeds the leviathan's rider.
 var herald_slain_name: String = ""
 var leviathan_killed: bool = false
+
+# --- Secret boss state (the Anglerfish; see EncounterDirector lure machinery) ---
+## True while the false-chest lure is on the field, waiting to be approached.
+var lure_alive: bool = false
+## True once the Anglerfish is dead -- unlocks the second combo and the third deck.
+var secret_boss_killed: bool = false
+
+## The secret boss's reward path: raises the deck cap and adds the chosen third deck.
+func add_third_deck(path: String) -> void:
+	max_themed_decks = 3
+	if not selected_pack_paths.has(path):
+		selected_pack_paths.append(path)
 
 ## The rider the slain herald passes down the food chain: a small thematic twist on the final boss.
 const LEVIATHAN_RIDERS := {

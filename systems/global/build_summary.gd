@@ -285,6 +285,20 @@ static func damage_report_line(max_entries: int = 4) -> String:
 		parts.append("+%d more" % (keys.size() - max_entries))
 	return "Damage: " + " | ".join(parts)
 
+## The one rarity palette, shared by every screen -- bright enough to read as TEXT on dark panels.
+## (The level-up screen used to MODULATE whole buttons by Color.BLUE and friends, which multiplied
+## Rare cards into dark-blue-on-black; colors are accents now, never a filter over text.)
+const RARITY_COLORS := {
+	Upgrade.Rarity.COMMON: Color(0.92, 0.92, 0.92),
+	Upgrade.Rarity.RARE: Color(0.45, 0.75, 1.0),
+	Upgrade.Rarity.EPIC: Color(0.8, 0.55, 1.0),
+	Upgrade.Rarity.LEGENDARY: Color(1.0, 0.85, 0.35),
+	Upgrade.Rarity.MYTHIC: Color(1.0, 0.5, 0.3),
+}
+
+static func rarity_color(rarity: int) -> Color:
+	return RARITY_COLORS.get(rarity, Color.WHITE)
+
 ## The recent window: damage dealt since the last level-up pick, with the source carrying it.
 ## Answers "what's working NOW" -- lifetime totals bury the last thirty seconds. The snapshot
 ## advances when a pick resolves (not on re-presents: rerolls and banishes keep the same window).

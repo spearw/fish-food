@@ -26,6 +26,36 @@ var is_open: bool = false
 func _ready():
 	targeting_picker.hide()
 	_wire_stat_tooltips()
+	_apply_chrome()
+
+## The pause sheet's look: a real panel (dark, bordered, centered by the scene) with readable type.
+## The old sheet was a transparent top-left rectangle of default-size text on the game world.
+func _apply_chrome() -> void:
+	var panel: PanelContainer = $PanelContainer
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.09, 0.1, 0.13, 0.97)
+	sb.border_color = Color(0.5, 0.65, 0.85, 0.9)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(8)
+	panel.add_theme_stylebox_override("panel", sb)
+	# Section headers plus a size bump on every fixed stat row.
+	var stats_container: Node = move_speed_label.get_parent()
+	var stats_header := Label.new()
+	stats_header.text = "BUILD"
+	stats_header.add_theme_font_size_override("font_size", 22)
+	stats_header.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0))
+	stats_container.add_child(stats_header)
+	stats_container.move_child(stats_header, 0)
+	stats_container.add_theme_constant_override("separation", 6)
+	for label in [move_speed_label, luck_label, pickup_radius_label, critical_chance_label,
+			critical_damage_label, damage_increase_label, firerate_label,
+			projectile_speed_label, area_size_label, armor_label]:
+		label.add_theme_font_size_override("font_size", 15)
+	var items: Node = $PanelContainer/MarginContainer/HBoxContainer/ItemsContainer
+	items.add_theme_constant_override("separation", 8)
+	for header in [items.get_node("Weapons"), items.get_node("Artifacts")]:
+		header.add_theme_font_size_override("font_size", 18)
+		header.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0))
 
 ## Hover definitions on the stat rows that have glossary entries -- the same one-place definitions
 ## the card tooltips use. Labels ignore the mouse by default, so opting in is part of the wiring.
@@ -138,16 +168,38 @@ func _refresh_weapon_icons():
 		# one spot -- unclickable. A minimum size and a NAME (with tier) make them a real row.
 		button.custom_minimum_size = Vector2(150, 44)
 		var weapon_key := String(weapon.get_meta("weapon_type", weapon.name))
+		# Text starts right of the icon slot instead of centering into it.
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var row_sb := StyleBoxFlat.new()
+		row_sb.bg_color = Color(0.13, 0.15, 0.19, 0.9)
+		row_sb.set_corner_radius_all(4)
+		row_sb.set_content_margin_all(6)
+		row_sb.content_margin_left = 44
+		button.add_theme_stylebox_override("normal", row_sb)
 		if "rarity" in weapon:
 			button.text = "%s (%s)%s" % [
 				BuildSummary._pretty_name(weapon_key),
 				Upgrade.Rarity.keys()[weapon.rarity].capitalize(),
 				"*" if weapon.is_transformed else ""]
+			# The row wears the weapon's CURRENT tier -- reads from the live node every refresh,
+			# so a merge recolors it the next time the sheet opens (user ask, Jul 2026).
+			var tier_color: Color = BuildSummary.rarity_color(weapon.rarity)
+			button.add_theme_color_override("font_color", tier_color)
+			button.add_theme_color_override("font_hover_color", tier_color.lightened(0.25))
+			button.add_theme_font_size_override("font_size", 15)
 		var dealt: int = CurrentRun.damage_by_source.get(weapon_key, 0)
 		if dealt > 0:
 			button.text += "  %s dmg" % BuildSummary.fmt_int(dealt)
 		if weapon_key == top_key and top_dealt > 0:
-			button.modulate = Color.GOLD
+			# Top damage source: a gold border, not a gold tint (a tint would fight the tier color).
+			var gold := StyleBoxFlat.new()
+			gold.bg_color = Color(0.14, 0.13, 0.08, 0.9)
+			gold.border_color = Color.GOLD
+			gold.set_border_width_all(2)
+			gold.set_corner_radius_all(4)
+			gold.set_content_margin_all(6)
+			gold.content_margin_left = 44
+			button.add_theme_stylebox_override("normal", gold)
 		var icon_rect = button.get_node("Icon")
 		if weapon.projectile_stats:
 			icon_rect.texture = weapon.projectile_stats.texture
@@ -175,8 +227,10 @@ func _refresh_artifact_icons():
 	var artifacts = player.get_node("Artifacts")
 	for artifact in artifacts.get_children():
 		var label := Label.new()
-		label.text = BuildSummary._pretty_name(String(artifact.name).replace("Artifact", ""))
+		# Node names arrive both ways ("EmberheartArtifact", "lethal_dose") -- normalize both.
+		label.text = String(artifact.name).replace("Artifact", "").replace("_", " ").capitalize()
 		label.custom_minimum_size = Vector2(150, 24)
+		label.add_theme_font_size_override("font_size", 15)
 		artifacts_grid.add_child(label)
 		
 ## Called when any weapon button in the grid is clicked.

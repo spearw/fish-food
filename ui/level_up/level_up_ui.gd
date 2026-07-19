@@ -59,6 +59,11 @@ func _ready() -> void:
 	for i in range(upgrade_buttons.size()):
 		# .bind(i) passes the index 'i' as an argument to the function.
 		upgrade_buttons[i].pressed.connect(_on_upgrade_button_pressed.bind(i))
+		# One readable column: cards share a width instead of jittering to their text.
+		upgrade_buttons[i].custom_minimum_size = Vector2(720, 0)
+	var title = get_node_or_null("BackgroundColor/MarginContainer/VBoxContainer/TitleLabel")
+	if title:
+		title.add_theme_font_size_override("font_size", 26)
 	Events.boss_reward_requested.connect(on_boss_reward_requested)
 	Events.boss_killed.connect(_on_boss_killed)
 	Events.secret_boss_killed.connect(_on_secret_boss_killed)
@@ -275,7 +280,7 @@ func show_deck_choice_screen() -> void:
 			button.tooltip_text = "Weapons %d | Evolutions %d | Artifacts %d | Stat cards %d" % [
 				comp.get("weapons", 0), comp.get("evolutions", 0),
 				comp.get("artifacts", 0), comp.get("upgrades", 0)]
-			button.modulate = Color.CYAN
+			_style_card(button, Color(0.5, 0.95, 1.0))
 			button.visible = true
 		else:
 			button.visible = false
@@ -322,10 +327,10 @@ func show_win_screen() -> void:
 	_refresh_manipulation_bar()
 	_refresh_merge_bar()
 	upgrade_buttons[0].text = "GO INFINITE\nThe depths keep rising -- how long can you last?"
-	upgrade_buttons[0].modulate = Color.ORANGE_RED
+	_style_card(upgrade_buttons[0], Color(1.0, 0.5, 0.3))
 	upgrade_buttons[0].visible = true
 	upgrade_buttons[1].text = "MAIN MENU\nSurface with your victory."
-	upgrade_buttons[1].modulate = Color.WHITE
+	_style_card(upgrade_buttons[1], Color(0.92, 0.92, 0.92))
 	upgrade_buttons[1].visible = true
 	upgrade_buttons[2].visible = false
 
@@ -435,21 +440,36 @@ func _refresh_summary() -> void:
 				tip = Glossary.tooltip_for(upgrade.description)
 			button.text = face
 			button.tooltip_text = tip
-				
-			match rarity_enum:
-				Upgrade.Rarity.COMMON:
-					button.modulate = Color.WHITE
-				Upgrade.Rarity.RARE:
-					button.modulate = Color.BLUE
-				Upgrade.Rarity.EPIC:
-					button.modulate = Color.PURPLE
-				Upgrade.Rarity.LEGENDARY:
-					button.modulate = Color.YELLOW
-				Upgrade.Rarity.MYTHIC:
-					button.modulate = Color.ORANGE_RED
+			# Granted rewards (combo synergies) read gold; everything else wears its tier.
+			if upgrade_package.get("granted", false):
+				_style_card(button, Color(1.0, 0.85, 0.35))
+			else:
+				_style_card(button, BuildSummary.rarity_color(rarity_enum))
 			button.visible = true
 		else:
 			button.visible = false
+
+## Card chrome: a dark panel with the rarity as a BORDER accent and white text -- never a filter
+## over the text (whole-button modulate turned Rare cards dark-blue-on-black; live-found Jul 2026).
+func _style_card(button: Button, color: Color) -> void:
+	button.modulate = Color.WHITE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.09, 0.1, 0.13, 0.96)
+	sb.border_color = color
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin_all(10)
+	var sb_hover: StyleBoxFlat = sb.duplicate()
+	sb_hover.bg_color = Color(0.15, 0.17, 0.22, 0.98)
+	sb_hover.set_border_width_all(3)
+	button.add_theme_stylebox_override("normal", sb)
+	button.add_theme_stylebox_override("hover", sb_hover)
+	button.add_theme_stylebox_override("pressed", sb_hover)
+	button.add_theme_stylebox_override("focus", sb_hover)
+	button.add_theme_color_override("font_color", Color.WHITE)
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	button.add_theme_font_size_override("font_size", 15)
 
 ## The effect tags of an unlock card's weapon, read once per upgrade and cached. Instantiating the
 ## scene is what apply does anyway; measured ~1ms, and only on cache misses.

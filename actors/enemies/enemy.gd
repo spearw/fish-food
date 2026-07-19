@@ -28,6 +28,11 @@ var spawned_size: EnemyTags.Size = EnemyTags.Size.MEDIUM  # Set by encounter dir
 # timer throttles the green heal flash to once a second.
 var _regen_accum: float = 0.0
 var _regen_pulse_cooldown: float = 0.0
+# Blocked-hit clink throttle: a walled build hitting 10 times a second needs ONE clink, not ten.
+var _blocked_clink_cooldown: float = 0.0
+# Status stack pips (venom): lazy-created label under the health bar; updated when the count moves.
+var _stack_pips: Label = null
+var _last_stack_count: int = 0
 
 
 
@@ -85,6 +90,11 @@ func _physics_process(delta: float) -> void:
 		if is_instance_valid(behavior):
 			behavior.process_behavior(delta, self)
 
+		_blocked_clink_cooldown -= delta
+		# Venom stack pips: a "***" row under the health bar, updated only when the count moves.
+		if is_on_screen:
+			_update_stack_pips()
+
 		# Constant regeneration (the DoT counter): ticks always, race it with direct DPS.
 		if stats.regen_per_sec > 0.0 and current_health < stats.max_health:
 			_regen_accum += stats.regen_per_sec * delta
@@ -140,11 +150,21 @@ func _physics_process(delta: float) -> void:
 ## This virtual method is called by the parent Entity's `take_damage` function
 ## AFTER health has been reduced. We use it for enemy-specific visual feedback.
 func _on_take_damage(damage_taken: int, is_crit: bool, _source_node: Node) -> void:
-	if damage_taken <= 0:
-		return
 	# Optional cosmetic (perf setting). Numbers themselves are cheap (~1ms/150) and pool-capped, but a
 	# player on weak hardware can turn them off.
 	if not GameSettings.show_damage_numbers:
+		return
+	# Armor ate the whole hit: show the clink (throttled) so the wall is VISIBLE, then stop --
+	# a zeroed hit has no number to float.
+	if damage_taken <= 0:
+		if _blocked_clink_cooldown > 0.0 or not is_on_screen:
+			return
+		_blocked_clink_cooldown = 0.5
+		var clink = DamageNumberPool.get_damage_number()
+		if clink == null:
+			return
+		get_tree().current_scene.add_child(clink)
+		clink.start_blocked(self.global_position)
 		return
 	# Spawn a floating damage number (including for spark hits).
 	var dmg_num_instance = DamageNumberPool.get_damage_number()
@@ -209,6 +229,31 @@ func override_behavior(new_state_name: String, duration: float, context: Diction
 func _restore_ai_state_safe() -> void:
 	if is_instance_valid(ai) and not is_dying:
 		ai.restore_default_state()
+
+## Venom stacks made visible: one pip per stack under the health bar (the stack count is a real
+## damage multiplier, so it deserves a readout). Lazy-created; text only changes when the count does.
+func _update_stack_pips() -> void:
+	var manager = get_node_or_null("StatusEffectManager")
+	if manager == null:
+		return
+	var count: int = 0
+	for status_id in manager.active_statuses:
+		var effect = manager.active_statuses[status_id]["effect"]
+		if "stacks" in effect and effect.max_stacks > 1:
+			count = maxi(count, effect.stacks)
+	if count == _last_stack_count:
+		return
+	_last_stack_count = count
+	if _stack_pips == null:
+		if count == 0:
+			return
+		_stack_pips = Label.new()
+		_stack_pips.modulate = Color(0.5, 1.0, 0.4, 0.95)
+		_stack_pips.add_theme_font_size_override("font_size", 11)
+		_stack_pips.position = health_bar.position + Vector2(0, health_bar.size.y + 1.0)
+		add_child(_stack_pips)
+	_stack_pips.text = "*".repeat(count)
+	_stack_pips.visible = count > 0
 
 ## Updates the health bar's visual state.
 func update_health_bar(current: int, max_val: int) -> void:

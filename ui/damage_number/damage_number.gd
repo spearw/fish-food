@@ -6,6 +6,23 @@ extends Label
 var _is_pooled: bool = false
 var _current_tween: Tween = null
 
+## The blocked-hit clink: armor ate the whole hit. A small gray mark instead of silence, so the
+## player LEARNS armor is eating their hits instead of wondering where the numbers went.
+func start_blocked(start_position: Vector2):
+	if _current_tween and _current_tween.is_valid():
+		_current_tween.kill()
+	self.text = "0"
+	self.global_position = start_position
+	self.global_position.x += randf_range(-8.0, 8.0)
+	self.modulate = Color(0.62, 0.66, 0.72, 0.9)
+	add_theme_font_size_override("font_size", 13)
+	_current_tween = create_tween()
+	_current_tween.tween_property(self, "global_position", global_position + Vector2(0, -10), 0.45)\
+		.set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+	_current_tween.parallel().tween_property(self, "modulate:a", 0.0, 0.45)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_current_tween.finished.connect(_on_animation_finished, CONNECT_ONE_SHOT)
+
 ## Public function to initialize the damage number.
 ## @param damage_amount: int - The number to display.
 ## @param start_position: Vector2 - The world position to spawn at.

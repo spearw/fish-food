@@ -37,6 +37,10 @@ const COUNTER_DESC := [
 	"ABYSSAL -- the depths hunt your build",
 ]
 
+# --- Hub extras (built in code) ---
+var _souls_label: Label
+var _summary_label: Label
+
 # --- Overlay state (one generic overlay, reconfigured per slot) ---
 var _overlay: Control = null
 var _overlay_grid: GridContainer
@@ -72,25 +76,53 @@ func _ready():
 	hint_label.add_theme_color_override("font_color", Color(0.6, 0.65, 0.72))
 	Chrome.card_style(back_button, Color(0.35, 0.4, 0.5), 16)
 	Chrome.card_style(start_button, Color(0.5, 1.0, 0.6), 16)
+	# The hero anchor: the character card dominates (the genre's shape -- Hades and Brotato lead
+	# with the character, not five equal boxes).
+	character_slot.custom_minimum_size = Vector2(250, 280)
+	character_slot.add_theme_constant_override("icon_max_width", 110)
+	for slot in [deck1_slot, deck2_slot, biome_slot, difficulty_slot]:
+		slot.add_theme_constant_override("icon_max_width", 64)
+	# Meta strip: the souls the next unlock spends.
+	_souls_label = Label.new()
+	_souls_label.add_theme_font_size_override("font_size", 15)
+	_souls_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	_souls_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var vbox = $Hub/PanelContainer/MarginContainer/VBox
+	vbox.add_child(_souls_label)
+	vbox.move_child(_souls_label, 0)
+	# Summary ribbon: the run in one line, right above the button that starts it.
+	_summary_label = Label.new()
+	_summary_label.add_theme_font_size_override("font_size", 14)
+	_summary_label.add_theme_color_override("font_color", Color(0.75, 0.8, 0.88))
+	_summary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_summary_label)
+	vbox.move_child(_summary_label, vbox.get_child_count() - 2)
 	_build_overlay()
 	_refresh_hub()
 
 # =========================== THE HUB ===========================
 
-## Each slot card: WHAT it is (header line), WHO holds it now, and a one-liner. Details live in
-## the overlays -- the hub is the glance.
+## Each slot card: WHAT it is (header line), WHO holds it now, and a one-liner -- plus the image
+## when the data carries one. Details live in the overlays; the hub is the glance.
 func _refresh_hub() -> void:
+	var portrait: Texture2D = null
+	if selected_character and selected_character.sprite_frames \
+			and selected_character.sprite_frames.has_animation("default"):
+		portrait = selected_character.sprite_frames.get_frame_texture("default", 0)
 	_style_slot(character_slot, "CHARACTER",
 		selected_character.display_name if selected_character else "(none)",
 		_first_sentence(selected_character.character_description) if selected_character else "",
-		Chrome.HEADER_COLOR, selected_character != null)
+		Chrome.HEADER_COLOR, selected_character != null, portrait)
 	var names := _selected_deck_names()
+	var icons := _selected_deck_icons()
 	_style_slot(deck1_slot, "DECK 1",
 		names[0] if names.size() > 0 else "-- empty --",
-		"", Color(0.5, 1.0, 0.6), names.size() > 0)
+		"", Color(0.5, 1.0, 0.6), names.size() > 0,
+		icons[0] if icons.size() > 0 else null)
 	_style_slot(deck2_slot, "DECK 2",
 		names[1] if names.size() > 1 else "-- empty --",
-		"", Color(0.5, 1.0, 0.6), names.size() > 1)
+		"", Color(0.5, 1.0, 0.6), names.size() > 1,
+		icons[1] if icons.size() > 1 else null)
 	_style_slot(biome_slot, "BIOME",
 		selected_biome.display_name if selected_biome else "(none)",
 		_first_sentence(selected_biome.description) if selected_biome else "",
@@ -99,15 +131,44 @@ func _refresh_hub() -> void:
 		COUNTER_NAMES[selected_counter],
 		"%s intensity" % INTENSITY_NAMES[selected_intensity],
 		Color(1.0, 0.7, 0.45), true)
+	_souls_label.text = "Souls: %d" % GameData.data.get("total_souls", 0)
+	_summary_label.text = "%s  |  %s  |  %s  |  %s, %s intensity" % [
+		selected_character.display_name if selected_character else "?",
+		" + ".join(names) if not names.is_empty() else "no decks",
+		selected_biome.display_name if selected_biome else "?",
+		COUNTER_NAMES[selected_counter], INTENSITY_NAMES[selected_intensity]]
+	_update_backdrop()
 
 func _style_slot(slot: Button, header: String, value: String, sub: String,
-		accent: Color, filled: bool) -> void:
+		accent: Color, filled: bool, icon: Texture2D = null) -> void:
 	slot.text = "%s\n\n%s" % [header, value]
 	if sub != "":
 		slot.text += "\n\n%s" % sub
 	Chrome.card_style(slot, accent if filled else Color(0.3, 0.34, 0.42), 14)
 	slot.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	slot.clip_text = true
+	slot.icon = icon
+	if icon:
+		slot.expand_icon = true
+		slot.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		slot.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+
+func _selected_deck_icons() -> Array:
+	var icons: Array = []
+	for path in selected_deck_paths:
+		var deck: Deck = load(path)
+		icons.append(deck.deck_icon if deck else null)
+	return icons
+
+## The backdrop IS the run preview: the biome's water, darkened as the spawn count rises, washed
+## grayer as the ocean turns against you. The glance carries what the words say.
+func _update_backdrop() -> void:
+	var base: Color = selected_biome.background_color if selected_biome \
+		else Color(0.05, 0.07, 0.08)
+	var value_mult: float = [0.65, 0.85, 1.0][selected_intensity]  # High spawn = darker water
+	var sat_mult: float = [1.0, 0.6, 0.3][selected_counter]        # Harder ocean = drained color
+	$Background.color = Color.from_hsv(base.h, base.s * sat_mult,
+		maxf(base.v * value_mult, 0.03))
 
 func _first_sentence(text: String) -> String:
 	var idx := text.find(". ")
@@ -204,10 +265,14 @@ func _build_overlay() -> void:
 	buttons.add_child(_overlay_confirm)
 
 ## Fills the overlay with tiles. Each item: {name, locked, selected, detail, icon?, data}.
-func _open_overlay(mode: String, title: String, items: Array, reading: int) -> void:
+## columns: 4 for rosters; 3 for difficulty, where the GRID IS the interface -- rows are spawn
+## intensity, columns are the counter tiers, and the 2D shape is what makes it intuitive.
+func _open_overlay(mode: String, title: String, items: Array, reading: int,
+		columns: int = 4) -> void:
 	_overlay_mode = mode
 	_overlay_items = items
 	_overlay_title.text = title
+	_overlay_grid.columns = columns
 	for child in _overlay_grid.get_children():
 		child.queue_free()
 	_overlay_tiles.clear()
@@ -298,7 +363,7 @@ func _character_detail(c: PlayerStats) -> String:
 		if upgrade == null:
 			continue
 		lines.append("")
-		lines.append("[b]Identity: %s[/b] (granted, costs no slot)" % upgrade.display_name)
+		lines.append("[b]Ability: %s[/b] (granted, costs no slot)" % upgrade.display_name)
 		lines.append(upgrade.description)
 	return "\n".join(lines)
 
@@ -345,7 +410,7 @@ func _toggle_deck(index: int) -> void:
 		_pending_deck_paths.append(deck.resource_path)
 	_rebuild_deck_overlay(index)
 
-## Name, one-liner, the composition, and the FULL card manifest -- everything the pick commits to.
+## Name, one-liner, composition, and the ENTIRE card list -- everything the pick commits to.
 func _deck_detail(deck: Deck) -> String:
 	var lines: Array = []
 	lines.append("[b]%s[/b]" % deck.deck_name)
@@ -359,7 +424,8 @@ func _deck_detail(deck: Deck) -> String:
 	elif _pending_deck_paths.size() >= CurrentRun.max_themed_decks:
 		lines.append("[i]Both slots full. Deselect a deck to make room.[/i]")
 	lines.append("")
-	lines.append_array(BuildSummary.deck_manifest_lines(deck))
+	lines.append("[b]Total card list[/b]")
+	lines.append_array(BuildSummary.deck_card_list_lines(deck))
 	return "\n".join(lines)
 
 # --- Biome overlay ---
@@ -407,7 +473,7 @@ func _open_difficulty_overlay() -> void:
 			var idx := row * 3 + col
 			items.append({
 				"name": "%s intensity\n%s" % [INTENSITY_NAMES[row], COUNTER_NAMES[col]],
-				"detail": "[b]%s intensity[/b]\n%s enemies on screen.\n\n[b]%s[/b]\n%s" % [
+				"detail": "[b]%s intensity[/b]\n%s enemies on screen.\n\n[b]%s[/b]\n%s\n\n[i]Rows: how many. Columns: who the ocean sends.[/i]" % [
 					INTENSITY_NAMES[row],
 					["More", "The standard number of", "Fewer"][row],
 					COUNTER_NAMES[col], COUNTER_DESC[col]],
@@ -415,7 +481,7 @@ func _open_difficulty_overlay() -> void:
 			})
 			if row == selected_intensity and col == selected_counter:
 				reading = idx
-	_open_overlay("difficulty", "Choose Your Difficulty", items, reading)
+	_open_overlay("difficulty", "Choose Your Difficulty", items, reading, 3)
 
 # --- Confirm ---
 

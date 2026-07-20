@@ -32,6 +32,9 @@ func _capture() -> void:
 	select._open_character_overlay()
 	await _snap("select_character.png")
 	select._overlay.visible = false
+	select._open_difficulty_overlay()
+	await _snap("select_difficulty.png")
+	select._overlay.visible = false
 	select._open_deck_overlay()
 	await _snap("select_decks.png")
 	# The whole click-through, end to end: pick two decks, confirm, start the run.

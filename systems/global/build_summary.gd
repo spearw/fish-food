@@ -199,6 +199,28 @@ static func draft_line() -> String:
 		parts.append("%s %d" % [deck_id, CurrentRun.deck_draft_counts[deck_id]])
 	return "Drafted: " + ", ".join(parts) if not parts.is_empty() else ""
 
+## The ENTIRE deck, card by card, grouped by type -- what a deck pick actually commits to.
+## BBCode lines for the deck overlay's "Total card list".
+static func deck_card_list_lines(deck) -> Array:
+	var groups := [["Weapons", []], ["Evolutions", []], ["Artifacts", []], ["Stat cards", []]]
+	for u in deck.upgrades:
+		if u == null:
+			continue
+		match u.type:
+			Upgrade.UpgradeType.UNLOCK_WEAPON:
+				groups[0][1].append(u.display_name)
+			Upgrade.UpgradeType.TRANSFORMATION:
+				groups[1][1].append(u.display_name)
+			Upgrade.UpgradeType.UNLOCK_ARTIFACT:
+				groups[2][1].append(u.display_name)
+			Upgrade.UpgradeType.UPGRADE:
+				groups[3][1].append(u.display_name)
+	var lines: Array = []
+	for group in groups:
+		if not group[1].is_empty():
+			lines.append("[b]%s (%d):[/b] %s" % [group[0], group[1].size(), ", ".join(group[1])])
+	return lines
+
 ## The run's drawn final boss: a known exam shapes drafting (the Slay the Spire model). The rider
 ## appears once a herald has fallen. Empty until the leviathan is drawn (and in bench worlds).
 static func leviathan_line() -> String:

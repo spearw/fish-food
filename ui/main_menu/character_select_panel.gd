@@ -43,6 +43,7 @@ var _summary_label: Label
 
 # --- Overlay state (one generic overlay, reconfigured per slot) ---
 var _overlay: Control = null
+var _overlay_panel: PanelContainer = null
 var _overlay_grid: GridContainer
 var _overlay_detail: RichTextLabel
 var _overlay_title: Label
@@ -161,14 +162,28 @@ func _selected_deck_icons() -> Array:
 	return icons
 
 ## The backdrop IS the run preview: the biome's water, darkened as the spawn count rises, washed
-## grayer as the ocean turns against you. The glance carries what the words say.
-func _update_backdrop() -> void:
-	var base: Color = selected_biome.background_color if selected_biome \
-		else Color(0.05, 0.07, 0.08)
-	var value_mult: float = [0.65, 0.85, 1.0][selected_intensity]  # High spawn = darker water
-	var sat_mult: float = [1.0, 0.6, 0.3][selected_counter]        # Harder ocean = drained color
-	$Background.color = Color.from_hsv(base.h, base.s * sat_mult,
-		maxf(base.v * value_mult, 0.03))
+## grayer as the ocean turns against you. Overrides let the overlays PREVIEW an option's water
+## while it's merely being read -- confirmed picks win again when the overlay closes.
+func _update_backdrop(biome_override: BiomeDefinition = null,
+		intensity_override: int = -1, counter_override: int = -1) -> void:
+	var biome: BiomeDefinition = biome_override if biome_override else selected_biome
+	var intensity: int = intensity_override if intensity_override >= 0 else selected_intensity
+	var counter: int = counter_override if counter_override >= 0 else selected_counter
+	var base: Color = biome.background_color if biome else Color(0.05, 0.07, 0.08)
+	var value_mult: float = [0.65, 0.85, 1.0][intensity]  # High spawn = darker water
+	var sat_mult: float = [1.0, 0.6, 0.3][counter]        # Harder ocean = drained color
+	var water := Color.from_hsv(base.h, base.s * sat_mult, maxf(base.v * value_mult, 0.03))
+	$Background.color = water
+	# The color reaches INTO the popup too: the overlay panel takes a wash of the same water,
+	# so the preview reads even where the panel covers the screen.
+	if _overlay_panel:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Chrome.PANEL_BG.lerp(water, 0.35)
+		sb.bg_color.a = 0.96
+		sb.border_color = Chrome.PANEL_BORDER
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(8)
+		_overlay_panel.add_theme_stylebox_override("panel", sb)
 
 func _first_sentence(text: String) -> String:
 	var idx := text.find(". ")
@@ -193,7 +208,8 @@ func _build_overlay() -> void:
 
 	var dim := ColorRect.new()
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.color = Color(0, 0, 0, 0.6)
+	# Light dim: the tinted backdrop must stay VISIBLE behind the popup (the preview is the point).
+	dim.color = Color(0, 0, 0, 0.25)
 	_overlay.add_child(dim)
 
 	var center := CenterContainer.new()
@@ -204,6 +220,7 @@ func _build_overlay() -> void:
 	panel.custom_minimum_size = Vector2(1240, 640)
 	Chrome.panel_style(panel)
 	center.add_child(panel)
+	_overlay_panel = panel
 
 	var margin := MarginContainer.new()
 	for side in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
@@ -254,7 +271,10 @@ func _build_overlay() -> void:
 	overlay_back.text = "Back"
 	overlay_back.custom_minimum_size = Vector2(120, 0)
 	Chrome.card_style(overlay_back, Color(0.35, 0.4, 0.5), 15)
-	overlay_back.pressed.connect(func(): _overlay.visible = false)
+	# Back abandons: the previewed water snaps back to the CONFIRMED picks.
+	overlay_back.pressed.connect(func():
+		_overlay.visible = false
+		_update_backdrop())
 	buttons.add_child(overlay_back)
 
 	_overlay_confirm = Button.new()
@@ -314,6 +334,15 @@ func _set_reading(index: int) -> void:
 			Chrome.card_style(tile, Color(0.3, 0.34, 0.42), 13)
 	if index >= 0 and index < _overlay_items.size():
 		_overlay_detail.text = _overlay_items[index]["detail"]
+		# Live preview: reading a biome or difficulty retints the water BEHIND the popup (and the
+		# popup's own wash) before any confirm -- the change is the information.
+		match _overlay_mode:
+			"biome":
+				if not _overlay_items[index].get("locked", false):
+					_update_backdrop(_overlay_items[index]["data"])
+			"difficulty":
+				_update_backdrop(null, _overlay_items[index]["data"][0],
+					_overlay_items[index]["data"][1])
 
 func _on_tile_pressed(index: int) -> void:
 	if _overlay_mode == "deck":

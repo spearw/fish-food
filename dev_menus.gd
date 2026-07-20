@@ -33,8 +33,10 @@ func _capture() -> void:
 	await _snap("select_character.png")
 	select._overlay.visible = false
 	select._open_difficulty_overlay()
+	select._set_reading(2)  # High intensity, Abyssal -- the preview should drain the water
 	await _snap("select_difficulty.png")
 	select._overlay.visible = false
+	select._update_backdrop()
 	select._open_deck_overlay()
 	await _snap("select_decks.png")
 	# The whole click-through, end to end: pick two decks, confirm, start the run.

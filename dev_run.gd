@@ -67,9 +67,15 @@ func _capture_screens(scene, lui) -> void:
 	var sp = scene.find_child("StatsPanel", true, false)
 	if sp:
 		# The input path assigns the player before toggling; mirror it or the sheet opens empty.
-		sp.player = get_tree().get_first_node_in_group("player")
+		var player = get_tree().get_first_node_in_group("player")
+		sp.player = player
 		sp.toggle_visibility()
 		await _snap("pause.png")
+		var equipment = player.get_node("Equipment")
+		if equipment.get_child_count() > 0:
+			sp.targeting_picker.open_for_weapon(equipment.get_child(0))
+			await _snap("targeting.png")
+			sp.targeting_picker.close()
 		sp.toggle_visibility()
 
 	get_tree().paused = false

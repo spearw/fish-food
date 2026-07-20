@@ -52,6 +52,8 @@ var selected_intensity: int = 1  # 0=Low, 1=Normal, 2=High
 var selected_counter: int = 0
 var difficulty_buttons: Array = []
 
+const Chrome := preload("res://systems/global/ui_chrome.gd")
+
 func _ready():
 	GameData.unlocked_characters_changed.connect(populate_character_grid)
 	populate_character_grid()
@@ -70,6 +72,53 @@ func _ready():
 
 	# Setup difficulty grid
 	_setup_difficulty_grid()
+	_apply_chrome()
+
+## The shared look: a real panel, sized headers, readable difficulty cells with tooltips.
+func _apply_chrome() -> void:
+	Chrome.panel_style($CenterContainer/PanelContainer)
+	var vbox = get_node("CenterContainer/PanelContainer/MarginContainer/VBoxContainer")
+	var title = vbox.get_node_or_null("TitleLabel")
+	if title:
+		title.add_theme_font_size_override("font_size", 30)
+	for section in ["CharactersContainer/VBoxContainer/SectionLabel", "PacksContainer/Label",
+			"BiomesContainer/Label", "DifficultyContainer/Label"]:
+		var label = get_node_or_null(CONTENT_PATH + "/" + section)
+		if label and label is Label:
+			Chrome.header_style(label, 18)
+	if name_label:
+		name_label.add_theme_font_size_override("font_size", 20)
+	if select_button:
+		Chrome.card_style(select_button, Color(0.5, 1.0, 0.6), 16)
+	if back_button:
+		Chrome.card_style(back_button, Color(0.35, 0.4, 0.5), 16)
+	# The difficulty grid: readable cells, each explaining itself on hover. Rows are intensity
+	# (how many), columns are the counter tiers (who gets sent) -- the description below echoes
+	# the current pick, but the tooltip answers "what does THIS cell mean" before committing.
+	var intensity_names := ["High", "Normal", "Low"]
+	var counter_names := ["Normal", "Hard", "Abyssal"]
+	for row in range(difficulty_buttons.size()):
+		for col in range(difficulty_buttons[row].size()):
+			var btn = difficulty_buttons[row][col]
+			btn.custom_minimum_size = Vector2(52, 34)
+			btn.tooltip_text = "%s intensity, %s" % [intensity_names[row], counter_names[col]]
+	_update_difficulty_selection()
+	var grid_row = get_node_or_null(CONTENT_PATH + "/DifficultyContainer/GridRow")
+	if grid_row:
+		var labels = grid_row.get_node_or_null("IntensityLabels")
+		if labels:
+			for i in range(mini(labels.get_child_count(), 3)):
+				var l = labels.get_child(i)
+				if l is Label:
+					l.text = intensity_names[i]
+	var counter_header = get_node_or_null(CONTENT_PATH + "/DifficultyContainer/CounterLabel")
+	if counter_header:
+		counter_header.text = "Normal / Hard / Abyssal"
+	# The old single-letter column labels under the grid (E/N/H) predate the tier rename; the
+	# header row above now carries the names, so these just say the same thing twice, wrong.
+	var axis = get_node_or_null(CONTENT_PATH + "/DifficultyContainer/AxisLabels")
+	if axis:
+		axis.visible = false
 
 
 func populate_character_grid():
@@ -295,12 +344,15 @@ func _on_difficulty_button_pressed(intensity: int, counter: int):
 	_update_difficulty_selection()
 
 func _update_difficulty_selection():
-	# Update button states
+	# Update button states -- the picked cell wears the bright accent, the rest stay dim.
 	for row in range(3):
 		for col in range(3):
 			if row < difficulty_buttons.size() and col < difficulty_buttons[row].size():
 				var btn = difficulty_buttons[row][col]
-				btn.button_pressed = (row == selected_intensity and col == selected_counter)
+				var is_sel: bool = (row == selected_intensity and col == selected_counter)
+				btn.button_pressed = is_sel
+				Chrome.card_style(btn,
+					Chrome.HEADER_COLOR if is_sel else Color(0.28, 0.32, 0.4), 12)
 
 	# Update description label
 	if difficulty_description:

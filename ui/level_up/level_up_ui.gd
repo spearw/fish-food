@@ -451,25 +451,11 @@ func _refresh_summary() -> void:
 
 ## Card chrome: a dark panel with the rarity as a BORDER accent and white text -- never a filter
 ## over the text (whole-button modulate turned Rare cards dark-blue-on-black; live-found Jul 2026).
+## The look itself lives in ui_chrome.gd, shared with every other surface.
+const Chrome := preload("res://systems/global/ui_chrome.gd")
+
 func _style_card(button: Button, color: Color) -> void:
-	button.modulate = Color.WHITE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.09, 0.1, 0.13, 0.96)
-	sb.border_color = color
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(10)
-	var sb_hover: StyleBoxFlat = sb.duplicate()
-	sb_hover.bg_color = Color(0.15, 0.17, 0.22, 0.98)
-	sb_hover.set_border_width_all(3)
-	button.add_theme_stylebox_override("normal", sb)
-	button.add_theme_stylebox_override("hover", sb_hover)
-	button.add_theme_stylebox_override("pressed", sb_hover)
-	button.add_theme_stylebox_override("focus", sb_hover)
-	button.add_theme_color_override("font_color", Color.WHITE)
-	button.add_theme_color_override("font_hover_color", Color.WHITE)
-	button.add_theme_color_override("font_pressed_color", Color.WHITE)
-	button.add_theme_font_size_override("font_size", 15)
+	Chrome.card_style(button, color)
 
 ## The effect tags of an unlock card's weapon, read once per upgrade and cached. Instantiating the
 ## scene is what apply does anyway; measured ~1ms, and only on cache misses.

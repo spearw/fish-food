@@ -15,7 +15,15 @@ var biome_data: BiomeDefinition
 var is_unlocked: bool = false
 var _is_selected: bool = false
 
+const Chrome := preload("res://systems/global/ui_chrome.gd")
+
 func _ready():
+	Chrome.panel_style(self, Color(0.3, 0.36, 0.46, 0.9))
+	if is_instance_valid(name_label):
+		name_label.add_theme_font_size_override("font_size", 16)
+	if is_instance_valid(description_label):
+		description_label.add_theme_font_size_override("font_size", 12)
+		description_label.add_theme_color_override("font_color", Color(0.78, 0.8, 0.85))
 	update_display()
 	select_button.pressed.connect(_on_button_pressed)
 

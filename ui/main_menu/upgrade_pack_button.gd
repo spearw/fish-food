@@ -22,7 +22,15 @@ var _is_selected: bool = false
 var _manifest_label: RichTextLabel
 const BuildSummary := preload("res://systems/global/build_summary.gd")
 
+const Chrome := preload("res://systems/global/ui_chrome.gd")
+
 func _ready():
+	Chrome.panel_style(self, Color(0.3, 0.36, 0.46, 0.9))
+	if is_instance_valid(name_label):
+		name_label.add_theme_font_size_override("font_size", 16)
+	if is_instance_valid(description_label):
+		description_label.add_theme_font_size_override("font_size", 12)
+		description_label.add_theme_color_override("font_color", Color(0.78, 0.8, 0.85))
 	update_display()
 	select_button.pressed.connect(_on_button_pressed)
 
@@ -53,7 +61,7 @@ func update_display():
 		# Clicks must fall through to the full-tile SelectButton underneath.
 		_manifest_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		for font_key in ["normal_font_size", "bold_font_size", "italics_font_size"]:
-			_manifest_label.add_theme_font_size_override(font_key, 11)
+			_manifest_label.add_theme_font_size_override(font_key, 12)
 		$MarginContainer/VBoxContainer.add_child(_manifest_label)
 	_manifest_label.text = "\n".join(BuildSummary.deck_manifest_lines(deck_data))
 

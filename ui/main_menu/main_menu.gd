@@ -5,11 +5,22 @@ extends Control
 @onready var main_menu_buttons: VBoxContainer = $MainMenuButtons
 @onready var character_select_panel: Control = $CharacterSelectPanel
 
+const Chrome := preload("res://systems/global/ui_chrome.gd")
+
 func _ready():
 	# Make sure the shop is hidden initially
 	meta_shop_panel.hide()
 	# Connect the back signal from the meta shop panel
 	meta_shop_panel.back_pressed.connect(_on_back_button_pressed)
+	# The shared chrome: title up, buttons as real cards.
+	var title = main_menu_buttons.get_node_or_null("TitleLabel")
+	if title:
+		title.add_theme_font_size_override("font_size", 52)
+	for button_name in ["StartRunButton", "MetaShopButton", "QuitButton"]:
+		var b = main_menu_buttons.get_node_or_null(button_name)
+		if b:
+			b.custom_minimum_size = Vector2(280, 0)
+			Chrome.card_style(b, Chrome.PANEL_BORDER, 18)
 
 # --- Signal Handlers for Buttons ---
 func _on_meta_shop_button_pressed():

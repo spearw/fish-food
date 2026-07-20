@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "identity_extra_barrels"
 display_name = "Extra Barrels"
-description = "Identity: your weapons fire 2 extra projectiles."
+description = "Your weapons fire 2 extra projectiles."
 type = 1
 target_class_name = "ExtraBarrelsArtifact"
 scene_to_unlock = ExtResource("1_scene")

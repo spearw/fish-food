@@ -60,7 +60,6 @@ func _apply_chrome() -> void:
 ## Hover definitions on the stat rows that have glossary entries -- the same one-place definitions
 ## the card tooltips use. Labels ignore the mouse by default, so opting in is part of the wiring.
 func _wire_stat_tooltips() -> void:
-	const Glossary = preload("res://systems/global/glossary.gd")
 	var map := {
 		critical_chance_label: "Crit",
 		critical_damage_label: "Crit",
@@ -103,6 +102,7 @@ func refresh_all_stats():
 ## label was overwritten by a projectile-count line, pickup radius displayed area size, and firerate
 ## showed a raw wait-multiplier as a percentage.)
 const BuildSummary := preload("res://systems/global/build_summary.gd")
+const Glossary := preload("res://systems/global/glossary.gd")
 
 # Run context (slots, loadout, combo-gate progress) and the stats the fixed labels don't cover
 # (max health, status duration, sparks) -- both created in code, both fed by BuildSummary.
@@ -226,12 +226,28 @@ func _refresh_artifact_icons():
 	# still TODO). Node names are "EmberheartArtifact"-style.
 	var artifacts = player.get_node("Artifacts")
 	for artifact in artifacts.get_children():
-		var label := Label.new()
-		# Node names arrive both ways ("EmberheartArtifact", "lethal_dose") -- normalize both.
-		label.text = String(artifact.name).replace("Artifact", "").replace("_", " ").capitalize()
-		label.custom_minimum_size = Vector2(150, 24)
-		label.add_theme_font_size_override("font_size", 15)
-		artifacts_grid.add_child(label)
+		# Name AND rule: an artifact IS its rule, so the sheet says it in full (stamped on the
+		# node at creation; the node-name fallback covers artifacts from older paths).
+		var display: String = artifact.get_meta("display_name",
+			String(artifact.name).replace("Artifact", "").replace("_", " ").capitalize())
+		var rule: String = artifact.get_meta("description", "")
+		var row := VBoxContainer.new()
+		row.add_theme_constant_override("separation", 1)
+		var name_l := Label.new()
+		name_l.text = display
+		name_l.add_theme_font_size_override("font_size", 15)
+		row.add_child(name_l)
+		if rule != "":
+			var rule_l := Label.new()
+			rule_l.text = rule
+			rule_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			rule_l.custom_minimum_size = Vector2(300, 0)
+			rule_l.add_theme_font_size_override("font_size", 12)
+			rule_l.add_theme_color_override("font_color", Color(0.75, 0.78, 0.84))
+			row.add_child(rule_l)
+			name_l.mouse_filter = Control.MOUSE_FILTER_STOP
+			name_l.tooltip_text = Glossary.tooltip_for(rule)
+		artifacts_grid.add_child(row)
 		
 ## Called when any weapon button in the grid is clicked.
 func _on_weapon_button_pressed(weapon_node: Node):

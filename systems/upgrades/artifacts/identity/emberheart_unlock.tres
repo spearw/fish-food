@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "identity_emberheart"
 display_name = "Emberheart"
-description = "Identity: your kills can ignite nearby enemies, and burns you apply can escalate into true ignites."
+description = "Your kills can ignite nearby enemies, and your burns can escalate into true ignites."
 type = 1
 target_class_name = "EmberheartArtifact"
 scene_to_unlock = ExtResource("1_scene")

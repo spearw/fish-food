@@ -29,6 +29,22 @@ func _capture() -> void:
 	select.show()
 	await get_tree().create_timer(0.4).timeout
 	await _snap("select.png")
+	select._open_character_overlay()
+	await _snap("select_character.png")
+	select._overlay.visible = false
+	select._open_deck_overlay()
+	await _snap("select_decks.png")
+	# The whole click-through, end to end: pick two decks, confirm, start the run.
+	select._on_tile_pressed(1)  # Fire
+	select._on_tile_pressed(2)  # Lightning
+	await _snap("select_decks_picked.png")
+	select._on_overlay_confirm()
+	await _snap("select_filled.png")
+	select._on_select_and_start_button_pressed()
+	await get_tree().create_timer(2.0).timeout
+	var started: bool = get_tree().current_scene != null \
+		and get_tree().current_scene.name == "World"
+	print("DEVSHOT run_started=", started)
 	get_tree().quit()
 
 func _snap(file_name: String) -> void:

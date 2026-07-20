@@ -7,7 +7,7 @@
 script = ExtResource("2_upg")
 id = "identity_adrenaline"
 display_name = "Adrenaline Rush"
-description = "Identity: kills surge your move speed for 2 seconds."
+description = "Kills surge your move speed for 2 seconds."
 type = 1
 target_class_name = "AdrenalineArtifact"
 scene_to_unlock = ExtResource("1_scene")

@@ -599,6 +599,10 @@ func create_weapon(weapon, upgrade, rarity: int = Upgrade.Rarity.COMMON):
 	
 func create_artifact(artifact, upgrade):
 	artifact.name = upgrade.target_class_name
+	# The card's name and rule text travel WITH the node: the pause sheet reads them back, so an
+	# equipped artifact can always say what it does (it used to show only its node name).
+	artifact.set_meta("display_name", upgrade.display_name)
+	artifact.set_meta("description", upgrade.description)
 	return artifact
 
 ## Sets a property on an object, supporting nested paths like "resource/property".

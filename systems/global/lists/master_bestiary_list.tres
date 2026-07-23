@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BestiaryList" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://systems/global/lists/bestiary_list.gd" id="1_book"]
+[ext_resource type="Script" uid="uid://dnb7k3xg8h5sr" path="res://systems/spawner/encounter_set.gd" id="2_set"]
+[ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="3_es"]
+[ext_resource type="Resource" uid="uid://c5abx25utn3mg" path="res://systems/spawner/encounter_sets/sea_babies.tres" id="4_babies"]
+[ext_resource type="Resource" path="res://systems/spawner/encounter_sets/reef_shellbacks.tres" id="5_shell"]
+[ext_resource type="Resource" path="res://systems/spawner/encounter_sets/reef_regenerators.tres" id="6_regen"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/herald_pufferfish/pufferfish.tres" id="7_puffer"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/herald_moray/moray.tres" id="8_moray"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/herald_lionfish/lionfish.tres" id="9_lion"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/leviathans/undertow/undertow.tres" id="10_under"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/leviathans/king_crab/king_crab.tres" id="11_crab"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/leviathans/storm_eel/storm_eel.tres" id="12_eel"]
+[ext_resource type="Resource" path="res://actors/enemies/boss_types/anglerfish/anglerfish.tres" id="13_angler"]
+
+[resource]
+script = ExtResource("1_book")
+encounter_sets = Array[ExtResource("2_set")]([ExtResource("4_babies"), ExtResource("5_shell"), ExtResource("6_regen")])
+heralds = Array[ExtResource("3_es")]([ExtResource("7_puffer"), ExtResource("8_moray"), ExtResource("9_lion")])
+leviathans = Array[ExtResource("3_es")]([ExtResource("10_under"), ExtResource("11_crab"), ExtResource("12_eel")])
+secret = ExtResource("13_angler")

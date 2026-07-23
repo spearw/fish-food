@@ -24,6 +24,23 @@ func _capture() -> void:
 	await get_tree().create_timer(1.0).timeout
 	var menu = get_tree().current_scene
 	await _snap("menu.png")
+	# The Logbook: seed a little discovery so every tile state shows, then shoot both tabs.
+	LogbookData.autosave_on_boss_kill = false
+	for i in range(3):
+		LogbookData.record_enemy_kill("Pike")
+	LogbookData.record_enemy_kill("Fish")
+	LogbookData._on_boss_spawned(null,
+		load("res://actors/enemies/boss_types/herald_pufferfish/pufferfish.tres"))
+	LogbookData.record_card_taken("lethal_dose_unlock")
+	var logbook = menu.get_node("LogbookPanel")
+	menu.get_node("MainMenuButtons").hide()
+	logbook.open()
+	await get_tree().create_timer(0.3).timeout
+	await _snap("logbook_bestiary.png")
+	logbook._select_tab("cards")
+	await _snap("logbook_cards.png")
+	logbook.hide()
+	menu.get_node("MainMenuButtons").show()
 	var select = menu.get_node("CharacterSelectPanel")
 	menu.get_node("MainMenuButtons").hide()
 	select.show()

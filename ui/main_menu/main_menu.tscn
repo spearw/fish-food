@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://d1dg35wer2lxb"]
+[gd_scene load_steps=5 format=3 uid="uid://d1dg35wer2lxb"]
 
 [ext_resource type="Script" uid="uid://cseb2o7bc5spi" path="res://ui/main_menu/main_menu.gd" id="1_uhj5c"]
 [ext_resource type="PackedScene" uid="uid://ciwex3y87jrg8" path="res://ui/main_menu/meta_shop_panel.tscn" id="2_metashop"]
 [ext_resource type="PackedScene" uid="uid://7rvo0dymjiq3" path="res://ui/main_menu/character_select_panel.tscn" id="8_charselect"]
+[ext_resource type="PackedScene" path="res://ui/main_menu/logbook_panel.tscn" id="9_logbook"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -60,6 +61,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Meta Shop"
 
+[node name="LogbookButton" type="Button" parent="MainMenuButtons"]
+custom_minimum_size = Vector2(280, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Logbook"
+
 [node name="QuitButton" type="Button" parent="MainMenuButtons"]
 custom_minimum_size = Vector2(280, 48)
 layout_mode = 2
@@ -84,6 +91,10 @@ offset_bottom = 340.0
 [node name="CharacterSelectPanel" parent="." instance=ExtResource("8_charselect")]
 layout_mode = 1
 
+[node name="LogbookPanel" parent="." instance=ExtResource("9_logbook")]
+layout_mode = 1
+
 [connection signal="pressed" from="MainMenuButtons/StartRunButton" to="." method="_on_start_run_button_pressed"]
 [connection signal="pressed" from="MainMenuButtons/MetaShopButton" to="." method="_on_meta_shop_button_pressed"]
+[connection signal="pressed" from="MainMenuButtons/LogbookButton" to="." method="_on_logbook_button_pressed"]
 [connection signal="pressed" from="MainMenuButtons/QuitButton" to="." method="_on_quit_button_pressed"]

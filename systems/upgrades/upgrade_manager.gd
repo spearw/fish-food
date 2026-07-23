@@ -504,6 +504,9 @@ func apply_upgrade(upgrade_package: Dictionary) -> void:
 		printerr("UpgradeManager: Cannot apply upgrade, player has not been registered.")
 		return
 
+	# The Logbook's taken-ledger: every card actually applied counts, granted included.
+	LogbookData.record_card_taken(upgrade.id)
+
 	match upgrade.type:
 		Upgrade.UpgradeType.UNLOCK_WEAPON:
 			if upgrade.scene_to_unlock:

@@ -38,9 +38,19 @@ var starter_data = {
 		"luck": 0.0,
 		"area_size": 0.0,
 		"xp_multiplier": 0.0,
-	}
+	},
+	# Discovery records behind the Logbook screen. LogbookData owns this section (and lazily
+	# rebuilds it on old saves that predate it).
+	"logbook": {
+		"enemy_kills": {},
+		"bosses_seen": {},
+		"bosses_killed": {},
+		"cards_taken": {},
+	},
 }
-var data = starter_data.duplicate()
+# duplicate(true): a SHALLOW copy would share the nested dicts with starter_data, so every write
+# into permanent_stats/logbook after a save reset would corrupt the pristine template.
+var data = starter_data.duplicate(true)
 
 ## DEV SWITCH ("for now", July 2026): every character and deck is unlocked at boot. Runs every start
 ## and unions with the save, so new content auto-unlocks and existing saves aren't wiped. Note that
@@ -157,8 +167,8 @@ func load_data():
 ## Deletes the save file from the disk.
 func clear_save_file():
 	var dir = DirAccess.open("user://")
-	# Reset active game data
-	data = starter_data.duplicate()
+	# Reset active game data (deep: shared nested dicts would poison the template -- see above)
+	data = starter_data.duplicate(true)
 	## TODO: Generalize signal to all components
 	unlocked_characters_changed.emit()
 	# Clear save file

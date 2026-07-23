@@ -96,18 +96,7 @@ func _physics_process(delta: float) -> void:
 			_update_stack_pips()
 
 		# Constant regeneration (the DoT counter): ticks always, race it with direct DPS.
-		if stats.regen_per_sec > 0.0 and current_health < stats.max_health:
-			_regen_accum += stats.regen_per_sec * delta
-			_regen_pulse_cooldown -= delta
-			if _regen_accum >= 1.0:
-				var whole := int(_regen_accum)
-				_regen_accum -= whole
-				heal(whole)
-				if _regen_pulse_cooldown <= 0.0 and is_on_screen:
-					_regen_pulse_cooldown = 1.0
-					var tween := create_tween()
-					tween.tween_property(self, "modulate", Color(0.6, 1.5, 0.6, 1.0), 0.15)
-					tween.tween_property(self, "modulate", stats.modulate, 0.25)
+		tick_regen(delta)
 
 		# Update sprite orientation based on stats (skip if off-screen for performance).
 		if is_on_screen:
@@ -207,6 +196,25 @@ func finalize_death() -> void:
 	Events.emit_signal("enemy_killed", self) # Announce death for player powers.
 	LootManager.process_loot_drop(stats, self.global_position, self.player_node)
 	queue_free()
+
+## The regeneration race (the DoT counter): damage over time races it, direct DPS beats it.
+## Public and self-contained: the balance bench holds its dummy field still by turning enemy
+## physics OFF, then drives this same race by hand -- one code path, so the bench cannot drift
+## from the game.
+func tick_regen(delta: float) -> void:
+	if is_dying or stats.regen_per_sec <= 0.0 or current_health >= stats.max_health:
+		return
+	_regen_accum += stats.regen_per_sec * delta
+	_regen_pulse_cooldown -= delta
+	if _regen_accum >= 1.0:
+		var whole := int(_regen_accum)
+		_regen_accum -= whole
+		heal(whole)
+		if _regen_pulse_cooldown <= 0.0 and is_on_screen:
+			_regen_pulse_cooldown = 1.0
+			var tween := create_tween()
+			tween.tween_property(self, "modulate", Color(0.6, 1.5, 0.6, 1.0), 0.15)
+			tween.tween_property(self, "modulate", stats.modulate, 0.25)
 
 ## Tells all equipped weapons to fire.
 func fire_weapons() -> void:

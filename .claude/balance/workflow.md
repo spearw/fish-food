@@ -82,6 +82,13 @@ changed** each. That's the only way a ratio means anything.
 | `armor10` / `armor25` | `armor` only | the armor axis, two points |
 | `fast` / `slow` | `move_speed` only | the speed axis *(broken — see below)* |
 | `tanky` | `max_health` only | mortal mode; **doubles as the null test in immortal** |
+| `regen` | `regen_per_sec` only (8/s, the sea star's value) | **mortal mode ONLY** — immortal's HP flood gates the heal off, and the probe must drive `tick_regen` by hand (enemy physics is off in the bench) |
+
+**Spawn-size caveat:** dummies carry a single size tag, and it's LARGE — the director's size roll
+multiplies hp ×1.6, damage ×1.3, armor ×1.5 and regen ×1.6 at spawn. Immortal numbers never see the
+HP (it's flooded), but mortal kills race **240 effective HP**, the armor columns run at **15/37
+effective**, and the regen dummy heals **12.8/s**. Constant across every weapon, so ratios are
+untouched — just don't read a column label as the literal spawned stat.
 
 **Why not real enemies: they're confounded by construction.** fish is HORDE at 90 speed, comb_jelly is
 RANGED+ARMORED at 40, and garden_eel is a RANGED **skirmisher** whose behavior parks it despite a 250
@@ -289,8 +296,14 @@ category relative to the other weapons**. That takes a double normalization:
 
 **The harness proposes; it never writes the grid.** Hand-review every entry — feel is law.
 
-**Columns it can fill today:** baseline + the armor ladder (clean, frozen, ~3% noise). **Blocked:**
-swarm/tanky need mortal mode (immortal erases HP); fast/evasive/ranged need chase-and-recycle motion
+**Columns it can fill today:** baseline + the armor ladder (clean, frozen, ~3% noise), plus — behind
+`MORTAL=1 ./balance_sweep.sh` — the kill-throughput trio `mortal_baseline` / `mortal_tanky` /
+`mortal_regen`: real deaths against a slot-refilled field, reported as kills/sec. The analyzer
+normalizes mortal columns against `mortal_baseline` (never across modes) and proposes `mortal_regen`
+outliers against REGENERATOR. Mortal columns are kill-quantized — the `kills=` count in the report
+line is the noise estimate; under ~10 kills a window is coin-flip territory, so pass `secs>=15`
+(60s+ mortal windows) for anything you intend to read. **Blocked:**
+fast/evasive/ranged need chase-and-recycle motion
 (the bench overrides AI, and orbit measured speed *backwards*) — those grid rows stay hand-authored
 until then. **Known limits:** melee weapons can't reach the fixed ring (reported UNMEASURED, not
 faked); tag attribution smears across co-occurring tags (~19 weapons makes it workable; the clean fix

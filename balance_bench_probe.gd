@@ -40,6 +40,8 @@ const ARCHETYPES := {
 	"fast":     "res://bench_dummies/dummy_fast.tres",      # move_speed 90 -> 250 only
 	"slow":     "res://bench_dummies/dummy_slow.tres",      # move_speed 90 -> 30 only
 	"tanky":    "res://bench_dummies/dummy_tanky.tres",     # max_health only (mortal mode only)
+	"regen":    "res://bench_dummies/dummy_regen.tres",     # regen_per_sec only (mortal mode only:
+	                                                        # immortal's HP flood gates the heal off)
 }
 
 ## REAL enemies. What the player actually faces, and what COUNTER_MATRIX is keyed on -- but every one
@@ -91,7 +93,11 @@ var _baseline_hp := 0.0
 var _queue: Array = []          # archetypes still to measure
 var _current := ""              # archetype being measured
 var _results: Dictionary = {}   # archetype -> measured value
-var _orbits: Array = []         # {node, radius, angle, angular_speed} -- the moving dummy field
+## The dummy field's slot registry: {node, ring, angle, angular_speed}. Slots are FIXED; nodes come
+## and go (mortal mode refills a fallen slot at once, so kills/sec measures steady-state throughput
+## against a full room, not a depleting one). Orbit motion sweeps these same entries.
+var _slots: Array = []
+var _current_stats: EnemyStats = null
 var _origin := Vector2.ZERO     # the field's centre (the player's position at spawn)
 
 const BOOT_TIMEOUT := 1500
@@ -106,7 +112,7 @@ func _ready() -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	Engine.max_fps = 0
 	seed(BENCH_SEED)
-	Events.enemy_killed.connect(func(_e): _kills += 1)
+	Events.enemy_killed.connect(_on_bench_kill)
 
 func _process(_dt: float) -> void:
 	get_tree().paused = false  # the run hands out a level-up that pauses; keep it running
@@ -130,6 +136,7 @@ func _physics_process(_dt: float) -> void:
 		_player.current_health = IMMORTAL_HP
 
 	_drive_orbits()
+	_drive_regen()
 	_frames += 1
 	if _frames < WARMUP_FRAMES:
 		_kills = 0  # discard warm-up kills
@@ -146,15 +153,26 @@ func _total_frames() -> int:
 ## would put the run-to-run variance straight back into the enemy positions -- which is exactly what
 ## the frozen field was there to prevent.
 func _drive_orbits() -> void:
-	if _orbits.is_empty():
+	if motion != "orbit":
 		return
 	var dt := 1.0 / float(Engine.physics_ticks_per_second)
-	for o in _orbits:
-		var node = o["node"]
+	for slot in _slots:
+		var node = slot["node"]
 		if not is_instance_valid(node):
 			continue
-		o["angle"] += o["angular_speed"] * dt
-		node.global_position = _origin + Vector2.RIGHT.rotated(o["angle"]) * o["radius"]
+		slot["angle"] += slot["angular_speed"] * dt
+		node.global_position = _origin + Vector2.RIGHT.rotated(slot["angle"]) * slot["ring"]
+
+## The dummy field's own physics is off (that's what holds the geometry still), so the one race
+## that must stay live -- regeneration, the DoT counter -- is driven by hand on the same fixed
+## timestep, through the enemy's OWN tick_regen. Without this, a regen column silently measures
+## baseline. No-ops in immortal mode (the HP flood keeps current_health above the heal gate).
+func _drive_regen() -> void:
+	var dt := 1.0 / float(Engine.physics_ticks_per_second)
+	for slot in _slots:
+		var node = slot["node"]
+		if is_instance_valid(node) and node.has_method("tick_regen"):
+			node.tick_regen(dt)
 
 func _try_setup() -> void:
 	var scene := get_tree().current_scene
@@ -262,53 +280,56 @@ func _spawn_dummy_field(stats_path: String) -> void:
 	# number of frames, so a seed set in _ready() has already drifted by the time we spawn.
 	# Re-seeding per window also means every archetype in a profile faces the same rolls.
 	seed(BENCH_SEED)
+	_current_stats = stats
 
 	# Concentric rings from just outside melee reach to typical projectile range.
+	# angular_speed sweeps each slot at the STATS' own move_speed, so the "fast" archetype is
+	# genuinely harder to hit: angular = linear / radius, and a 250-speed dummy covers ground ~6x
+	# faster than a 40-speed one. Only used when motion=orbit.
 	const RINGS := [80.0, 140.0, 200.0, 260.0]
 	_origin = _player.global_position
-	_orbits.clear()
-	var placed: Array = []
+	_slots.clear()
 	for i in range(enemy_count):
 		var ring: float = RINGS[i % RINGS.size()]
 		var step: int = i / RINGS.size()
 		var per_ring: float = ceil(float(enemy_count) / RINGS.size())
 		var angle: float = TAU * (float(step) / per_ring)
-		_dir.spawn_enemy(stats, _origin + Vector2.RIGHT.rotated(angle) * ring)
-		placed.append({"ring": ring, "angle": angle})
-
-	# Take the enemies' own AI offline: a swarm collapsing onto the player mid-window changes the
-	# geometry, which was the single biggest source of run-to-run swing. We drive them instead.
-	# Deferred: we're inside a physics flush here, and Godot refuses state changes mid-query.
-	var enemies := get_tree().get_nodes_in_group("enemies")
-	for e in enemies:
-		if not is_instance_valid(e):
-			continue
-		e.call_deferred("set_physics_process", false)
-		var ai = e.get_node_or_null("AI")
-		if ai:
-			ai.call_deferred("set_physics_process", false)
-			ai.call_deferred("set_process", false)
-
-	if motion != "orbit":
-		return
-
-	# Record each enemy's orbit, sweeping at ITS OWN move_speed so the "fast" archetype is genuinely
-	# harder to hit. angular_speed = linear speed / radius, so a garden_eel at 250 covers ground ~6x
-	# faster than a comb_jelly at 40 and a slow projectile will trail behind it.
-	for i in range(min(enemies.size(), placed.size())):
-		var e = enemies[i]
-		if not is_instance_valid(e):
-			continue
-		var speed := 0.0
-		if "stats" in e and e.stats and "move_speed" in e.stats:
-			speed = e.stats.move_speed
-		var radius: float = placed[i]["ring"]
-		_orbits.append({
-			"node": e,
-			"radius": radius,
-			"angle": placed[i]["angle"],
-			"angular_speed": speed / maxf(radius, 1.0),
+		var node = _dir.spawn_enemy(stats, _origin + Vector2.RIGHT.rotated(angle) * ring)
+		_hold_still(node)
+		_slots.append({
+			"node": node,
+			"ring": ring,
+			"angle": angle,
+			"angular_speed": stats.move_speed / maxf(ring, 1.0),
 		})
+
+## Takes one dummy's own motion offline: a swarm collapsing onto the player mid-window changes the
+## geometry, which was the single biggest source of run-to-run swing. The probe drives them instead.
+## Deferred: spawning happens inside a physics flush, and Godot refuses state changes mid-query.
+func _hold_still(node: Node) -> void:
+	if not is_instance_valid(node):
+		return
+	node.call_deferred("set_physics_process", false)
+	var ai = node.get_node_or_null("AI")
+	if ai:
+		ai.call_deferred("set_physics_process", false)
+		ai.call_deferred("set_process", false)
+
+## Every death counts a kill; in mortal mode the fallen slot refills on the spot with a fresh dummy
+## (same stats, same slot position), so the room stays at strength and kills/sec is a steady-state
+## throughput number. Without this, a fast-clearing weapon runs the field dry and spends the rest of
+## the window shooting at nothing -- the measurement decays into "how big was the room".
+func _on_bench_kill(dead: Node) -> void:
+	_kills += 1
+	if immortal or not _ready_to_measure or _current_stats == null:
+		return
+	for slot in _slots:
+		if slot["node"] == dead:
+			var pos: Vector2 = _origin + Vector2.RIGHT.rotated(slot["angle"]) * slot["ring"]
+			var replacement = _dir.spawn_enemy(_current_stats, pos)
+			_hold_still(replacement)
+			slot["node"] = replacement
+			return
 
 ## Strips whatever the character came with and equips exactly the weapon under test, so the number
 ## measures that weapon and nothing else.
@@ -346,5 +367,12 @@ func _report() -> void:
 	# Loop this over --archetype= and divide each result by the "standard" one. Those ratios are the
 	# same shape WeaponTags.COUNTER_MATRIX encodes by hand: >1 means the weapon is better than usual
 	# into that archetype, <1 means that archetype counters it.
-	print("BALANCEBENCH   archetype=%-9s %s=%.1f" % [_current, unit, _results[_current] / seconds])
+	if immortal:
+		print("BALANCEBENCH   archetype=%-9s %s=%.1f" % [_current, unit, _results[_current] / seconds])
+	else:
+		# Three decimals, and the raw count alongside: mortal windows yield FEW kill events (dummies
+		# spawn LARGE, x1.6 HP), so one decimal quantized every ratio into mush -- and the count is
+		# the honest noise estimate (12 kills is +-8%; 2 kills is a coin flip).
+		print("BALANCEBENCH   archetype=%-9s %s=%.3f kills=%d" % [
+			_current, unit, _results[_current] / seconds, int(_results[_current])])
 	get_tree().quit()

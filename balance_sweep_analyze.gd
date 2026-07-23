@@ -26,7 +26,11 @@ const SQUASH_HI := 1.8    # hard-answer ceiling (huge Z rails here)
 const MEDIAN_FLOOR := 0.01  # a column median this low means most of the field is WALLED there
 
 ## Which behavior each swept column expresses (both armor columns -> ARMORED; Z averaged).
-const COLUMN_BEHAVIOR := {"armor10": "ARMORED", "armor25": "ARMORED"}
+## "mortal_*" columns are KILLS/SEC against a live-dying, slot-refilled field; they normalize
+## against the weapon's own mortal_baseline (kills/sec over dps is nonsense) and propose per
+## column, never into the immortal ARMORED mean. mortal_tanky maps to no behavior on purpose:
+## overkill waste is a balance fact, not a counter-grid axis.
+const COLUMN_BEHAVIOR := {"armor10": "ARMORED", "armor25": "ARMORED", "mortal_regen": "REGENERATOR"}
 
 func _ready() -> void:
 	var csv_path := "bench_results/sweep.csv"
@@ -50,14 +54,15 @@ func _ready() -> void:
 		if not dps.has(parts[0]):
 			dps[parts[0]] = {}
 		dps[parts[0]][parts[1]] = parts[2].to_float() if parts[2] != "NA" else -1.0
-		if parts[1] != "baseline" and not parts[1] in columns:
+		if not parts[1] in ["baseline", "mortal_baseline"] and not parts[1] in columns:
 			columns.append(parts[1])
 
-	# --- R: each weapon vs its own baseline ---
+	# --- R: each weapon vs its own baseline (per MODE: mortal columns vs mortal_baseline) ---
 	var r: Dictionary = {}
 	var unmeasured: Array = []
 	for w in dps:
 		var base: float = dps[w].get("baseline", -1.0)
+		var mortal_base: float = dps[w].get("mortal_baseline", -1.0)
 		if base <= 0.5:
 			# Melee can't reach the bench's fixed ring, and a failed run parses as NA -- either way
 			# the ratios are meaningless. Report rather than fake.
@@ -66,7 +71,8 @@ func _ready() -> void:
 		r[w] = {}
 		for a in columns:
 			var v: float = dps[w].get(a, -1.0)
-			r[w][a] = (v / base) if v >= 0.0 else -1.0
+			var anchor: float = mortal_base if a.begins_with("mortal_") else base
+			r[w][a] = (v / anchor) if (v >= 0.0 and anchor > 0.0) else -1.0
 
 	# --- Z: each column vs the field's median ---
 	var medians: Dictionary = {}
@@ -111,7 +117,7 @@ func _ready() -> void:
 	# weapons to false 0.5s. The first sweep produced exactly that artifact for the axe.
 	var usable_columns: Array = []
 	for a in columns:
-		if medians[a] >= MEDIAN_FLOOR:
+		if medians[a] >= MEDIAN_FLOOR and not a.begins_with("mortal_"):
 			usable_columns.append(a)
 	print("")
 	print("PROPOSED GRID ENTRIES (squash = clamp(Z, %.1f, %.1f); mean Z over usable columns %s)" % [
@@ -152,6 +158,45 @@ func _ready() -> void:
 			if effect_idx >= 0 else 1.0
 		print("  Effect.%-16s vs ARMORED: Z=%.2f -> proposed eff %.2f   (current grid: %.2f, n=%d)" % [
 			tag, med_z, clampf(med_z, SQUASH_LO, SQUASH_HI), current, tag_z[tag].size()])
+
+	# --- Mortal-column proposals: each behavior-mapped column proposes on its OWN axis ---
+	for a in columns:
+		if not a.begins_with("mortal_") or not COLUMN_BEHAVIOR.has(a):
+			continue
+		var behavior_name: String = COLUMN_BEHAVIOR[a]
+		var behavior_idx: int = EnemyTags.Behavior.keys().find(behavior_name)
+		if medians[a] < MEDIAN_FLOOR:
+			print("column %s degenerate (median ~0) -- no %s proposals" % [a, behavior_name])
+			continue
+		print("")
+		print("PROPOSED GRID ENTRIES vs %s (from %s, kills/sec vs mortal_baseline):" % [behavior_name, a])
+		var col_tag_z: Dictionary = {}
+		for w in weapon_names:
+			if not z.has(w) or z[w].get(a, -1.0) < 0.0:
+				continue
+			var wz: float = z[w][a]
+			for tag in _weapon_tags(w):
+				if not col_tag_z.has(tag):
+					col_tag_z[tag] = []
+				col_tag_z[tag].append(wz)
+			if absf(wz - 1.0) >= THRESHOLD:
+				print("  %-28s vs %s: Z=%.2f -> eff %.2f" % [
+					w.get_file().replace("_unlock.tres", ""), behavior_name, wz,
+					clampf(wz, SQUASH_LO, SQUASH_HI)])
+		print("BY TAG vs %s (median of member weapons' Z):" % behavior_name)
+		var col_tags: Array = col_tag_z.keys()
+		col_tags.sort()
+		for tag in col_tags:
+			var med_z: float = _median(col_tag_z[tag])
+			if absf(med_z - 1.0) < THRESHOLD:
+				continue
+			var effect_idx: int = WeaponTags.Effect.keys().find(tag)
+			var current: float = WeaponTags.get_counter_effectiveness(effect_idx, behavior_idx) \
+				if effect_idx >= 0 and behavior_idx >= 0 else 1.0
+			print("  Effect.%-16s vs %s: Z=%.2f -> proposed eff %.2f   (current grid: %.2f, n=%d)" % [
+				tag, behavior_name, med_z, clampf(med_z, SQUASH_LO, SQUASH_HI), current,
+				col_tag_z[tag].size()])
+
 	print("")
 	print("Reminder: PROPOSALS ONLY. Keep the grid sparse, hand-review every entry -- feel is law.")
 	get_tree().quit()

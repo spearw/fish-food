@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=5 format=3 uid="uid://benchdummyregen1"]
+
+; Bench fixture -- NOT game content. dummy_baseline.tres with ONLY `regen_per_sec` changed to 8.0
+; (the sea star's authored value), so the measured ratio attributes to the regeneration race alone.
+;
+; MORTAL MODE ONLY: immortal mode floods current_health past max_health, which gates the heal off
+; entirely -- an immortal regen column silently measures baseline. The probe also has to drive
+; tick_regen by hand (it turns enemy physics off to hold the field still).
+
+[ext_resource type="PackedScene" uid="uid://c8xqchpbyvndk" path="res://actors/enemies/behaviors/ai/horde_ai/horde_ai.tscn" id="1_ai"]
+[ext_resource type="Resource" uid="uid://d0b871pkq4rls" path="res://systems/loot/loot_tables/default_loot.tres" id="2_loot"]
+[ext_resource type="Script" uid="uid://b7tpycat8da2s" path="res://actors/enemies/enemy_stats.gd" id="3_script"]
+[ext_resource type="SpriteFrames" uid="uid://bfv7q1d5e6kgi" path="res://actors/enemies/normal_enemy_types/fish/animations/fish_animations.tres" id="4_sprite"]
+
+[resource]
+script = ExtResource("3_script")
+damage = 20
+armor_pen = 0.0
+regen_per_sec = 8.0
+face_movement_direction = false
+rotation_offset_degrees = 0.0
+is_flipped = true
+default_behavior_name = "findalliesbehavior"
+ai_scene = ExtResource("1_ai")
+weapon_scenes = Array[PackedScene]([])
+firerate = 4.0
+challenge_rating = 2.0
+loot_table = ExtResource("2_loot")
+biome_tags = Array[int]([0])
+type_tags = Array[int]([0])
+size_tags = Array[int]([3])
+behavior_tags = Array[int]([4])
+move_speed = 90.0
+display_name = "Dummy Regen"
+max_health = 150
+armor = 0
+sprite_frames = ExtResource("4_sprite")
+modulate = Color(1, 1, 1, 1)
+scale = Vector2(2, 2)
+metadata/_custom_type_script = "uid://b7tpycat8da2s"
